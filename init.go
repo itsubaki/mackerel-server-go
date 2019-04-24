@@ -8,5 +8,5 @@ import (
 
 // GoogleAppEngine Endpoint
 func init() {
-	http.Handle("/", mackerel.Engine())
+	http.Handle("/", mackerel.Default())
 }

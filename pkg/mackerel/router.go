@@ -11,7 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Engine() *gin.Engine {
+func Default() *gin.Engine {
 	return Router(Must(New()))
 }
 
