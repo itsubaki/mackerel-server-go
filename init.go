@@ -1,4 +1,4 @@
-package main
+package init
 
 import (
 	"net/http"
@@ -8,6 +8,5 @@ import (
 )
 
 func init() {
-	h := api.Handler(api.Must(mackerel.New()))
-	http.Handle("/", h)
+	http.Handle("/", api.Router(api.Must(mackerel.New())))
 }

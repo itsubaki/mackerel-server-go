@@ -13,7 +13,7 @@ func Must(m Mackerel, err error) Mackerel {
 	return m
 }
 
-func Handler(m Mackerel) *gin.Engine {
+func Router(m Mackerel) *gin.Engine {
 	g := gin.New()
 
 	v0 := g.Group("/api").Group("/v0")
