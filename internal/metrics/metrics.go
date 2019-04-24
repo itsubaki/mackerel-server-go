@@ -6,6 +6,13 @@ type GetHostMetricsOutput struct {
 	Metrics []MetricValue `json:"metrics"`
 }
 
+type MetricValue struct {
+	HostID string  `json:"hostId,omitempty"`
+	Name   string  `json:"name,omitempty"`
+	Time   int64   `json:"time"`
+	Value  float64 `json:"value"`
+}
+
 func (o *GetHostMetricsOutput) String() string {
 	bytea, err := json.Marshal(o)
 	if err != nil {
@@ -13,11 +20,4 @@ func (o *GetHostMetricsOutput) String() string {
 	}
 
 	return string(bytea)
-}
-
-type MetricValue struct {
-	HostID string  `json:"hostId,omitempty"`
-	Name   string  `json:"name,omitempty"`
-	Time   int64   `json:"time"`
-	Value  float64 `json:"value"`
 }

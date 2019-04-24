@@ -6,15 +6,6 @@ type GetHostOutput struct {
 	Host Host `json:"host"`
 }
 
-func (o *GetHostOutput) String() string {
-	bytea, err := json.Marshal(o)
-	if err != nil {
-		panic(err)
-	}
-
-	return string(bytea)
-}
-
 type Host struct {
 	CreatedAt   int64    `json:"createdAt"`
 	ID          string   `json:"id"`
@@ -25,4 +16,13 @@ type Host struct {
 	IsRetired   bool     `json:"isRetired"`
 	DisplayName string   `json:"displayName"`
 	Meta        string   `json:"meta"`
+}
+
+func (o *GetHostOutput) String() string {
+	bytea, err := json.Marshal(o)
+	if err != nil {
+		panic(err)
+	}
+
+	return string(bytea)
 }
