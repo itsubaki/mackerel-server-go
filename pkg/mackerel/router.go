@@ -11,6 +11,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+func Engine() *gin.Engine {
+	return Router(Must(New()))
+}
+
 func Must(m *Mackerel, err error) *Mackerel {
 	if err != nil {
 		log.Fatalf("new mackerel service: %v", err)
@@ -99,6 +103,19 @@ func Router(m *Mackerel) *gin.Engine {
 			}
 
 			out := m.GetMetricNames(&in)
+			c.JSON(out.Status, out)
+		})
+	}
+
+	{
+		h := v0.Group("/hosts")
+
+		h.GET("/:hostId", func(c *gin.Context) {
+			in := GetHostsInput{
+				HostID: c.Param("hostId"),
+			}
+
+			out := m.GetHosts(&in)
 			c.JSON(out.Status, out)
 		})
 	}

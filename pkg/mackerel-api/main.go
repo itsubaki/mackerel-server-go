@@ -13,7 +13,7 @@ func main() {
 		port = p
 	}
 
-	if err := mackerel.Router(mackerel.Must(mackerel.New())).Run(port); err != nil {
+	if err := mackerel.Engine().Run(port); err != nil {
 		log.Fatalf("run mackerel-api: %v", err)
 	}
 }

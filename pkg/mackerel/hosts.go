@@ -1,7 +1,12 @@
 package mackerel
 
-type GetHostOutput struct {
-	Host Host `json:"host"`
+type GetHostsInput struct {
+	HostID string
+}
+
+type GetHostsOutput struct {
+	Status int  `json:"-"`
+	Host   Host `json:"host"`
 }
 
 type Host struct {

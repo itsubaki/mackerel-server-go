@@ -35,3 +35,7 @@ func (m *Mackerel) DeleteRoles(in *DeleteRolesInput) *DeleteRolesOutput {
 func (m *Mackerel) GetMetricNames(in *GetMetricNamesInput) *GetMetricNamesOutput {
 	return &GetMetricNamesOutput{}
 }
+
+func (m *Mackerel) GetHosts(in *GetHostsInput) *GetHostsOutput {
+	return &GetHostsOutput{}
+}
