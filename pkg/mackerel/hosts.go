@@ -1,6 +1,4 @@
-package hosts
-
-import "encoding/json"
+package mackerel
 
 type GetHostOutput struct {
 	Host Host `json:"host"`
@@ -16,13 +14,4 @@ type Host struct {
 	IsRetired   bool     `json:"isRetired"`
 	DisplayName string   `json:"displayName"`
 	Meta        string   `json:"meta"`
-}
-
-func (o *GetHostOutput) String() string {
-	bytea, err := json.Marshal(o)
-	if err != nil {
-		panic(err)
-	}
-
-	return string(bytea)
 }

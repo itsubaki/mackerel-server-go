@@ -1,6 +1,4 @@
-package services
-
-import "encoding/json"
+package mackerel
 
 type Service struct {
 	Name  string   `json:"name"`
@@ -30,31 +28,4 @@ type DeleteServicesInput struct {
 type DeleteServicesOutput struct {
 	Status int `json:"-"`
 	Service
-}
-
-func (o *GetServicesOutput) String() string {
-	bytea, err := json.Marshal(o)
-	if err != nil {
-		panic(err)
-	}
-
-	return string(bytea)
-}
-
-func (o *PostServicesOutput) String() string {
-	bytea, err := json.Marshal(o)
-	if err != nil {
-		panic(err)
-	}
-
-	return string(bytea)
-}
-
-func (o *DeleteServicesOutput) String() string {
-	bytea, err := json.Marshal(o)
-	if err != nil {
-		panic(err)
-	}
-
-	return string(bytea)
 }

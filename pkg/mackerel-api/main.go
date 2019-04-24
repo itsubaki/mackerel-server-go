@@ -4,7 +4,6 @@ import (
 	"log"
 	"os"
 
-	"github.com/itsubaki/mackerel-api/pkg/api"
 	"github.com/itsubaki/mackerel-api/pkg/mackerel"
 )
 
@@ -14,7 +13,7 @@ func main() {
 		port = p
 	}
 
-	if err := api.Router(api.Must(mackerel.New())).Run(port); err != nil {
+	if err := mackerel.Router(mackerel.Must(mackerel.New())).Run(port); err != nil {
 		log.Fatalf("run mackerel-api: %v", err)
 	}
 }

@@ -1,4 +1,4 @@
-package api
+package mackerel
 
 import (
 	"encoding/json"
@@ -9,17 +9,16 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/itsubaki/mackerel-api/internal/services"
 )
 
-func Must(m Mackerel, err error) Mackerel {
+func Must(m *Mackerel, err error) *Mackerel {
 	if err != nil {
 		log.Fatalf("new mackerel service: %v", err)
 	}
 	return m
 }
 
-func Router(m Mackerel) *gin.Engine {
+func Router(m *Mackerel) *gin.Engine {
 	g := gin.New()
 
 	g.GET("/", func(c *gin.Context) {
@@ -39,7 +38,7 @@ func Router(m Mackerel) *gin.Engine {
 
 		// https://mackerel.io/api-docs/entry/services#create
 		s.POST("", func(c *gin.Context) {
-			var in services.PostServicesInput
+			var in PostServicesInput
 			if st, err := parse(c.Request.Body, &in); err != nil {
 				c.JSON(st, fmt.Errorf("invalid request: %v", err))
 				return
@@ -51,7 +50,7 @@ func Router(m Mackerel) *gin.Engine {
 
 		// https://mackerel.io/api-docs/entry/services#delete
 		s.DELETE("/:serviceName", func(c *gin.Context) {
-			in := services.DeleteServicesInput{
+			in := DeleteServicesInput{
 				ServiceName: c.Param("serviceName"),
 			}
 
@@ -61,7 +60,7 @@ func Router(m Mackerel) *gin.Engine {
 
 		// https://mackerel.io/api-docs/entry/services#rolelist
 		s.GET("/:serviceName/roles", func(c *gin.Context) {
-			in := services.GetRolesInput{
+			in := GetRolesInput{
 				ServiceName: c.Param("serviceName"),
 			}
 
@@ -71,7 +70,7 @@ func Router(m Mackerel) *gin.Engine {
 
 		// https://mackerel.io/api-docs/entry/services#rolecreate
 		s.POST("/:serviceName/roles", func(c *gin.Context) {
-			var in services.PostRolesInput
+			var in PostRolesInput
 			if st, err := parse(c.Request.Body, &in); err != nil {
 				c.JSON(st, fmt.Errorf("invalid request: %v", err))
 				return
@@ -84,7 +83,7 @@ func Router(m Mackerel) *gin.Engine {
 
 		// https://mackerel.io/api-docs/entry/services#roledelete
 		s.DELETE("/:serviceName/roles/:roleName", func(c *gin.Context) {
-			in := services.DeleteRolesInput{
+			in := DeleteRolesInput{
 				ServiceName: c.Param("serviceName"),
 				RoleName:    c.Param("roleName"),
 			}
@@ -95,7 +94,7 @@ func Router(m Mackerel) *gin.Engine {
 
 		// https://mackerel.io/api-docs/entry/services#metric-names
 		s.GET("/:serviceName/metric-names", func(c *gin.Context) {
-			in := services.GetMetricNamesInput{
+			in := GetMetricNamesInput{
 				ServiceName: c.Param("serviceName"),
 			}
 

@@ -1,4 +1,4 @@
-package services
+package mackerel
 
 type Role struct {
 	Name string `json:"name"`
