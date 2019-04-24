@@ -11,21 +11,21 @@ type GetServicesOutput struct {
 	Services []Service `json:"services"`
 }
 
-type PostServicesInput struct {
+type PostServiceInput struct {
 	Name string `json:"name"`
 	Memo string `json:"memo"`
 }
 
-type PostServicesOutput struct {
+type PostServiceOutput struct {
 	Status int `json:"-"`
 	Service
 }
 
-type DeleteServicesInput struct {
+type DeleteServiceInput struct {
 	ServiceName string
 }
 
-type DeleteServicesOutput struct {
+type DeleteServiceOutput struct {
 	Status int `json:"-"`
 	Service
 }

@@ -14,24 +14,24 @@ type GetRolesOutput struct {
 	Roles  []Role `json:"roles"`
 }
 
-type PostRolesInput struct {
+type PostRoleInput struct {
 	ServiceName string `json:"serviceName"`
 	Name        string `json:"name"`
 	Memo        string `json:"memo"`
 }
 
-type PostRolesOutput struct {
+type PostRoleOutput struct {
 	Status int    `json:"-"`
 	Name   string `json:"name"`
 	Memo   string `json:"memo"`
 }
 
-type DeleteRolesInput struct {
+type DeleteRoleInput struct {
 	ServiceName string `json:"serviceName"`
 	RoleName    string `json:"name"`
 }
 
-type DeleteRolesOutput struct {
+type DeleteRoleOutput struct {
 	Status int    `json:"-"`
 	Name   string `json:"name"`
 	Memo   string `json:"memo"`

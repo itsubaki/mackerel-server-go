@@ -42,23 +42,23 @@ func Router(m *Mackerel) *gin.Engine {
 
 		// https://mackerel.io/api-docs/entry/services#create
 		s.POST("", func(c *gin.Context) {
-			var in PostServicesInput
+			var in PostServiceInput
 			if st, err := parse(c.Request.Body, &in); err != nil {
 				c.JSON(st, fmt.Errorf("invalid request: %v", err))
 				return
 			}
 
-			out := m.PostServices(&in)
+			out := m.PostService(&in)
 			c.JSON(out.Status, out)
 		})
 
 		// https://mackerel.io/api-docs/entry/services#delete
 		s.DELETE("/:serviceName", func(c *gin.Context) {
-			in := DeleteServicesInput{
+			in := DeleteServiceInput{
 				ServiceName: c.Param("serviceName"),
 			}
 
-			out := m.DeleteServices(&in)
+			out := m.DeleteService(&in)
 			c.JSON(out.Status, out)
 		})
 
@@ -74,25 +74,25 @@ func Router(m *Mackerel) *gin.Engine {
 
 		// https://mackerel.io/api-docs/entry/services#rolecreate
 		s.POST("/:serviceName/roles", func(c *gin.Context) {
-			var in PostRolesInput
+			var in PostRoleInput
 			if st, err := parse(c.Request.Body, &in); err != nil {
 				c.JSON(st, fmt.Errorf("invalid request: %v", err))
 				return
 			}
 			in.ServiceName = c.Param("serviceName")
 
-			out := m.PostRoles(&in)
+			out := m.PostRole(&in)
 			c.JSON(out.Status, out)
 		})
 
 		// https://mackerel.io/api-docs/entry/services#roledelete
 		s.DELETE("/:serviceName/roles/:roleName", func(c *gin.Context) {
-			in := DeleteRolesInput{
+			in := DeleteRoleInput{
 				ServiceName: c.Param("serviceName"),
 				RoleName:    c.Param("roleName"),
 			}
 
-			out := m.DeleteRoles(&in)
+			out := m.DeleteRole(&in)
 			c.JSON(out.Status, out)
 		})
 
@@ -110,12 +110,17 @@ func Router(m *Mackerel) *gin.Engine {
 	{
 		h := v0.Group("/hosts")
 
+		h.GET("", func(c *gin.Context) {
+			out := m.GetHosts()
+			c.JSON(out.Status, out)
+		})
+
 		h.GET("/:hostId", func(c *gin.Context) {
-			in := GetHostsInput{
+			in := GetHostInput{
 				HostID: c.Param("hostId"),
 			}
 
-			out := m.GetHosts(&in)
+			out := m.GetHost(&in)
 			c.JSON(out.Status, out)
 		})
 	}
