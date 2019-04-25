@@ -1,5 +1,7 @@
 package mackerel
 
+import "fmt"
+
 type GetRolesInput struct {
 	ServiceName string
 }
@@ -30,6 +32,64 @@ type DeleteRoleOutput struct {
 }
 
 type Role struct {
-	Name string `json:"name"`
-	Memo string `json:"memo"`
+	ServiceName string `json:"-"`
+	Name        string `json:"name"`
+	Memo        string `json:"memo"`
+}
+
+type RoleRepository struct {
+	Internal []Role
+}
+
+func NewRoleRepository() *RoleRepository {
+	return &RoleRepository{
+		Internal: []Role{},
+	}
+}
+
+func (repo *RoleRepository) Exist(serviceName, roleName string) bool {
+	for i := range repo.Internal {
+		if repo.Internal[i].ServiceName == serviceName && repo.Internal[i].Name == roleName {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (repo *RoleRepository) Find(serviceName, roleName string) (Role, error) {
+	for i := range repo.Internal {
+		if repo.Internal[i].ServiceName == serviceName && repo.Internal[i].Name == roleName {
+			return repo.Internal[i], nil
+		}
+	}
+
+	return Role{}, fmt.Errorf("role not found")
+}
+
+func (repo *RoleRepository) FindAll(serviceName string) ([]Role, error) {
+	list := []Role{}
+	for i := range repo.Internal {
+		if repo.Internal[i].ServiceName == serviceName {
+			list = append(list, repo.Internal[i])
+		}
+	}
+
+	return list, nil
+}
+
+func (repo *RoleRepository) Insert(r Role) error {
+	repo.Internal = append(repo.Internal, r)
+	return nil
+}
+
+func (repo *RoleRepository) Delete(serviceName, roleName string) error {
+	list := []Role{}
+	for i := range repo.Internal {
+		if repo.Internal[i].ServiceName != serviceName || repo.Internal[i].Name != roleName {
+			list = append(list, repo.Internal[i])
+		}
+	}
+	repo.Internal = list
+	return nil
 }

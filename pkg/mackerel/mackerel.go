@@ -4,12 +4,18 @@ import "regexp"
 
 func New() (*Mackerel, error) {
 	return &Mackerel{
-		ServiceRepository: NewServiceRepository(),
+		ServiceRepository:     NewServiceRepository(),
+		RoleRepository:        NewRoleRepository(),
+		MetricValueRepository: NewMetricValueRepository(),
+		HostRepository:        NewHostRepository(),
 	}, nil
 }
 
 type Mackerel struct {
-	ServiceRepository *ServiceRepository
+	ServiceRepository     *ServiceRepository
+	RoleRepository        *RoleRepository
+	MetricValueRepository *MetricValueRepository
+	HostRepository        *HostRepository
 }
 
 func (m *Mackerel) GetServices() (*GetServicesOutput, error) {
@@ -47,31 +53,85 @@ func (m *Mackerel) DeleteService(in *DeleteServiceInput) (*DeleteServiceOutput, 
 		return nil, &ServiceNotFound{}
 	}
 
+	r, err := m.RoleRepository.FindAll(in.ServiceName)
+	if err != nil {
+		return nil, err
+	}
+
+	for i := range r {
+		if err := m.RoleRepository.Delete(r[i].ServiceName, r[i].Name); err != nil {
+			return nil, err
+		}
+	}
+
 	if err := m.ServiceRepository.Delete(in.ServiceName); err != nil {
 		return nil, err
+	}
+
+	roles := []string{}
+	for i := range r {
+		roles = append(roles, r[i].Name)
 	}
 
 	return &DeleteServiceOutput{
 		Name:  s.Name,
 		Memo:  s.Memo,
-		Roles: s.Roles,
+		Roles: roles,
 	}, nil
 }
 
 func (m *Mackerel) GetRoles(in *GetRolesInput) (*GetRolesOutput, error) {
-	return &GetRolesOutput{}, nil
+	list, err := m.RoleRepository.FindAll(in.ServiceName)
+	if err != nil {
+		return nil, &ServiceNotFound{}
+	}
+
+	return &GetRolesOutput{Roles: list}, nil
 }
 
 func (m *Mackerel) PostRole(in *PostRoleInput) (*PostRoleOutput, error) {
-	return &PostRoleOutput{}, nil
+	if !regexp.MustCompile(`^[a-zA-Z]{1,1}[a-zA-Z0-9_-]{1,62}`).Match([]byte(in.Name)) {
+		return nil, &InvalidRoleName{}
+	}
+
+	if m.RoleRepository.Exist(in.ServiceName, in.Name) {
+		return nil, &InvalidRoleName{}
+	}
+
+	m.RoleRepository.Insert(Role{
+		ServiceName: in.ServiceName,
+		Name:        in.Name,
+		Memo:        in.Memo,
+	})
+
+	return &PostRoleOutput{
+		Name: in.Name,
+		Memo: in.Memo,
+	}, nil
 }
 
 func (m *Mackerel) DeleteRole(in *DeleteRoleInput) (*DeleteRoleOutput, error) {
-	return &DeleteRoleOutput{}, nil
+	r, err := m.RoleRepository.Find(in.ServiceName, in.RoleName)
+	if err != nil {
+		return nil, &RoleNotFound{}
+	}
+
+	if err := m.RoleRepository.Delete(in.ServiceName, in.RoleName); err != nil {
+		return nil, err
+	}
+
+	return &DeleteRoleOutput{
+		Name: r.Name,
+		Memo: r.Memo,
+	}, nil
 }
 
 func (m *Mackerel) GetMetricNames(in *GetMetricNamesInput) (*GetMetricNamesOutput, error) {
 	return &GetMetricNamesOutput{}, nil
+}
+
+func (m *Mackerel) PostHost(in *PostHostInput) (*PostHostOutput, error) {
+	return &PostHostOutput{}, nil
 }
 
 func (m *Mackerel) GetHosts() (*GetHostsOutput, error) {

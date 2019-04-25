@@ -22,3 +22,13 @@ type MetricValue struct {
 	Time   int64   `json:"time"`
 	Value  float64 `json:"value"`
 }
+
+type MetricValueRepository struct {
+	Internal []MetricValue
+}
+
+func NewMetricValueRepository() *MetricValueRepository {
+	return &MetricValueRepository{
+		Internal: []MetricValue{},
+	}
+}

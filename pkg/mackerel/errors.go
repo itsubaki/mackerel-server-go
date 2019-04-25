@@ -19,3 +19,19 @@ type PermissionDenied struct {
 type ServiceNotFound struct {
 	Err
 }
+
+type InvalidRoleName struct {
+	Err
+}
+
+type RoleNotFound struct {
+	Err
+}
+
+type InvalidJSONFormat struct {
+	Err
+}
+
+type HostNotFound struct {
+	Err
+}
