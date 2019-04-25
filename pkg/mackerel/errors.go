@@ -15,3 +15,7 @@ type InvalidServiceName struct {
 type PermissionDenied struct {
 	*Err
 }
+
+type ServiceNotFound struct {
+	*Err
+}

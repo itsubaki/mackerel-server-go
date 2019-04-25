@@ -1,10 +1,5 @@
 package mackerel
 
-type Role struct {
-	Name string `json:"name"`
-	Memo string `json:"memo"`
-}
-
 type GetRolesInput struct {
 	ServiceName string
 }
@@ -30,6 +25,11 @@ type DeleteRoleInput struct {
 }
 
 type DeleteRoleOutput struct {
+	Name string `json:"name"`
+	Memo string `json:"memo"`
+}
+
+type Role struct {
 	Name string `json:"name"`
 	Memo string `json:"memo"`
 }

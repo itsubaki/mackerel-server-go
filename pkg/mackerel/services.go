@@ -2,6 +2,23 @@ package mackerel
 
 import "fmt"
 
+type GetServicesOutput struct {
+	Services []Service `json:"services"`
+}
+
+type PostServiceInput struct {
+	Name string `json:"name"`
+	Memo string `json:"memo"`
+}
+
+type PostServiceOutput Service
+
+type DeleteServiceInput struct {
+	ServiceName string
+}
+
+type DeleteServiceOutput Service
+
 type Service struct {
 	Name  string   `json:"name"`
 	Memo  string   `json:"memo"`
@@ -16,6 +33,16 @@ func NewServiceRepository() *ServiceRepository {
 	return &ServiceRepository{
 		Internal: []Service{},
 	}
+}
+
+func (repo *ServiceRepository) Exist(serviceName string) bool {
+	for i := range repo.Internal {
+		if repo.Internal[i].Name == serviceName {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (repo *ServiceRepository) Find(s Service) (Service, error) {
@@ -37,30 +64,13 @@ func (repo *ServiceRepository) Insert(s Service) error {
 	return nil
 }
 
-func (repo *ServiceRepository) Delete(s Service) error {
+func (repo *ServiceRepository) Delete(serviceName string) error {
 	list := []Service{}
 	for i := range repo.Internal {
-		if repo.Internal[i].Name != s.Name {
+		if repo.Internal[i].Name != serviceName {
 			list = append(list, repo.Internal[i])
 		}
 	}
 	repo.Internal = list
 	return nil
 }
-
-type GetServicesOutput struct {
-	Services []Service `json:"services"`
-}
-
-type PostServiceInput struct {
-	Name string `json:"name"`
-	Memo string `json:"memo"`
-}
-
-type PostServiceOutput Service
-
-type DeleteServiceInput struct {
-	ServiceName string
-}
-
-type DeleteServiceOutput Service

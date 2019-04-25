@@ -14,15 +14,15 @@ type Mackerel struct {
 
 func (m *Mackerel) GetServices() (*GetServicesOutput, error) {
 	list, err := m.ServiceRepository.FindAll()
-	if err != nil {
-		return nil, err
-	}
-
-	return &GetServicesOutput{Services: list}, nil
+	return &GetServicesOutput{Services: list}, err
 }
 
 func (m *Mackerel) PostService(in *PostServiceInput) (*PostServiceOutput, error) {
 	if !regexp.MustCompile(`[a-zA-Z][a-zA-Z0-9_-]{1,62}`).Match([]byte(in.Name)) {
+		return nil, &InvalidServiceName{}
+	}
+
+	if m.ServiceRepository.Exist(in.Name) {
 		return nil, &InvalidServiceName{}
 	}
 
@@ -40,16 +40,12 @@ func (m *Mackerel) PostService(in *PostServiceInput) (*PostServiceOutput, error)
 }
 
 func (m *Mackerel) DeleteService(in *DeleteServiceInput) (*DeleteServiceOutput, error) {
-	s, err := m.ServiceRepository.Find(Service{
-		Name: in.ServiceName,
-	})
+	s, err := m.ServiceRepository.Find(Service{Name: in.ServiceName})
 	if err != nil {
-		return nil, err
+		return nil, &ServiceNotFound{}
 	}
 
-	if err := m.ServiceRepository.Delete(Service{
-		Name: in.ServiceName,
-	}); err != nil {
+	if err := m.ServiceRepository.Delete(in.ServiceName); err != nil {
 		return nil, err
 	}
 
@@ -57,7 +53,7 @@ func (m *Mackerel) DeleteService(in *DeleteServiceInput) (*DeleteServiceOutput, 
 		Name:  s.Name,
 		Memo:  s.Memo,
 		Roles: s.Roles,
-	}, err
+	}, nil
 }
 
 func (m *Mackerel) GetRoles(in *GetRolesInput) (*GetRolesOutput, error) {
