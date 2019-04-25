@@ -55,10 +55,10 @@ func ApiV0Services(v0 *gin.RouterGroup, m *Mackerel) {
 
 		out, err := m.PostService(&in)
 		switch err.(type) {
-		case PermissionDenied:
+		case *PermissionDenied:
 			c.Status(http.StatusForbidden)
 			return
-		case InvalidServiceName:
+		case *InvalidServiceName:
 			c.Status(http.StatusBadRequest)
 			return
 		}
@@ -74,10 +74,10 @@ func ApiV0Services(v0 *gin.RouterGroup, m *Mackerel) {
 
 		out, err := m.DeleteService(&in)
 		switch err.(type) {
-		case PermissionDenied:
+		case *PermissionDenied:
 			c.Status(http.StatusForbidden)
 			return
-		case ServiceNotFound:
+		case *ServiceNotFound:
 			c.Status(http.StatusNotFound)
 			return
 		}

@@ -9,13 +9,13 @@ func (e *Err) Error() string {
 }
 
 type InvalidServiceName struct {
-	*Err
+	Err
 }
 
 type PermissionDenied struct {
-	*Err
+	Err
 }
 
 type ServiceNotFound struct {
-	*Err
+	Err
 }

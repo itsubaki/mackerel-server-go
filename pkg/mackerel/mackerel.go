@@ -18,7 +18,7 @@ func (m *Mackerel) GetServices() (*GetServicesOutput, error) {
 }
 
 func (m *Mackerel) PostService(in *PostServiceInput) (*PostServiceOutput, error) {
-	if !regexp.MustCompile(`[a-zA-Z][a-zA-Z0-9_-]{1,62}`).Match([]byte(in.Name)) {
+	if !regexp.MustCompile(`^[a-zA-Z]{1,1}[a-zA-Z0-9_-]{1,62}`).Match([]byte(in.Name)) {
 		return nil, &InvalidServiceName{}
 	}
 
@@ -27,15 +27,17 @@ func (m *Mackerel) PostService(in *PostServiceInput) (*PostServiceOutput, error)
 	}
 
 	if err := m.ServiceRepository.Insert(Service{
-		Name: in.Name,
-		Memo: in.Memo,
+		Name:  in.Name,
+		Memo:  in.Memo,
+		Roles: []string{},
 	}); err != nil {
 		return nil, err
 	}
 
 	return &PostServiceOutput{
-		Name: in.Name,
-		Memo: in.Memo,
+		Name:  in.Name,
+		Memo:  in.Memo,
+		Roles: []string{},
 	}, nil
 }
 
