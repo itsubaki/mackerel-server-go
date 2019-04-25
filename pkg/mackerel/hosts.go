@@ -5,13 +5,11 @@ type GetHostInput struct {
 }
 
 type GetHostOutput struct {
-	Status int  `json:"-"`
-	Host   Host `json:"host"`
+	Host Host `json:"host"`
 }
 
 type GetHostsOutput struct {
-	Status int    `json:"-"`
-	Host   []Host `json:"hosts"`
+	Host []Host `json:"hosts"`
 }
 
 type Host struct {

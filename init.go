@@ -6,7 +6,7 @@ import (
 	"github.com/itsubaki/mackerel-api/pkg/mackerel"
 )
 
-// GoogleAppEngine Endpoint
+// GoogleAppEngine endpoint
 func init() {
 	http.Handle("/", mackerel.Default())
 }

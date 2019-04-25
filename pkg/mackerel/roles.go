@@ -10,8 +10,7 @@ type GetRolesInput struct {
 }
 
 type GetRolesOutput struct {
-	Status int    `json:"-"`
-	Roles  []Role `json:"roles"`
+	Roles []Role `json:"roles"`
 }
 
 type PostRoleInput struct {
@@ -21,9 +20,8 @@ type PostRoleInput struct {
 }
 
 type PostRoleOutput struct {
-	Status int    `json:"-"`
-	Name   string `json:"name"`
-	Memo   string `json:"memo"`
+	Name string `json:"name"`
+	Memo string `json:"memo"`
 }
 
 type DeleteRoleInput struct {
@@ -32,7 +30,6 @@ type DeleteRoleInput struct {
 }
 
 type DeleteRoleOutput struct {
-	Status int    `json:"-"`
-	Name   string `json:"name"`
-	Memo   string `json:"memo"`
+	Name string `json:"name"`
+	Memo string `json:"memo"`
 }

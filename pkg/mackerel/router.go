@@ -36,8 +36,8 @@ func Router(m *Mackerel) *gin.Engine {
 
 		// https://mackerel.io/api-docs/entry/services#list
 		s.GET("", func(c *gin.Context) {
-			out := m.GetServices()
-			c.JSON(out.Status, out)
+			out, _ := m.GetServices()
+			c.JSON(200, out)
 		})
 
 		// https://mackerel.io/api-docs/entry/services#create
@@ -48,8 +48,8 @@ func Router(m *Mackerel) *gin.Engine {
 				return
 			}
 
-			out := m.PostService(&in)
-			c.JSON(out.Status, out)
+			out, _ := m.PostService(&in)
+			c.JSON(200, out)
 		})
 
 		// https://mackerel.io/api-docs/entry/services#delete
@@ -58,8 +58,8 @@ func Router(m *Mackerel) *gin.Engine {
 				ServiceName: c.Param("serviceName"),
 			}
 
-			out := m.DeleteService(&in)
-			c.JSON(out.Status, out)
+			out, _ := m.DeleteService(&in)
+			c.JSON(200, out)
 		})
 
 		// https://mackerel.io/api-docs/entry/services#rolelist
@@ -68,8 +68,8 @@ func Router(m *Mackerel) *gin.Engine {
 				ServiceName: c.Param("serviceName"),
 			}
 
-			out := m.GetRoles(&in)
-			c.JSON(out.Status, out)
+			out, _ := m.GetRoles(&in)
+			c.JSON(200, out)
 		})
 
 		// https://mackerel.io/api-docs/entry/services#rolecreate
@@ -81,8 +81,8 @@ func Router(m *Mackerel) *gin.Engine {
 			}
 			in.ServiceName = c.Param("serviceName")
 
-			out := m.PostRole(&in)
-			c.JSON(out.Status, out)
+			out, _ := m.PostRole(&in)
+			c.JSON(200, out)
 		})
 
 		// https://mackerel.io/api-docs/entry/services#roledelete
@@ -92,8 +92,8 @@ func Router(m *Mackerel) *gin.Engine {
 				RoleName:    c.Param("roleName"),
 			}
 
-			out := m.DeleteRole(&in)
-			c.JSON(out.Status, out)
+			out, _ := m.DeleteRole(&in)
+			c.JSON(200, out)
 		})
 
 		// https://mackerel.io/api-docs/entry/services#metric-names
@@ -102,8 +102,8 @@ func Router(m *Mackerel) *gin.Engine {
 				ServiceName: c.Param("serviceName"),
 			}
 
-			out := m.GetMetricNames(&in)
-			c.JSON(out.Status, out)
+			out, _ := m.GetMetricNames(&in)
+			c.JSON(200, out)
 		})
 	}
 
@@ -111,8 +111,8 @@ func Router(m *Mackerel) *gin.Engine {
 		h := v0.Group("/hosts")
 
 		h.GET("", func(c *gin.Context) {
-			out := m.GetHosts()
-			c.JSON(out.Status, out)
+			out, _ := m.GetHosts()
+			c.JSON(200, out)
 		})
 
 		h.GET("/:hostId", func(c *gin.Context) {
@@ -120,8 +120,8 @@ func Router(m *Mackerel) *gin.Engine {
 				HostID: c.Param("hostId"),
 			}
 
-			out := m.GetHost(&in)
-			c.JSON(out.Status, out)
+			out, _ := m.GetHost(&in)
+			c.JSON(200, out)
 		})
 	}
 
