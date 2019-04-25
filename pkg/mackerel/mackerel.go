@@ -18,7 +18,7 @@ type Mackerel struct {
 	HostRepository        *HostRepository
 }
 
-func (m *Mackerel) GetServices() (*GetServicesOutput, error) {
+func (m *Mackerel) GetServices(in *GetServicesInput) (*GetServicesOutput, error) {
 	list, err := m.ServiceRepository.FindAll()
 	return &GetServicesOutput{Services: list}, err
 }
@@ -41,14 +41,16 @@ func (m *Mackerel) PostService(in *PostServiceInput) (*PostServiceOutput, error)
 	}
 
 	return &PostServiceOutput{
-		Name:  in.Name,
-		Memo:  in.Memo,
-		Roles: []string{},
+		Service: Service{
+			Name:  in.Name,
+			Memo:  in.Memo,
+			Roles: []string{},
+		},
 	}, nil
 }
 
 func (m *Mackerel) DeleteService(in *DeleteServiceInput) (*DeleteServiceOutput, error) {
-	s, err := m.ServiceRepository.Find(Service{Name: in.ServiceName})
+	s, err := m.ServiceRepository.Find(in.ServiceName)
 	if err != nil {
 		return nil, &ServiceNotFound{}
 	}
@@ -74,9 +76,11 @@ func (m *Mackerel) DeleteService(in *DeleteServiceInput) (*DeleteServiceOutput, 
 	}
 
 	return &DeleteServiceOutput{
-		Name:  s.Name,
-		Memo:  s.Memo,
-		Roles: roles,
+		Service: Service{
+			Name:  s.Name,
+			Memo:  s.Memo,
+			Roles: roles,
+		},
 	}, nil
 }
 

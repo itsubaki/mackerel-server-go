@@ -2,6 +2,9 @@ package mackerel
 
 import "fmt"
 
+type GetServicesInput struct {
+}
+
 type GetServicesOutput struct {
 	Services []Service `json:"services"`
 }
@@ -11,13 +14,17 @@ type PostServiceInput struct {
 	Memo string `json:"memo"`
 }
 
-type PostServiceOutput Service
+type PostServiceOutput struct {
+	Service
+}
 
 type DeleteServiceInput struct {
 	ServiceName string
 }
 
-type DeleteServiceOutput Service
+type DeleteServiceOutput struct {
+	Service
+}
 
 type Service struct {
 	Name  string   `json:"name"`
@@ -45,9 +52,9 @@ func (repo *ServiceRepository) Exist(serviceName string) bool {
 	return false
 }
 
-func (repo *ServiceRepository) Find(s Service) (Service, error) {
+func (repo *ServiceRepository) Find(serviceName string) (Service, error) {
 	for i := range repo.Internal {
-		if repo.Internal[i].Name == s.Name {
+		if repo.Internal[i].Name == serviceName {
 			return repo.Internal[i], nil
 		}
 	}

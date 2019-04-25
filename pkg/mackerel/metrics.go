@@ -4,7 +4,9 @@ type GetMetricNamesInput struct {
 	ServiceName string
 }
 
-type GetMetricNamesOutput MetricNames
+type GetMetricNamesOutput struct {
+	MetricNames
+}
 
 type GetHostMetricsInput struct{}
 

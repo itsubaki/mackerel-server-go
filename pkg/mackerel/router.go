@@ -12,7 +12,7 @@ import (
 )
 
 func Default() *gin.Engine {
-	return Router(Must(New()))
+	return Router(gin.Default(), Must(New()))
 }
 
 func Must(m *Mackerel, err error) *Mackerel {
@@ -22,9 +22,7 @@ func Must(m *Mackerel, err error) *Mackerel {
 	return m
 }
 
-func Router(m *Mackerel) *gin.Engine {
-	g := gin.New()
-
+func Router(g *gin.Engine, m *Mackerel) *gin.Engine {
 	g.GET("/", func(c *gin.Context) {
 		c.Status(http.StatusOK)
 	})
@@ -84,7 +82,7 @@ func ApiV0Services(v0 *gin.RouterGroup, m *Mackerel) {
 
 	// https://mackerel.io/api-docs/entry/services#list
 	s.GET("", func(c *gin.Context) {
-		out, err := m.GetServices()
+		out, err := m.GetServices(&GetServicesInput{})
 		doResponse(c, out, err)
 	})
 
