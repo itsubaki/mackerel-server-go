@@ -43,12 +43,21 @@ func Router(m *Mackerel) *gin.Engine {
 		// https://mackerel.io/api-docs/entry/services#create
 		s.POST("", func(c *gin.Context) {
 			var in PostServiceInput
-			if st, err := parse(c.Request.Body, &in); err != nil {
-				c.JSON(st, fmt.Errorf("invalid request: %v", err))
+			if status, err := parse(c.Request.Body, &in); err != nil {
+				c.Status(status)
 				return
 			}
 
-			out, _ := m.PostService(&in)
+			out, err := m.PostService(&in)
+			switch err.(type) {
+			case PermissionDenied:
+				c.Status(http.StatusForbidden)
+				return
+			case InvalidServiceName:
+				c.Status(http.StatusBadRequest)
+				return
+			}
+
 			c.JSON(200, out)
 		})
 

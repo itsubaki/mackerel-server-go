@@ -1,5 +1,7 @@
 package mackerel
 
+import "regexp"
+
 func New() (*Mackerel, error) {
 	return &Mackerel{
 		ServiceRepository: NewServiceRepository(),
@@ -20,6 +22,10 @@ func (m *Mackerel) GetServices() (*GetServicesOutput, error) {
 }
 
 func (m *Mackerel) PostService(in *PostServiceInput) (*PostServiceOutput, error) {
+	if !regexp.MustCompile(`[a-zA-Z][a-zA-Z0-9_-]{1,62}`).Match([]byte(in.Name)) {
+		return nil, &InvalidServiceName{}
+	}
+
 	if err := m.ServiceRepository.Insert(Service{
 		Name: in.Name,
 		Memo: in.Memo,
