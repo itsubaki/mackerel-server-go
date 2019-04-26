@@ -9,7 +9,7 @@ type PostHostOutput struct {
 }
 
 type GetHostInput struct {
-	HostID string
+	HostID string `json:"-"`
 }
 
 type GetHostOutput struct {
@@ -17,7 +17,7 @@ type GetHostOutput struct {
 }
 
 type PutHostInput struct {
-	HostID string
+	HostID string `json:"-"`
 	Host
 }
 
@@ -52,11 +52,11 @@ type PostHostRetiredOutput struct {
 }
 
 type GetHostsInput struct {
-	ServiceName      string
-	RoleName         []string
-	Name             string
-	Status           string
-	CustomIdentifier string
+	ServiceName      string   `json:"-"`
+	RoleName         []string `json:"-"`
+	Name             string   `json:"-"`
+	Status           string   `json:"-"`
+	CustomIdentifier string   `json:"-"`
 }
 
 type GetHostsOutput struct {

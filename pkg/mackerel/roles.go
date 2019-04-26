@@ -3,7 +3,7 @@ package mackerel
 import "fmt"
 
 type GetRolesInput struct {
-	ServiceName string
+	ServiceName string `json:"-"`
 }
 
 type GetRolesOutput struct {
@@ -22,7 +22,7 @@ type PostRoleOutput struct {
 }
 
 type DeleteRoleInput struct {
-	ServiceName string `json:"serviceName"`
+	ServiceName string `json:"-"`
 	RoleName    string `json:"name"`
 }
 

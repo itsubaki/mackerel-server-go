@@ -19,7 +19,7 @@ type PostServiceOutput struct {
 }
 
 type DeleteServiceInput struct {
-	ServiceName string
+	ServiceName string `json:"-"`
 }
 
 type DeleteServiceOutput struct {
@@ -27,7 +27,7 @@ type DeleteServiceOutput struct {
 }
 
 type GetMetricNamesInput struct {
-	ServiceName string
+	ServiceName string `json:"-"`
 }
 
 type GetMetricNamesOutput struct {
