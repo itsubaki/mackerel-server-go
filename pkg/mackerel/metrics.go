@@ -1,17 +1,44 @@
 package mackerel
 
-type GetMetricNamesInput struct {
-	ServiceName string
+type PostHostMetricInput []MetricValue
+
+type PostHostMetricOutput struct {
+	Success bool `json:"success"`
 }
 
-type GetMetricNamesOutput struct {
-	MetricNames
+type GetHostMetricInput struct {
+	HostID string `json:"-"`
+	Name   string `json:"-"`
+	From   string `json:"-"`
+	To     string `json:"-"`
 }
 
-type GetHostMetricsInput struct{}
-
-type GetHostMetricsOutput struct {
+type GetHostMetricOutput struct {
 	Metrics []MetricValue `json:"metrics"`
+}
+
+type GetHostMetricLatestInput struct {
+	HostID string `json:"-"`
+	Name   string `json:"-"`
+}
+
+type GetHostMetricLatestOutput struct {
+	TSDBLatest map[string]map[string]float64 `json:"tsdbLatest"`
+}
+
+type PostCustomMetricDefInput []CustomMetricDef
+
+type CustomMetricDef struct {
+	Name        string   `json:"name"`
+	DisplayName string   `json:"displayName,omitempty"`
+	Unit        string   `json:"unit,omitempty"`
+	Metrics     []Metric `json:"metrics"`
+}
+
+type Metric struct {
+	Name        string `json:"name"`
+	DisplayName string `json:"displayName,omitempty"`
+	IsStacked   bool   `json:"isStacked"`
 }
 
 type MetricNames struct {

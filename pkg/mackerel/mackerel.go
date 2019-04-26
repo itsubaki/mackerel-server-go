@@ -138,10 +138,26 @@ func (m *Mackerel) PostHost(in *PostHostInput) (*PostHostOutput, error) {
 	return &PostHostOutput{}, nil
 }
 
-func (m *Mackerel) GetHosts() (*GetHostsOutput, error) {
-	return &GetHostsOutput{}, nil
-}
-
 func (m *Mackerel) GetHost(in *GetHostInput) (*GetHostOutput, error) {
 	return &GetHostOutput{}, nil
+}
+
+func (m *Mackerel) PutHost(in *PutHostInput) (*PutHostOutput, error) {
+	return &PutHostOutput{}, nil
+}
+
+func (m *Mackerel) PostHostStatus(in *PostHostStatusInput) (*PostHostStatusOutput, error) {
+	return &PostHostStatusOutput{}, nil
+}
+
+func (m *Mackerel) PutHostRoleFullNames(in *PutHostRoleFullNamesInput) (*PutHostRoleFullNamesOutput, error) {
+	return &PutHostRoleFullNamesOutput{}, nil
+}
+
+func (m *Mackerel) PostHostRetired(in *PostHostRetiredInput) (*PostHostRetiredOutput, error) {
+	return &PostHostRetiredOutput{}, nil
+}
+
+func (m *Mackerel) GetHosts(in *GetHostsInput) (*GetHostsOutput, error) {
+	return &GetHostsOutput{}, nil
 }

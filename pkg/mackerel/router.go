@@ -19,17 +19,6 @@ func Must(m *Mackerel, err error) *Mackerel {
 }
 
 func Router(g *gin.Engine, m *Mackerel) *gin.Engine {
-	g.Use(func(c *gin.Context) {
-		if c.Request.Method == http.MethodPost || c.Request.Method == http.MethodPut {
-			if c.ContentType() != gin.MIMEJSON {
-				c.Status(http.StatusBadRequest)
-				c.Abort()
-			}
-		}
-
-		c.Next()
-	})
-
 	g.GET("/", func(c *gin.Context) {
 		c.Status(http.StatusOK)
 	})
@@ -170,23 +159,64 @@ func ApiV0Hosts(v0 *gin.RouterGroup, m *Mackerel) {
 	})
 
 	h.PUT("/:hostId", func(c *gin.Context) {
+		var in PutHostInput
+		if err := c.BindJSON(&in); err != nil {
+			c.Status(http.StatusBadRequest)
+			return
+		}
+		in.HostID = c.Param("hostId")
 
+		out, err := m.PutHost(&in)
+		doResponse(c, out, err)
 	})
 
 	h.POST("/:hostId/status", func(c *gin.Context) {
+		var in PostHostStatusInput
+		if err := c.BindJSON(&in); err != nil {
+			c.Status(http.StatusBadRequest)
+			return
+		}
+		in.HostID = c.Param("hostId")
 
+		if in.Status != "standby" &&
+			in.Status != "working" &&
+			in.Status != "maintenance" &&
+			in.Status != "poweroff" {
+			c.Status(http.StatusBadRequest)
+			return
+		}
+
+		out, err := m.PostHostStatus(&in)
+		doResponse(c, out, err)
 	})
 
 	h.PUT("/:hostId/role-fullnames", func(c *gin.Context) {
+		var in PutHostRoleFullNamesInput
+		if err := c.BindJSON(&in); err != nil {
+			c.Status(http.StatusBadRequest)
+			return
+		}
+		in.HostID = c.Param("hostId")
 
+		out, err := m.PutHostRoleFullNames(&in)
+		doResponse(c, out, err)
 	})
 
 	h.POST("/:hostId/retire", func(c *gin.Context) {
+		var in PostHostRetiredInput
+		if err := c.BindJSON(&in); err != nil {
+			c.Status(http.StatusBadRequest)
+			return
+		}
+		in.HostID = c.Param("hostId")
 
+		out, err := m.PostHostRetired(&in)
+		doResponse(c, out, err)
 	})
 
 	h.GET("", func(c *gin.Context) {
-		out, err := m.GetHosts()
+		var in GetHostsInput
+		out, err := m.GetHosts(&in)
 		doResponse(c, out, err)
 	})
 

@@ -26,6 +26,14 @@ type DeleteServiceOutput struct {
 	Service
 }
 
+type GetMetricNamesInput struct {
+	ServiceName string
+}
+
+type GetMetricNamesOutput struct {
+	MetricNames
+}
+
 type Service struct {
 	Name  string   `json:"name"`
 	Memo  string   `json:"memo"`

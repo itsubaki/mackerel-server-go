@@ -34,12 +34,12 @@ type PostHostStatusOutput struct {
 	Success bool `json:"success"`
 }
 
-type PutHostRoleInput struct {
+type PutHostRoleFullNamesInput struct {
 	HostID        string   `json:"-"`
 	RollFullNames []string `json:"roleFullnames"`
 }
 
-type PutHostRoleOutput struct {
+type PutHostRoleFullNamesOutput struct {
 	Success bool `json:"success"`
 }
 
