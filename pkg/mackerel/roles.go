@@ -47,7 +47,7 @@ func NewRoleRepository() *RoleRepository {
 	}
 }
 
-func (repo *RoleRepository) Exist(serviceName, roleName string) bool {
+func (repo *RoleRepository) ExistsByName(serviceName, roleName string) bool {
 	for i := range repo.Internal {
 		if repo.Internal[i].ServiceName == serviceName && repo.Internal[i].Name == roleName {
 			return true
@@ -57,7 +57,7 @@ func (repo *RoleRepository) Exist(serviceName, roleName string) bool {
 	return false
 }
 
-func (repo *RoleRepository) Find(serviceName, roleName string) (Role, error) {
+func (repo *RoleRepository) FindByName(serviceName, roleName string) (Role, error) {
 	for i := range repo.Internal {
 		if repo.Internal[i].ServiceName == serviceName && repo.Internal[i].Name == roleName {
 			return repo.Internal[i], nil
@@ -78,7 +78,7 @@ func (repo *RoleRepository) FindAll(serviceName string) ([]Role, error) {
 	return list, nil
 }
 
-func (repo *RoleRepository) Insert(r Role) error {
+func (repo *RoleRepository) Save(r Role) error {
 	repo.Internal = append(repo.Internal, r)
 	return nil
 }

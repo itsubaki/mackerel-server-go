@@ -28,11 +28,11 @@ func (m *Mackerel) PostService(in *PostServiceInput) (*PostServiceOutput, error)
 		return nil, &InvalidServiceName{}
 	}
 
-	if m.ServiceRepository.Exist(in.Name) {
+	if m.ServiceRepository.ExistsByName(in.Name) {
 		return nil, &InvalidServiceName{}
 	}
 
-	if err := m.ServiceRepository.Insert(Service{
+	if err := m.ServiceRepository.Save(Service{
 		Name:  in.Name,
 		Memo:  in.Memo,
 		Roles: []string{},
@@ -50,7 +50,7 @@ func (m *Mackerel) PostService(in *PostServiceInput) (*PostServiceOutput, error)
 }
 
 func (m *Mackerel) DeleteService(in *DeleteServiceInput) (*DeleteServiceOutput, error) {
-	s, err := m.ServiceRepository.Find(in.ServiceName)
+	s, err := m.ServiceRepository.FindByName(in.ServiceName)
 	if err != nil {
 		return nil, &ServiceNotFound{}
 	}
@@ -98,11 +98,11 @@ func (m *Mackerel) PostRole(in *PostRoleInput) (*PostRoleOutput, error) {
 		return nil, &InvalidRoleName{}
 	}
 
-	if m.RoleRepository.Exist(in.ServiceName, in.Name) {
+	if m.RoleRepository.ExistsByName(in.ServiceName, in.Name) {
 		return nil, &InvalidRoleName{}
 	}
 
-	m.RoleRepository.Insert(Role{
+	m.RoleRepository.Save(Role{
 		ServiceName: in.ServiceName,
 		Name:        in.Name,
 		Memo:        in.Memo,
@@ -115,7 +115,7 @@ func (m *Mackerel) PostRole(in *PostRoleInput) (*PostRoleOutput, error) {
 }
 
 func (m *Mackerel) DeleteRole(in *DeleteRoleInput) (*DeleteRoleOutput, error) {
-	r, err := m.RoleRepository.Find(in.ServiceName, in.RoleName)
+	r, err := m.RoleRepository.FindByName(in.ServiceName, in.RoleName)
 	if err != nil {
 		return nil, &RoleNotFound{}
 	}

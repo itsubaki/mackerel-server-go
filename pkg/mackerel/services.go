@@ -42,7 +42,7 @@ func NewServiceRepository() *ServiceRepository {
 	}
 }
 
-func (repo *ServiceRepository) Exist(serviceName string) bool {
+func (repo *ServiceRepository) ExistsByName(serviceName string) bool {
 	for i := range repo.Internal {
 		if repo.Internal[i].Name == serviceName {
 			return true
@@ -52,7 +52,7 @@ func (repo *ServiceRepository) Exist(serviceName string) bool {
 	return false
 }
 
-func (repo *ServiceRepository) Find(serviceName string) (Service, error) {
+func (repo *ServiceRepository) FindByName(serviceName string) (Service, error) {
 	for i := range repo.Internal {
 		if repo.Internal[i].Name == serviceName {
 			return repo.Internal[i], nil
@@ -66,7 +66,7 @@ func (repo *ServiceRepository) FindAll() ([]Service, error) {
 	return repo.Internal, nil
 }
 
-func (repo *ServiceRepository) Insert(s Service) error {
+func (repo *ServiceRepository) Save(s Service) error {
 	repo.Internal = append(repo.Internal, s)
 	return nil
 }

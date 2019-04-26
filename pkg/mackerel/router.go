@@ -1,10 +1,6 @@
 package mackerel
 
 import (
-	"encoding/json"
-	"fmt"
-	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 
@@ -23,6 +19,17 @@ func Must(m *Mackerel, err error) *Mackerel {
 }
 
 func Router(g *gin.Engine, m *Mackerel) *gin.Engine {
+	g.Use(func(c *gin.Context) {
+		if c.Request.Method == http.MethodPost || c.Request.Method == http.MethodPut {
+			if c.ContentType() != gin.MIMEJSON {
+				c.Status(http.StatusBadRequest)
+				c.Abort()
+			}
+		}
+
+		c.Next()
+	})
+
 	g.GET("/", func(c *gin.Context) {
 		c.Status(http.StatusOK)
 	})
@@ -32,20 +39,6 @@ func Router(g *gin.Engine, m *Mackerel) *gin.Engine {
 	ApiV0Hosts(v0, m)
 
 	return g
-}
-
-func parse(body io.ReadCloser, in interface{}) error {
-	b, err := ioutil.ReadAll(body)
-	if err != nil {
-		return fmt.Errorf("read request body: %v", err)
-	}
-	defer body.Close()
-
-	if err := json.Unmarshal(b, in); err != nil {
-		return fmt.Errorf("unmarshal request body: %v", err)
-	}
-
-	return nil
 }
 
 func doResponse(c *gin.Context, out interface{}, err error) {
@@ -89,7 +82,7 @@ func ApiV0Services(v0 *gin.RouterGroup, m *Mackerel) {
 	// https://mackerel.io/api-docs/entry/services#create
 	s.POST("", func(c *gin.Context) {
 		var in PostServiceInput
-		if err := parse(c.Request.Body, &in); err != nil {
+		if err := c.BindJSON(&in); err != nil {
 			c.Status(http.StatusBadRequest)
 			return
 		}
@@ -121,7 +114,7 @@ func ApiV0Services(v0 *gin.RouterGroup, m *Mackerel) {
 	// https://mackerel.io/api-docs/entry/services#rolecreate
 	s.POST("/:serviceName/roles", func(c *gin.Context) {
 		var in PostRoleInput
-		if err := parse(c.Request.Body, &in); err != nil {
+		if err := c.BindJSON(&in); err != nil {
 			c.Status(http.StatusBadRequest)
 			return
 		}
@@ -158,7 +151,7 @@ func ApiV0Hosts(v0 *gin.RouterGroup, m *Mackerel) {
 
 	h.POST("", func(c *gin.Context) {
 		var in PostHostInput
-		if err := parse(c.Request.Body, &in); err != nil {
+		if err := c.BindJSON(&in); err != nil {
 			c.Status(http.StatusBadRequest)
 			return
 		}
