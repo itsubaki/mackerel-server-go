@@ -26,6 +26,8 @@ func Router(g *gin.Engine, m *Mackerel) *gin.Engine {
 	v0 := g.Group("/api").Group("/v0")
 	ApiV0Services(v0, m)
 	ApiV0Hosts(v0, m)
+	ApiV0Metrics(v0, m)
+	ApiV0Monitoring(v0, m)
 
 	return g
 }
@@ -133,6 +135,30 @@ func ApiV0Services(v0 *gin.RouterGroup, m *Mackerel) {
 		out, err := m.GetMetricNames(&in)
 		doResponse(c, out, err)
 	})
+
+	s.POST("/:serviceName/tsdb", func(c *gin.Context) {
+		var v []ServiceMetricValue
+		if err := c.BindJSON(&v); err != nil {
+			c.Status(http.StatusBadRequest)
+			return
+		}
+		in := PostServiceMetricInput{
+			ServiceName:        c.Param("serviceName"),
+			ServiceMetricValue: v,
+		}
+
+		out, err := m.PostServiceMetric(&in)
+		doResponse(c, out, err)
+	})
+
+	s.GET("/:serviceName/metrics", func(c *gin.Context) {
+		in := GetServiceMetricInput{
+			ServiceName: c.Param("serviceName"),
+		}
+
+		out, err := m.GetServiceMetric(&in)
+		doResponse(c, out, err)
+	})
 }
 
 func ApiV0Hosts(v0 *gin.RouterGroup, m *Mackerel) {
@@ -221,6 +247,60 @@ func ApiV0Hosts(v0 *gin.RouterGroup, m *Mackerel) {
 	})
 
 	h.GET("/:hostId/metric-names", func(c *gin.Context) {
+		in := GetMetricNamesInput{
+			HostID: c.Param("hostId"),
+		}
 
+		out, err := m.GetMetricNames(&in)
+		doResponse(c, out, err)
+	})
+
+	h.GET("/:hostId/metrics", func(c *gin.Context) {
+		in := GetHostMetricInput{
+			HostID: c.Param("hostId"),
+		}
+
+		out, err := m.GetHostMetric(&in)
+		doResponse(c, out, err)
+	})
+}
+
+func ApiV0Metrics(v0 *gin.RouterGroup, m *Mackerel) {
+	tsdb := v0.Group("/tsdb")
+
+	tsdb.POST("/", func(c *gin.Context) {
+		var v []MetricValue
+		if err := c.BindJSON(&v); err != nil {
+			c.Status(http.StatusBadRequest)
+			return
+		}
+		in := PostHostMetricInput{
+			MetricValue: v,
+		}
+
+		out, err := m.PostHostMetric(&in)
+		doResponse(c, out, err)
+	})
+
+	tsdb.GET("/latest", func(c *gin.Context) {
+		in := GetHostMetricLatestInput{}
+
+		out, err := m.GetHostMetricLatest(&in)
+		doResponse(c, out, err)
+	})
+}
+
+func ApiV0Monitoring(v0 *gin.RouterGroup, m *Mackerel) {
+	r := v0.Group("/monitoring/checks/report")
+
+	r.POST("/", func(c *gin.Context) {
+		var in PostCheckReportInput
+		if err := c.BindJSON(&in); err != nil {
+			c.Status(http.StatusBadRequest)
+			return
+		}
+
+		out, err := m.PostCheckReport(&in)
+		doResponse(c, out, err)
 	})
 }

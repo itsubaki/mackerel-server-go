@@ -63,6 +63,44 @@ type GetHostsOutput struct {
 	Host []Host `json:"hosts"`
 }
 
+type GetHostMetadataInput struct {
+	HostID    string `json:"-"`
+	Namespace string `json:"-"`
+}
+
+type GetHostMetadataOutput struct {
+}
+
+type PutHostMetadataInput struct {
+	HostID    string `json:"-"`
+	Namespace string `json:"-"`
+}
+
+type PutHostMetadataOutput struct {
+	Success bool `json:"success"`
+}
+
+type DeleteHostMetadataInput struct {
+	HostID    string `json:"-"`
+	Namespace string `json:"-"`
+}
+
+type DeleteHostMetadataOutput struct {
+	Success bool `json:"success"`
+}
+
+type GetHostMetadataListInput struct {
+	HostID string `json:"-"`
+}
+
+type GetHostMetadataListOutput struct {
+	Metadata []Metadata `json:"metadata"`
+}
+
+type Metadata struct {
+	Namespace string `json:"namespace"`
+}
+
 type Host struct {
 	Name             string              `json:"name"`
 	Meta             Meta                `json:"meta"`

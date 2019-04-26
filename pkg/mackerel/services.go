@@ -28,10 +28,45 @@ type DeleteServiceOutput struct {
 
 type GetMetricNamesInput struct {
 	ServiceName string `json:"-"`
+	HostID      string `json:"-"`
 }
 
 type GetMetricNamesOutput struct {
 	MetricNames
+}
+
+type GetServiceMetadataInput struct {
+	ServiceName string `json:"-"`
+	Namespace   string `json:"-"`
+}
+
+type GetServiceMetadataOutput struct {
+}
+
+type PutServiceMetadataInput struct {
+	ServiceName string `json:"-"`
+	Namespace   string `json:"-"`
+}
+
+type PutServiceMetadataOutput struct {
+	Success bool `json:"success"`
+}
+
+type DeleteServiceMetadataInput struct {
+	ServiceName string `json:"-"`
+	Namespace   string `json:"-"`
+}
+
+type DeleteServiceMetadataOutput struct {
+	Success bool `json:"success"`
+}
+
+type GetServiceMetadataListInput struct {
+	ServiceName string `json:"-"`
+}
+
+type GetServiceMetadataListOutput struct {
+	Metadata []Metadata `json:"metadata"`
 }
 
 type Service struct {

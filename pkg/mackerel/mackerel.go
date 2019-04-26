@@ -165,3 +165,31 @@ func (m *Mackerel) PostHostRetired(in *PostHostRetiredInput) (*PostHostRetiredOu
 func (m *Mackerel) GetHosts(in *GetHostsInput) (*GetHostsOutput, error) {
 	return &GetHostsOutput{}, nil
 }
+
+func (m *Mackerel) PostHostMetric(in *PostHostMetricInput) (*PostHostMetricOutput, error) {
+	return &PostHostMetricOutput{}, nil
+}
+
+func (m *Mackerel) GetHostMetric(in *GetHostMetricInput) (*GetHostMetricOutput, error) {
+	return &GetHostMetricOutput{}, nil
+}
+
+func (m *Mackerel) GetHostMetricLatest(in *GetHostMetricLatestInput) (*GetHostMetricLatestOutput, error) {
+	return &GetHostMetricLatestOutput{}, nil
+}
+
+func (m *Mackerel) PostCustomMetricDef(in *PostCustomMetricDefInput) (*PostCustomMetricDefOutput, error) {
+	return &PostCustomMetricDefOutput{}, nil
+}
+
+func (m *Mackerel) PostServiceMetric(in *PostServiceMetricInput) (*PostServiceMetricOutput, error) {
+	return &PostServiceMetricOutput{}, nil
+}
+
+func (m *Mackerel) GetServiceMetric(in *GetServiceMetricInput) (*GetServiceMetricOutput, error) {
+	return &GetServiceMetricOutput{}, nil
+}
+
+func (m *Mackerel) PostCheckReport(in *PostCheckReportInput) (*PostCheckReportOutput, error) {
+	return &PostCheckReportOutput{}, nil
+}

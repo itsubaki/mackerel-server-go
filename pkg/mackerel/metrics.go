@@ -1,6 +1,8 @@
 package mackerel
 
-type PostHostMetricInput []MetricValue
+type PostHostMetricInput struct {
+	MetricValue []MetricValue `json:"-"`
+}
 
 type PostHostMetricOutput struct {
 	Success bool `json:"success"`
@@ -26,7 +28,13 @@ type GetHostMetricLatestOutput struct {
 	TSDBLatest map[string]map[string]float64 `json:"tsdbLatest"`
 }
 
-type PostCustomMetricDefInput []CustomMetricDef
+type PostCustomMetricDefInput struct {
+	CustomMetricDef []CustomMetricDef `json:"-"`
+}
+
+type PostCustomMetricDefOutput struct {
+	Success bool `json:"success"`
+}
 
 type CustomMetricDef struct {
 	Name        string   `json:"name"`
@@ -60,4 +68,30 @@ func NewMetricValueRepository() *MetricValueRepository {
 	return &MetricValueRepository{
 		Internal: []MetricValue{},
 	}
+}
+
+type PostServiceMetricInput struct {
+	ServiceName        string               `json:"-"`
+	ServiceMetricValue []ServiceMetricValue `json:"-"`
+}
+
+type PostServiceMetricOutput struct {
+	Success bool `json:"success"`
+}
+
+type GetServiceMetricInput struct {
+	ServiceName string `json:"-"`
+	Name        string `json:"-"`
+	From        string `json:"-"`
+	To          string `json:"-"`
+}
+
+type GetServiceMetricOutput struct {
+	Metrics []MetricValue `json:"metrics"`
+}
+
+type ServiceMetricValue struct {
+	Name  string  `json:"name"`
+	Time  int64   `json:"time"`
+	Value float64 `json:"value"`
 }
