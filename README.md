@@ -1,4 +1,4 @@
 # mackerel-api
-mackerel compatible monitoring service on GoogleAppEngine
+mackerel compatible monitoring service
 
 [API](https://mackerel.io/ja/api-docs/)
