@@ -40,12 +40,12 @@ type GetServiceMetadataInput struct {
 	Namespace   string `json:"-"`
 }
 
-type GetServiceMetadataOutput struct {
-}
+type GetServiceMetadataOutput interface{}
 
 type PutServiceMetadataInput struct {
-	ServiceName string `json:"-"`
-	Namespace   string `json:"-"`
+	ServiceName string      `json:"-"`
+	Namespace   string      `json:"-"`
+	Metadata    interface{} `json:"-"`
 }
 
 type PutServiceMetadataOutput struct {

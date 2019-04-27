@@ -37,13 +37,13 @@ type GetRoleMetadataInput struct {
 	Namespace   string `json:"-"`
 }
 
-type GetRoleMetadataOutput struct {
-}
+type GetRoleMetadataOutput interface{}
 
 type PutRoleMetadataInput struct {
-	ServiceName string `json:"-"`
-	RoleName    string `json:"-"`
-	Namespace   string `json:"-"`
+	ServiceName string      `json:"-"`
+	RoleName    string      `json:"-"`
+	Namespace   string      `json:"-"`
+	Metadata    interface{} `json:"-"`
 }
 
 type PutRoleMetadataOutput struct {

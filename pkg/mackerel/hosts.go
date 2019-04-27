@@ -68,12 +68,12 @@ type GetHostMetadataInput struct {
 	Namespace string `json:"-"`
 }
 
-type GetHostMetadataOutput struct {
-}
+type GetHostMetadataOutput interface{}
 
 type PutHostMetadataInput struct {
-	HostID    string `json:"-"`
-	Namespace string `json:"-"`
+	HostID    string      `json:"-"`
+	Namespace string      `json:"-"`
+	Metadata  interface{} `json:"-"`
 }
 
 type PutHostMetadataOutput struct {
