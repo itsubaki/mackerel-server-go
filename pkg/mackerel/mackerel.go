@@ -6,7 +6,9 @@ import (
 
 func New() (*Mackerel, error) {
 	return &Mackerel{
-		NameRule:              regexp.MustCompile(`^[a-zA-Z]{1,1}[a-zA-Z0-9_-]{1,62}`),
+		ServiceNameRule:       regexp.MustCompile(`^[a-zA-Z0-9]{1,1}[a-zA-Z0-9_-]{1,62}`),
+		RoleNameRule:          regexp.MustCompile(`^[a-zA-Z0-9]{1,1}[a-zA-Z0-9_-]{1,62}`),
+		MetricNameRule:        regexp.MustCompile(`[a-zA-Z0-9._-]+`),
 		ServiceRepository:     NewServiceRepository(),
 		RoleRepository:        NewRoleRepository(),
 		MetricValueRepository: NewMetricValueRepository(),
@@ -15,7 +17,9 @@ func New() (*Mackerel, error) {
 }
 
 type Mackerel struct {
-	NameRule              *regexp.Regexp
+	ServiceNameRule       *regexp.Regexp
+	RoleNameRule          *regexp.Regexp
+	MetricNameRule        *regexp.Regexp
 	ServiceRepository     *ServiceRepository
 	RoleRepository        *RoleRepository
 	MetricValueRepository *MetricValueRepository
@@ -28,7 +32,7 @@ func (m *Mackerel) GetServices(in *GetServicesInput) (*GetServicesOutput, error)
 }
 
 func (m *Mackerel) PostService(in *PostServiceInput) (*PostServiceOutput, error) {
-	if !m.NameRule.Match([]byte(in.Name)) {
+	if !m.ServiceNameRule.Match([]byte(in.Name)) {
 		return nil, &InvalidServiceName{}
 	}
 
@@ -98,7 +102,7 @@ func (m *Mackerel) GetRoles(in *GetRolesInput) (*GetRolesOutput, error) {
 }
 
 func (m *Mackerel) PostRole(in *PostRoleInput) (*PostRoleOutput, error) {
-	if !m.NameRule.Match([]byte(in.Name)) {
+	if !m.ServiceNameRule.Match([]byte(in.Name)) {
 		return nil, &InvalidRoleName{}
 	}
 
