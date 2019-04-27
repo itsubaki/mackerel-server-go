@@ -29,3 +29,13 @@ type Alert struct {
 	OpenedAt  string  `json:"openedAt"`
 	ClosedAt  string  `json:"closedAt,omitempty"`
 }
+
+type AlertRepository struct {
+	Internal []Alert
+}
+
+func NewAlertRepository() *AlertRepository {
+	return &AlertRepository{
+		Internal: []Alert{},
+	}
+}
