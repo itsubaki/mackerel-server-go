@@ -52,6 +52,15 @@ func doResponse(c *gin.Context, out interface{}, err error) {
 	case *InvalidJSONFormat:
 		c.Status(http.StatusBadRequest)
 		return
+	case *HostMetricNotFound:
+		c.Status(http.StatusNotFound)
+		return
+	case *ServiceMetricNotFound:
+		c.Status(http.StatusNotFound)
+		return
+	case *ServiceMetricPostLimitExceeded:
+		c.Status(http.StatusTooManyRequests)
+		return
 	case *PermissionDenied:
 		c.Status(http.StatusForbidden)
 		return
@@ -128,11 +137,11 @@ func ApiV0Services(v0 *gin.RouterGroup, m *Mackerel) {
 
 	// https://mackerel.io/api-docs/entry/services#metric-names
 	s.GET("/:serviceName/metric-names", func(c *gin.Context) {
-		in := GetMetricNamesInput{
+		in := GetServiceMetricNamesInput{
 			ServiceName: c.Param("serviceName"),
 		}
 
-		out, err := m.GetMetricNames(&in)
+		out, err := m.GetServiceMetricNames(&in)
 		doResponse(c, out, err)
 	})
 
@@ -247,11 +256,11 @@ func ApiV0Hosts(v0 *gin.RouterGroup, m *Mackerel) {
 	})
 
 	h.GET("/:hostId/metric-names", func(c *gin.Context) {
-		in := GetMetricNamesInput{
+		in := GetHostMetricNamesInput{
 			HostID: c.Param("hostId"),
 		}
 
-		out, err := m.GetMetricNames(&in)
+		out, err := m.GetHostMetricNames(&in)
 		doResponse(c, out, err)
 	})
 
@@ -269,7 +278,7 @@ func ApiV0Metrics(v0 *gin.RouterGroup, m *Mackerel) {
 	tsdb := v0.Group("/tsdb")
 
 	tsdb.POST("/", func(c *gin.Context) {
-		var v []MetricValue
+		var v []HostMetricValue
 		if err := c.BindJSON(&v); err != nil {
 			c.Status(http.StatusBadRequest)
 			return

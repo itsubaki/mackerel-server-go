@@ -1,14 +1,14 @@
 package mackerel
 
 type PostCheckReportInput struct {
-	Reports []Report `json:"reports"`
+	Reports []CheckReport `json:"reports"`
 }
 
 type PostCheckReportOutput struct {
 	Status string `json:"status"`
 }
 
-type Report struct {
+type CheckReport struct {
 	Source               Source `json:"source"`
 	Name                 string `json:"name"`
 	Status               string `json:"status"` // OK, CRITICAL, WARNING, UNKNOWN
@@ -21,4 +21,19 @@ type Report struct {
 type Source struct {
 	Type   string `json:"type"`
 	HostID string `json:"hostId"`
+}
+
+type CheckReportRepository struct {
+	Internal []CheckReport
+}
+
+func NewCheckReportRepository() *CheckReportRepository {
+	return &CheckReportRepository{
+		Internal: []CheckReport{},
+	}
+}
+
+func (repo *CheckReportRepository) Save(v CheckReport) error {
+	repo.Internal = append(repo.Internal, v)
+	return nil
 }

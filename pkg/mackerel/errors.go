@@ -35,3 +35,15 @@ type InvalidJSONFormat struct {
 type HostNotFound struct {
 	Err
 }
+
+type HostMetricNotFound struct {
+	Err
+}
+
+type ServiceMetricNotFound struct {
+	Err
+}
+
+type ServiceMetricPostLimitExceeded struct {
+	Err
+}

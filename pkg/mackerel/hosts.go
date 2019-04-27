@@ -1,5 +1,7 @@
 package mackerel
 
+import "fmt"
+
 type PostHostInput struct {
 	Host
 }
@@ -149,4 +151,44 @@ func NewHostRepository() *HostRepository {
 	return &HostRepository{
 		Internal: []Host{},
 	}
+}
+
+func (repo *HostRepository) ExistsByName(hostName string) bool {
+	for i := range repo.Internal {
+		if repo.Internal[i].Name == hostName {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (repo *HostRepository) FindByName(hostName string) (Host, error) {
+	for i := range repo.Internal {
+		if repo.Internal[i].Name == hostName {
+			return repo.Internal[i], nil
+		}
+	}
+
+	return Host{}, fmt.Errorf("host not found")
+}
+
+func (repo *HostRepository) FindAll() ([]Host, error) {
+	return repo.Internal, nil
+}
+
+func (repo *HostRepository) Save(h Host) error {
+	repo.Internal = append(repo.Internal, h)
+	return nil
+}
+
+func (repo *HostRepository) Delete(hostName string) error {
+	list := []Host{}
+	for i := range repo.Internal {
+		if repo.Internal[i].Name != hostName {
+			list = append(list, repo.Internal[i])
+		}
+	}
+	repo.Internal = list
+	return nil
 }

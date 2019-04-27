@@ -26,15 +26,6 @@ type DeleteServiceOutput struct {
 	Service
 }
 
-type GetMetricNamesInput struct {
-	ServiceName string `json:"-"`
-	HostID      string `json:"-"`
-}
-
-type GetMetricNamesOutput struct {
-	MetricNames
-}
-
 type GetServiceMetadataInput struct {
 	ServiceName string `json:"-"`
 	Namespace   string `json:"-"`

@@ -6,24 +6,26 @@ import (
 
 func New() (*Mackerel, error) {
 	return &Mackerel{
-		ServiceNameRule:       regexp.MustCompile(`^[a-zA-Z0-9]{1,1}[a-zA-Z0-9_-]{1,62}`),
-		RoleNameRule:          regexp.MustCompile(`^[a-zA-Z0-9]{1,1}[a-zA-Z0-9_-]{1,62}`),
-		MetricNameRule:        regexp.MustCompile(`[a-zA-Z0-9._-]+`),
-		ServiceRepository:     NewServiceRepository(),
-		RoleRepository:        NewRoleRepository(),
-		MetricValueRepository: NewMetricValueRepository(),
-		HostRepository:        NewHostRepository(),
+		ServiceNameRule:         regexp.MustCompile(`^[a-zA-Z0-9]{1,1}[a-zA-Z0-9_-]{1,62}`),
+		RoleNameRule:            regexp.MustCompile(`^[a-zA-Z0-9]{1,1}[a-zA-Z0-9_-]{1,62}`),
+		MetricNameRule:          regexp.MustCompile(`[a-zA-Z0-9._-]+`),
+		ServiceRepository:       NewServiceRepository(),
+		RoleRepository:          NewRoleRepository(),
+		ServiceMetricRepository: NewServiceMetricRepository(),
+		HostRepository:          NewHostRepository(),
+		HostMetricRepository:    NewHostMetricRepository(),
 	}, nil
 }
 
 type Mackerel struct {
-	ServiceNameRule       *regexp.Regexp
-	RoleNameRule          *regexp.Regexp
-	MetricNameRule        *regexp.Regexp
-	ServiceRepository     *ServiceRepository
-	RoleRepository        *RoleRepository
-	MetricValueRepository *MetricValueRepository
-	HostRepository        *HostRepository
+	ServiceNameRule         *regexp.Regexp
+	RoleNameRule            *regexp.Regexp
+	MetricNameRule          *regexp.Regexp
+	ServiceRepository       *ServiceRepository
+	RoleRepository          *RoleRepository
+	ServiceMetricRepository *ServiceMetricRepository
+	HostRepository          *HostRepository
+	HostMetricRepository    *HostMetricRepository
 }
 
 func (m *Mackerel) GetServices(in *GetServicesInput) (*GetServicesOutput, error) {
@@ -138,8 +140,16 @@ func (m *Mackerel) DeleteRole(in *DeleteRoleInput) (*DeleteRoleOutput, error) {
 	}, nil
 }
 
-func (m *Mackerel) GetMetricNames(in *GetMetricNamesInput) (*GetMetricNamesOutput, error) {
-	return &GetMetricNamesOutput{}, nil
+func (m *Mackerel) GetServiceMetricNames(in *GetServiceMetricNamesInput) (*GetServiceMetricNamesOutput, error) {
+	return &GetServiceMetricNamesOutput{}, nil
+}
+
+func (m *Mackerel) PostServiceMetric(in *PostServiceMetricInput) (*PostServiceMetricOutput, error) {
+	return &PostServiceMetricOutput{}, nil
+}
+
+func (m *Mackerel) GetServiceMetric(in *GetServiceMetricInput) (*GetServiceMetricOutput, error) {
+	return &GetServiceMetricOutput{}, nil
 }
 
 func (m *Mackerel) PostHost(in *PostHostInput) (*PostHostOutput, error) {
@@ -182,16 +192,12 @@ func (m *Mackerel) GetHostMetricLatest(in *GetHostMetricLatestInput) (*GetHostMe
 	return &GetHostMetricLatestOutput{}, nil
 }
 
-func (m *Mackerel) PostCustomMetricDef(in *PostCustomMetricDefInput) (*PostCustomMetricDefOutput, error) {
-	return &PostCustomMetricDefOutput{}, nil
+func (m *Mackerel) PostCustomHostMetricDef(in *PostCustomHostMetricDefInput) (*PostCustomHostMetricDefOutput, error) {
+	return &PostCustomHostMetricDefOutput{}, nil
 }
 
-func (m *Mackerel) PostServiceMetric(in *PostServiceMetricInput) (*PostServiceMetricOutput, error) {
-	return &PostServiceMetricOutput{}, nil
-}
-
-func (m *Mackerel) GetServiceMetric(in *GetServiceMetricInput) (*GetServiceMetricOutput, error) {
-	return &GetServiceMetricOutput{}, nil
+func (m *Mackerel) GetHostMetricNames(in *GetHostMetricNamesInput) (*GetHostMetricNamesOutput, error) {
+	return &GetHostMetricNamesOutput{}, nil
 }
 
 func (m *Mackerel) PostCheckReport(in *PostCheckReportInput) (*PostCheckReportOutput, error) {
