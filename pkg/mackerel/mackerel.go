@@ -200,6 +200,10 @@ func (m *Mackerel) GetHostMetricNames(in *GetHostMetricNamesInput) (*GetHostMetr
 	return &GetHostMetricNamesOutput{}, nil
 }
 
+func (m *Mackerel) GetHostMetadata(in *GetHostMetadataInput) (GetHostMetadataOutput, error) {
+	return "", nil
+}
+
 func (m *Mackerel) PostCheckReport(in *PostCheckReportInput) (*PostCheckReportOutput, error) {
 	return &PostCheckReportOutput{}, nil
 }

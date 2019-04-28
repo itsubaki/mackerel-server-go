@@ -272,6 +272,16 @@ func ApiV0Hosts(v0 *gin.RouterGroup, m *Mackerel) {
 		out, err := m.GetHostMetric(&in)
 		doResponse(c, out, err)
 	})
+
+	h.GET("/:hostId/metadata/:namespace", func(c *gin.Context) {
+		in := GetHostMetadataInput{
+			HostID:    c.Param("hostId"),
+			Namespace: c.Param("namespace"),
+		}
+
+		out, err := m.GetHostMetadata(&in)
+		doResponse(c, out, err)
+	})
 }
 
 func ApiV0Metrics(v0 *gin.RouterGroup, m *Mackerel) {
