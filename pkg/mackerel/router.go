@@ -135,6 +135,49 @@ func ApiV0Services(v0 *gin.RouterGroup, m *Mackerel) {
 		doResponse(c, out, err)
 	})
 
+	s.GET("/:serviceName/roles/:roleName/metadata/:namespace", func(c *gin.Context) {
+		in := GetRoleMetadataInput{
+			ServiceName: c.Param("serviceName"),
+			RoleName:    c.Param("roleName"),
+			Namespace:   c.Param("namespace"),
+		}
+
+		out, err := m.GetRoleMetadata(&in)
+		doResponse(c, out, err)
+	})
+
+	s.PUT("/:serviceName/roles/:roleName/metadata/:namespace", func(c *gin.Context) {
+		in := PutRoleMetadataInput{
+			ServiceName: c.Param("serviceName"),
+			RoleName:    c.Param("roleName"),
+			Namespace:   c.Param("namespace"),
+		}
+
+		out, err := m.PutRoleMetadata(&in)
+		doResponse(c, out, err)
+	})
+
+	s.DELETE("/:serviceName/roles/:roleName/metadata/:namespace", func(c *gin.Context) {
+		in := DeleteRoleMetadataInput{
+			ServiceName: c.Param("serviceName"),
+			RoleName:    c.Param("roleName"),
+			Namespace:   c.Param("namespace"),
+		}
+
+		out, err := m.DeleteRoleMetadata(&in)
+		doResponse(c, out, err)
+	})
+
+	s.GET("/:serviceName/roles/:roleName/metadata", func(c *gin.Context) {
+		in := GetRoleMetadataListInput{
+			ServiceName: c.Param("serviceName"),
+			RoleName:    c.Param("roleName"),
+		}
+
+		out, err := m.GetRoleMetadataList(&in)
+		doResponse(c, out, err)
+	})
+
 	// https://mackerel.io/api-docs/entry/services#metric-names
 	s.GET("/:serviceName/metric-names", func(c *gin.Context) {
 		in := GetServiceMetricNamesInput{
@@ -166,6 +209,52 @@ func ApiV0Services(v0 *gin.RouterGroup, m *Mackerel) {
 		}
 
 		out, err := m.GetServiceMetric(&in)
+		doResponse(c, out, err)
+	})
+
+	s.GET("/:serviceName/metadata/:namespace", func(c *gin.Context) {
+		in := GetServiceMetadataInput{
+			ServiceName: c.Param("serviceName"),
+			Namespace:   c.Param("namespace"),
+		}
+
+		out, err := m.GetServiceMetadata(&in)
+		doResponse(c, out, err)
+	})
+
+	s.PUT("/:serviceName/metadata/:namespace", func(c *gin.Context) {
+		var v interface{}
+		if err := c.BindJSON(&v); err != nil {
+			c.Status(http.StatusBadRequest)
+			return
+		}
+
+		in := PutServiceMetadataInput{
+			ServiceName: c.Param("serviceName"),
+			Namespace:   c.Param("namespace"),
+			Metadata:    v,
+		}
+
+		out, err := m.PutServiceMetadata(&in)
+		doResponse(c, out, err)
+	})
+
+	s.DELETE("/:serviceName/metadata/:namespace", func(c *gin.Context) {
+		in := DeleteServiceMetadataInput{
+			ServiceName: c.Param("serviceName"),
+			Namespace:   c.Param("namespace"),
+		}
+
+		out, err := m.DeleteServiceMetadata(&in)
+		doResponse(c, out, err)
+	})
+
+	s.GET("/:serviceName/metadata", func(c *gin.Context) {
+		in := GetServiceMetadataListInput{
+			ServiceName: c.Param("serviceName"),
+		}
+
+		out, err := m.GetServiceMetadataList(&in)
 		doResponse(c, out, err)
 	})
 }
@@ -280,6 +369,33 @@ func ApiV0Hosts(v0 *gin.RouterGroup, m *Mackerel) {
 		}
 
 		out, err := m.GetHostMetadata(&in)
+		doResponse(c, out, err)
+	})
+
+	h.PUT("/:hostId/metadata/:namespace", func(c *gin.Context) {
+		var v interface{}
+		if err := c.BindJSON(&v); err != nil {
+			c.Status(http.StatusBadRequest)
+			return
+		}
+
+		in := PutHostMetadataInput{
+			HostID:    c.Param("hostId"),
+			Namespace: c.Param("namespace"),
+			Metadata:  v,
+		}
+
+		out, err := m.PutHostMetadata(&in)
+		doResponse(c, out, err)
+	})
+
+	h.DELETE("/:hostId/metadata/:namespace", func(c *gin.Context) {
+		in := DeleteHostMetadataInput{
+			HostID:    c.Param("hostId"),
+			Namespace: c.Param("namespace"),
+		}
+
+		out, err := m.DeleteHostMetadata(&in)
 		doResponse(c, out, err)
 	})
 }

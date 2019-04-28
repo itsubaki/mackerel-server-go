@@ -51,11 +51,9 @@ func (m *Mackerel) PostService(in *PostServiceInput) (*PostServiceOutput, error)
 	}
 
 	return &PostServiceOutput{
-		Service: Service{
-			Name:  in.Name,
-			Memo:  in.Memo,
-			Roles: []string{},
-		},
+		Name:  in.Name,
+		Memo:  in.Memo,
+		Roles: []string{},
 	}, nil
 }
 
@@ -86,11 +84,9 @@ func (m *Mackerel) DeleteService(in *DeleteServiceInput) (*DeleteServiceOutput, 
 	}
 
 	return &DeleteServiceOutput{
-		Service: Service{
-			Name:  s.Name,
-			Memo:  s.Memo,
-			Roles: roles,
-		},
+		Name:  s.Name,
+		Memo:  s.Memo,
+		Roles: roles,
 	}, nil
 }
 
@@ -140,6 +136,22 @@ func (m *Mackerel) DeleteRole(in *DeleteRoleInput) (*DeleteRoleOutput, error) {
 	}, nil
 }
 
+func (m *Mackerel) GetRoleMetadata(in *GetRoleMetadataInput) (GetRoleMetadataOutput, error) {
+	return "", nil
+}
+
+func (m *Mackerel) PutRoleMetadata(in *PutRoleMetadataInput) (*PutRoleMetadataOutput, error) {
+	return &PutRoleMetadataOutput{}, nil
+}
+
+func (m *Mackerel) DeleteRoleMetadata(in *DeleteRoleMetadataInput) (*DeleteRoleMetadataOutput, error) {
+	return &DeleteRoleMetadataOutput{}, nil
+}
+
+func (m *Mackerel) GetRoleMetadataList(in *GetRoleMetadataListInput) (*GetRoleMetadataListOutput, error) {
+	return &GetRoleMetadataListOutput{}, nil
+}
+
 func (m *Mackerel) GetServiceMetricNames(in *GetServiceMetricNamesInput) (*GetServiceMetricNamesOutput, error) {
 	return &GetServiceMetricNamesOutput{}, nil
 }
@@ -150,6 +162,22 @@ func (m *Mackerel) PostServiceMetric(in *PostServiceMetricInput) (*PostServiceMe
 
 func (m *Mackerel) GetServiceMetric(in *GetServiceMetricInput) (*GetServiceMetricOutput, error) {
 	return &GetServiceMetricOutput{}, nil
+}
+
+func (m *Mackerel) GetServiceMetadata(in *GetServiceMetadataInput) (GetServiceMetadataOutput, error) {
+	return "", nil
+}
+
+func (m *Mackerel) PutServiceMetadata(in *PutServiceMetadataInput) (*PutServiceMetadataOutput, error) {
+	return &PutServiceMetadataOutput{}, nil
+}
+
+func (m *Mackerel) DeleteServiceMetadata(in *DeleteServiceMetadataInput) (*DeleteServiceMetadataOutput, error) {
+	return &DeleteServiceMetadataOutput{}, nil
+}
+
+func (m *Mackerel) GetServiceMetadataList(in *GetServiceMetadataListInput) (*GetServiceMetadataListOutput, error) {
+	return &GetServiceMetadataListOutput{}, nil
 }
 
 func (m *Mackerel) PostHost(in *PostHostInput) (*PostHostOutput, error) {
@@ -202,6 +230,14 @@ func (m *Mackerel) GetHostMetricNames(in *GetHostMetricNamesInput) (*GetHostMetr
 
 func (m *Mackerel) GetHostMetadata(in *GetHostMetadataInput) (GetHostMetadataOutput, error) {
 	return "", nil
+}
+
+func (m *Mackerel) PutHostMetadata(in *PutHostMetadataInput) (*PutHostMetadataOutput, error) {
+	return &PutHostMetadataOutput{}, nil
+}
+
+func (m *Mackerel) DeleteHostMetadata(in *DeleteHostMetadataInput) (*DeleteHostMetadataOutput, error) {
+	return &DeleteHostMetadataOutput{}, nil
 }
 
 func (m *Mackerel) PostCheckReport(in *PostCheckReportInput) (*PostCheckReportOutput, error) {

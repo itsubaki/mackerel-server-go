@@ -14,51 +14,13 @@ type PostServiceInput struct {
 	Memo string `json:"memo"`
 }
 
-type PostServiceOutput struct {
-	Service
-}
+type PostServiceOutput Service
 
 type DeleteServiceInput struct {
 	ServiceName string `json:"-"`
 }
 
-type DeleteServiceOutput struct {
-	Service
-}
-
-type GetServiceMetadataInput struct {
-	ServiceName string `json:"-"`
-	Namespace   string `json:"-"`
-}
-
-type GetServiceMetadataOutput interface{}
-
-type PutServiceMetadataInput struct {
-	ServiceName string      `json:"-"`
-	Namespace   string      `json:"-"`
-	Metadata    interface{} `json:"-"`
-}
-
-type PutServiceMetadataOutput struct {
-	Success bool `json:"success"`
-}
-
-type DeleteServiceMetadataInput struct {
-	ServiceName string `json:"-"`
-	Namespace   string `json:"-"`
-}
-
-type DeleteServiceMetadataOutput struct {
-	Success bool `json:"success"`
-}
-
-type GetServiceMetadataListInput struct {
-	ServiceName string `json:"-"`
-}
-
-type GetServiceMetadataListOutput struct {
-	Metadata []Metadata `json:"metadata"`
-}
+type DeleteServiceOutput Service
 
 type Service struct {
 	Name  string   `json:"name"`
