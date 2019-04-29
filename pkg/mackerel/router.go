@@ -28,35 +28,28 @@ func Router(g *gin.Engine, m *Mackerel) *gin.Engine {
 	ApiV0Hosts(v0, m)
 	ApiV0Metrics(v0, m)
 	ApiV0Monitoring(v0, m)
+	ApiV0Alerts(v0, m)
+	ApiV0Users(v0, m)
 
 	return g
 }
 
 func doResponse(c *gin.Context, out interface{}, err error) {
 	switch err.(type) {
-	case *ServiceNotFound:
+	case
+		*ServiceNotFound,
+		*RoleNotFound,
+		*HostNotFound,
+		*HostMetricNotFound,
+		*ServiceMetricNotFound,
+		*UserNotFound:
 		c.Status(http.StatusNotFound)
 		return
-	case *InvalidServiceName:
+	case
+		*InvalidServiceName,
+		*InvalidRoleName,
+		*InvalidJSONFormat:
 		c.Status(http.StatusBadRequest)
-		return
-	case *RoleNotFound:
-		c.Status(http.StatusNotFound)
-		return
-	case *InvalidRoleName:
-		c.Status(http.StatusBadRequest)
-		return
-	case *HostNotFound:
-		c.Status(http.StatusNotFound)
-		return
-	case *InvalidJSONFormat:
-		c.Status(http.StatusBadRequest)
-		return
-	case *HostMetricNotFound:
-		c.Status(http.StatusNotFound)
-		return
-	case *ServiceMetricNotFound:
-		c.Status(http.StatusNotFound)
 		return
 	case *ServiceMetricPostLimitExceeded:
 		c.Status(http.StatusTooManyRequests)
@@ -436,6 +429,49 @@ func ApiV0Monitoring(v0 *gin.RouterGroup, m *Mackerel) {
 		}
 
 		out, err := m.PostCheckReport(&in)
+		doResponse(c, out, err)
+	})
+}
+
+func ApiV0Alerts(v0 *gin.RouterGroup, m *Mackerel) {
+	r := v0.Group("/alerts")
+
+	r.GET("", func(c *gin.Context) {
+		in := GetAlertInput{}
+
+		out, err := m.GetAlert(&in)
+		doResponse(c, out, err)
+	})
+
+	r.POST("/:alertId/close", func(c *gin.Context) {
+		var in PostAlertInput
+		if err := c.BindJSON(&in); err != nil {
+			c.Status(http.StatusBadRequest)
+			return
+		}
+		in.AlertID = c.Param("alertId")
+
+		out, err := m.PostAlert(&in)
+		doResponse(c, out, err)
+	})
+}
+
+func ApiV0Users(v0 *gin.RouterGroup, m *Mackerel) {
+	r := v0.Group("/users")
+
+	r.GET("", func(c *gin.Context) {
+		in := GetUserInput{}
+
+		out, err := m.GetUser(&in)
+		doResponse(c, out, err)
+	})
+
+	r.DELETE("/:userId", func(c *gin.Context) {
+		in := DeleteUserInput{
+			UserID: c.Param("userId"),
+		}
+
+		out, err := m.DeleteUser(&in)
 		doResponse(c, out, err)
 	})
 }

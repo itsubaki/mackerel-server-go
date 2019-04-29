@@ -243,3 +243,19 @@ func (m *Mackerel) DeleteHostMetadata(in *DeleteHostMetadataInput) (*DeleteHostM
 func (m *Mackerel) PostCheckReport(in *PostCheckReportInput) (*PostCheckReportOutput, error) {
 	return &PostCheckReportOutput{}, nil
 }
+
+func (m *Mackerel) GetAlert(in *GetAlertInput) (*GetAlertOutput, error) {
+	return &GetAlertOutput{}, nil
+}
+
+func (m *Mackerel) PostAlert(in *PostAlertInput) (*PostAlertOutput, error) {
+	return &PostAlertOutput{}, nil
+}
+
+func (m *Mackerel) GetUser(in *GetUserInput) (*GetUserOutput, error) {
+	return &GetUserOutput{}, nil
+}
+
+func (m *Mackerel) DeleteUser(in *DeleteUserInput) (*DeleteUserOutput, error) {
+	return &DeleteUserOutput{}, nil
+}

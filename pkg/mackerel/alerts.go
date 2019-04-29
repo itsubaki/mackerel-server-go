@@ -12,7 +12,8 @@ type GetAlertOutput struct {
 }
 
 type PostAlertInput struct {
-	Reason string `json:"reason"`
+	AlertID string `json:"-"`
+	Reason  string `json:"reason"`
 }
 
 type PostAlertOutput Alert

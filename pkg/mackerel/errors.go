@@ -47,3 +47,7 @@ type ServiceMetricNotFound struct {
 type ServiceMetricPostLimitExceeded struct {
 	Err
 }
+
+type UserNotFound struct {
+	Err
+}
