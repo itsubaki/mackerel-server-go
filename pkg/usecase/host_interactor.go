@@ -1,18 +1,9 @@
 package usecase
 
-import (
-	"github.com/itsubaki/mackerel-api/pkg/domain"
-	"github.com/itsubaki/mackerel-api/pkg/interfaces/database"
-)
-
-func NewHostInteractor() *HostInteractor {
-	return &HostInteractor{
-		HostRepository: database.NewHostRepository(),
-	}
-}
+import "github.com/itsubaki/mackerel-api/pkg/domain"
 
 type HostInteractor struct {
-	HostRepository *database.HostRepository
+	HostRepository HostRepository
 }
 
 func (s *HostInteractor) Find(serviceName, hostName, status, customIdentifier string, roleName []string) (domain.Hosts, error) {

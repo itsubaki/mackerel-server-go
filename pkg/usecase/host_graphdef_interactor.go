@@ -1,18 +1,9 @@
 package usecase
 
-import (
-	"github.com/itsubaki/mackerel-api/pkg/domain"
-	"github.com/itsubaki/mackerel-api/pkg/interfaces/database"
-)
-
-func NewCustomGraphDefInteractor() *CustomGraphDefInteractor {
-	return &CustomGraphDefInteractor{
-		CustomHostGraphDefRepository: database.NewCustomHostMetricDefRepository(),
-	}
-}
+import "github.com/itsubaki/mackerel-api/pkg/domain"
 
 type CustomGraphDefInteractor struct {
-	CustomHostGraphDefRepository *database.CustomHostGraphDefRepository
+	CustomHostGraphDefRepository CustomHostGraphDefRepository
 }
 
 func (s *CustomGraphDefInteractor) Save(defs domain.CustomHostMetricDefs) error {

@@ -1,8 +1,6 @@
 package usecase
 
-import (
-	"github.com/itsubaki/mackerel-api/pkg/domain"
-)
+import "github.com/itsubaki/mackerel-api/pkg/domain"
 
 type UserInteractor struct {
 	UserRepository UserRepository

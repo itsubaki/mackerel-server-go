@@ -1,18 +1,9 @@
 package usecase
 
-import (
-	"github.com/itsubaki/mackerel-api/pkg/domain"
-	"github.com/itsubaki/mackerel-api/pkg/interfaces/database"
-)
-
-func NewHostMetadataInteractor() *HostMetadataInteractor {
-	return &HostMetadataInteractor{
-		HostMetadataRepository: database.NewHostMetadataRepository(),
-	}
-}
+import "github.com/itsubaki/mackerel-api/pkg/domain"
 
 type HostMetadataInteractor struct {
-	HostMetadataRepository *database.HostMetadataRepository
+	HostMetadataRepository HostMetadataRepository
 }
 
 func (s *HostMetadataInteractor) Find(hostID, namespace string) (interface{}, error) {

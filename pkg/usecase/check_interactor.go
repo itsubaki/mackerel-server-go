@@ -1,18 +1,9 @@
 package usecase
 
-import (
-	"github.com/itsubaki/mackerel-api/pkg/domain"
-	"github.com/itsubaki/mackerel-api/pkg/interfaces/database"
-)
-
-func NewCheckInteractor() *CheckInteractor {
-	return &CheckInteractor{
-		CheckRepository: database.NewCheckReportRepository(),
-	}
-}
+import "github.com/itsubaki/mackerel-api/pkg/domain"
 
 type CheckInteractor struct {
-	CheckRepository *database.CheckReportRepository
+	CheckRepository CheckRepository
 }
 
 func (s *CheckInteractor) Save(reports domain.CheckReports) (string, error) {

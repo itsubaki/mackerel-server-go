@@ -8,10 +8,6 @@ func (e *Err) Error() string {
 	return e.Error()
 }
 
-type InvalidServiceName struct {
-	Err
-}
-
 type PermissionDenied struct {
 	Err
 }
@@ -20,15 +16,7 @@ type ServiceNotFound struct {
 	Err
 }
 
-type InvalidRoleName struct {
-	Err
-}
-
-type RoleNotFound struct {
-	Err
-}
-
-type InvalidJSONFormat struct {
+type ServiceRoleNotFound struct {
 	Err
 }
 
@@ -44,10 +32,21 @@ type ServiceMetricNotFound struct {
 	Err
 }
 
-type ServiceMetricPostLimitExceeded struct {
+type UserNotFound struct {
 	Err
 }
 
-type UserNotFound struct {
+type InvalidServiceName struct {
+	Err
+}
+type InvalidRoleName struct {
+	Err
+}
+
+type InvalidJSONFormat struct {
+	Err
+}
+
+type ServiceMetricPostLimitExceeded struct {
 	Err
 }

@@ -4,21 +4,12 @@ import (
 	"regexp"
 
 	"github.com/itsubaki/mackerel-api/pkg/domain"
-	"github.com/itsubaki/mackerel-api/pkg/interfaces/database"
 )
-
-func NewServiceRoleMetadataInteractor() *ServiceRoleMetadataInteractor {
-	return &ServiceRoleMetadataInteractor{
-		ServiceNameRule:               regexp.MustCompile(`^[a-zA-Z0-9]{1,1}[a-zA-Z0-9_-]{1,62}`),
-		ServiceRepository:             database.NewServiceRepository(),
-		ServiceRoleMetadataRepository: database.NewServiceRoleMetadataRepository(),
-	}
-}
 
 type ServiceRoleMetadataInteractor struct {
 	ServiceNameRule               *regexp.Regexp
-	ServiceRepository             *database.ServiceRepository
-	ServiceRoleMetadataRepository *database.ServiceRoleMetadataRepository
+	ServiceRepository             ServiceRepository
+	ServiceRoleMetadataRepository ServiceRoleMetadataRepository
 }
 
 func (s *ServiceRoleMetadataInteractor) Find(serviceName, roleName, spacename string) (interface{}, error) {

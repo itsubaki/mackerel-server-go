@@ -1,18 +1,9 @@
 package usecase
 
-import (
-	"github.com/itsubaki/mackerel-api/pkg/domain"
-	"github.com/itsubaki/mackerel-api/pkg/interfaces/database"
-)
-
-func NewServiceMetricInteractor() *ServiceMetricInteractor {
-	return &ServiceMetricInteractor{
-		ServiceMetricRepository: database.NewServiceMetricRepository(),
-	}
-}
+import "github.com/itsubaki/mackerel-api/pkg/domain"
 
 type ServiceMetricInteractor struct {
-	ServiceMetricRepository *database.ServiceMetricRepository
+	ServiceMetricRepository ServiceMetricRepository
 }
 
 func (s *ServiceMetricInteractor) Save(values domain.ServiceMetricValues) error {

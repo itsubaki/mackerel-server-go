@@ -44,8 +44,8 @@ func (repo *HostRepository) FindAll() (domain.Hosts, error) {
 	return repo.Internal, nil
 }
 
-func (repo *HostRepository) Save(h domain.Host) error {
-	repo.Internal = append(repo.Internal, h)
+func (repo *HostRepository) Save(host domain.Host) error {
+	repo.Internal = append(repo.Internal, host)
 	return nil
 }
 

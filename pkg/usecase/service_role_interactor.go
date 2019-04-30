@@ -4,23 +4,13 @@ import (
 	"regexp"
 
 	"github.com/itsubaki/mackerel-api/pkg/domain"
-	"github.com/itsubaki/mackerel-api/pkg/interfaces/database"
 )
-
-func NewServiceRoleInteractor() *ServiceRoleInteractor {
-	return &ServiceRoleInteractor{
-		ServiceNameRule:       regexp.MustCompile(`^[a-zA-Z0-9]{1,1}[a-zA-Z0-9_-]{1,62}`),
-		ServiceRoleNameRule:   regexp.MustCompile(`^[a-zA-Z0-9]{1,1}[a-zA-Z0-9_-]{1,62}`),
-		ServiceRepository:     database.NewServiceRepository(),
-		ServiceRoleRepository: database.NewServiceRoleRepository(),
-	}
-}
 
 type ServiceRoleInteractor struct {
 	ServiceNameRule       *regexp.Regexp
 	ServiceRoleNameRule   *regexp.Regexp
-	ServiceRepository     *database.ServiceRepository
-	ServiceRoleRepository *database.ServiceRoleRepository
+	ServiceRepository     ServiceRepository
+	ServiceRoleRepository ServiceRoleRepository
 }
 
 func (s *ServiceRoleInteractor) FindAll(serviceName string) (domain.ServiceRoles, error) {

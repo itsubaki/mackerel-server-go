@@ -1,18 +1,9 @@
 package usecase
 
-import (
-	"github.com/itsubaki/mackerel-api/pkg/domain"
-	"github.com/itsubaki/mackerel-api/pkg/interfaces/database"
-)
-
-func NewServiceMetadataInteractor() *ServiceMetadataInteractor {
-	return &ServiceMetadataInteractor{
-		ServiceMetadataRepository: database.NewServiceMetadataRepository(),
-	}
-}
+import "github.com/itsubaki/mackerel-api/pkg/domain"
 
 type ServiceMetadataInteractor struct {
-	ServiceMetadataRepository *database.ServiceMetadataRepository
+	ServiceMetadataRepository ServiceMetadataRepository
 }
 
 func (s *ServiceMetadataInteractor) MetadataList() (domain.ServiceMetadataList, error) {
