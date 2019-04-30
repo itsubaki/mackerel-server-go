@@ -26,6 +26,16 @@ func (repo *HostRepository) ExistsByName(hostName string) bool {
 	return false
 }
 
+func (repo *HostRepository) FindByID(hostID string) (domain.Host, error) {
+	for i := range repo.Internal {
+		if repo.Internal[i].ID == hostID {
+			return repo.Internal[i], nil
+		}
+	}
+
+	return domain.Host{}, fmt.Errorf("host not found")
+}
+
 func (repo *HostRepository) FindByName(hostName string) (domain.Host, error) {
 	for i := range repo.Internal {
 		if repo.Internal[i].Name == hostName {
@@ -45,7 +55,18 @@ func (repo *HostRepository) Save(h domain.Host) error {
 	return nil
 }
 
-func (repo *HostRepository) Delete(hostName string) error {
+func (repo *HostRepository) DeleteByID(hostID string) error {
+	list := domain.Hosts{}
+	for i := range repo.Internal {
+		if repo.Internal[i].ID != hostID {
+			list = append(list, repo.Internal[i])
+		}
+	}
+	repo.Internal = list
+	return nil
+}
+
+func (repo *HostRepository) DeleteByName(hostName string) error {
 	list := domain.Hosts{}
 	for i := range repo.Internal {
 		if repo.Internal[i].Name != hostName {

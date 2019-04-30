@@ -1,10 +1,6 @@
 package database
 
-import (
-	"fmt"
-
-	"github.com/itsubaki/mackerel-api/pkg/domain"
-)
+import "github.com/itsubaki/mackerel-api/pkg/domain"
 
 type HostMetricRepository struct {
 	Internal domain.HostMetricValues
@@ -14,6 +10,10 @@ func NewHostMetricRepository() *HostMetricRepository {
 	return &HostMetricRepository{
 		Internal: domain.HostMetricValues{},
 	}
+}
+
+func (repo *HostMetricRepository) FindAll() (domain.HostMetricValues, error) {
+	return repo.Internal, nil
 }
 
 func (repo *HostMetricRepository) Latest(hostID, metricName []string) (domain.HostMetricValues, error) {
@@ -28,6 +28,18 @@ func (repo *HostMetricRepository) ExistsByName(hostID, metricName string) bool {
 	}
 
 	return false
+}
+
+func (repo *HostMetricRepository) FindByID(hostID string) (domain.HostMetricValues, error) {
+	list := domain.HostMetricValues{}
+	for i := range repo.Internal {
+		if repo.Internal[i].HostID != hostID {
+			continue
+		}
+		list = append(list, repo.Internal[i])
+	}
+
+	return list, nil
 }
 
 func (repo *HostMetricRepository) FindBy(hostID, metricName string, from, to int64) (domain.HostMetricValues, error) {
@@ -49,10 +61,10 @@ func (repo *HostMetricRepository) FindBy(hostID, metricName string, from, to int
 		list = append(list, repo.Internal[i])
 	}
 
-	return list, fmt.Errorf("host metric not found")
+	return list, nil
 }
 
-func (repo *HostMetricRepository) Save(v domain.HostMetricValue) error {
-	repo.Internal = append(repo.Internal, v)
+func (repo *HostMetricRepository) Save(v domain.HostMetricValues) error {
+	repo.Internal = append(repo.Internal, v...)
 	return nil
 }

@@ -2,17 +2,17 @@ package database
 
 import "github.com/itsubaki/mackerel-api/pkg/domain"
 
-type CustomGraphDefRepository struct {
+type CustomHostGraphDefRepository struct {
 	Internal domain.CustomHostMetricDefs
 }
 
-func NewCustomHostMetricDefRepository() *CustomGraphDefRepository {
-	return &CustomGraphDefRepository{
+func NewCustomHostMetricDefRepository() *CustomHostGraphDefRepository {
+	return &CustomHostGraphDefRepository{
 		Internal: domain.CustomHostMetricDefs{},
 	}
 }
 
-func (repo *CustomGraphDefRepository) Save(v domain.CustomHostMetricDef) error {
-	repo.Internal = append(repo.Internal, v)
+func (repo *CustomHostGraphDefRepository) Save(v domain.CustomHostMetricDefs) error {
+	repo.Internal = append(repo.Internal, v...)
 	return nil
 }

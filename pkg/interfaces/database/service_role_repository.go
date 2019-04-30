@@ -52,6 +52,17 @@ func (repo *ServiceRoleRepository) Save(r domain.ServiceRole) error {
 	return nil
 }
 
+func (repo *ServiceRoleRepository) DeleteAll(serviceName string) error {
+	list := domain.ServiceRoles{}
+	for i := range repo.Internal {
+		if repo.Internal[i].ServiceName != serviceName {
+			list = append(list, repo.Internal[i])
+		}
+	}
+	repo.Internal = list
+	return nil
+}
+
 func (repo *ServiceRoleRepository) Delete(serviceName, roleName string) error {
 	list := domain.ServiceRoles{}
 	for i := range repo.Internal {

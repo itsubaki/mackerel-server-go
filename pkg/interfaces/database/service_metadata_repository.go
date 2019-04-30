@@ -6,8 +6,12 @@ type ServiceMetadataRepository struct {
 	Internal domain.ServiceMetadataList
 }
 
-func NewServiceMetadataRepositoryy() *ServiceMetadataRepository {
+func NewServiceMetadataRepository() *ServiceMetadataRepository {
 	return &ServiceMetadataRepository{
 		Internal: domain.ServiceMetadataList{},
 	}
+}
+
+func (repo *ServiceMetadataRepository) FindAll() (domain.ServiceMetadataList, error) {
+	return repo.Internal, nil
 }

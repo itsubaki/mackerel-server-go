@@ -1,7 +1,6 @@
 package infrastructure
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -10,63 +9,28 @@ import (
 )
 
 func Default() *gin.Engine {
-	return Router(gin.Default(), Must(controllers.New()))
-}
+	g := gin.Default()
 
-func Must(m *controllers.Mackerel, err error) *controllers.Mackerel {
-	if err != nil {
-		log.Fatalf("new mackerel service: %v", err)
-	}
+	services := controllers.NewServiceController()
 
-	return m
-}
-
-func Router(g *gin.Engine, m *controllers.Mackerel) *gin.Engine {
 	g.GET("/", func(c *gin.Context) {
 		c.Status(http.StatusOK)
 	})
 
 	v0 := g.Group("/api").Group("/v0")
-	ApiV0Services(v0, m)
-	ApiV0Hosts(v0, m)
-	ApiV0Metrics(v0, m)
-	ApiV0Monitoring(v0, m)
-	ApiV0Alerts(v0, m)
-	ApiV0Users(v0, m)
+
+	{
+		s := v0.Group("/services")
+		s.GET("", func(c *gin.Context) { services.List(c) })
+		s.POST("", func(c *gin.Context) { services.Save(c) })
+		s.DELETE("/:serviceName", func(c *gin.Context) { services.Delete(c) })
+	}
 
 	return g
 }
 
 func ApiV0Services(v0 *gin.RouterGroup, m *controllers.Mackerel) {
 	s := v0.Group("/services")
-
-	// https://mackerel.io/api-docs/entry/services#list
-	s.GET("", func(c *gin.Context) {
-		out, err := m.GetServices(&controllers.GetServicesInput{})
-		doResponse(c, out, err)
-	})
-
-	// https://mackerel.io/api-docs/entry/services#create
-	s.POST("", func(c *gin.Context) {
-		var in controllers.PostServiceInput
-		if err := c.BindJSON(&in); err != nil {
-			c.Status(http.StatusBadRequest)
-			return
-		}
-
-		out, err := m.PostService(&in)
-		doResponse(c, out, err)
-	})
-
-	// https://mackerel.io/api-docs/entry/services#delete
-	s.DELETE("/:serviceName", func(c *gin.Context) {
-		in := controllers.DeleteServiceInput{
-			ServiceName: c.Param("serviceName"),
-		}
-
-		out, err := m.DeleteService(&in)
-		doResponse(c, out, err)
-	})
 
 	// https://mackerel.io/api-docs/entry/services#rolelist
 	s.GET("/:serviceName/roles", func(c *gin.Context) {

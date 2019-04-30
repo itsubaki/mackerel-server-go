@@ -1,10 +1,6 @@
 package database
 
-import (
-	"fmt"
-
-	"github.com/itsubaki/mackerel-api/pkg/domain"
-)
+import "github.com/itsubaki/mackerel-api/pkg/domain"
 
 type ServiceMetricRepository struct {
 	Internal domain.ServiceMetricValues
@@ -14,6 +10,10 @@ func NewServiceMetricRepository() *ServiceMetricRepository {
 	return &ServiceMetricRepository{
 		Internal: domain.ServiceMetricValues{},
 	}
+}
+
+func (repo *ServiceMetricRepository) FindAll() (domain.ServiceMetricValues, error) {
+	return repo.Internal, nil
 }
 
 func (repo *ServiceMetricRepository) FindBy(serviceName, metricName string, from, to int64) (domain.ServiceMetricValues, error) {
@@ -35,10 +35,10 @@ func (repo *ServiceMetricRepository) FindBy(serviceName, metricName string, from
 		list = append(list, repo.Internal[i])
 	}
 
-	return list, fmt.Errorf("service metric not found")
+	return list, nil
 }
 
-func (repo *ServiceMetricRepository) Save(v domain.ServiceMetricValue) error {
-	repo.Internal = append(repo.Internal, v)
+func (repo *ServiceMetricRepository) Save(v domain.ServiceMetricValues) error {
+	repo.Internal = append(repo.Internal, v...)
 	return nil
 }
