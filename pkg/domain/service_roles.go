@@ -1,8 +1,8 @@
 package domain
 
-type ServiceRoles []ServiceRole
+type Roles []Role
 
-func (r ServiceRoles) Array() []string {
+func (r Roles) Array() []string {
 	roles := []string{}
 	for i := range r {
 		roles = append(roles, r[i].Name)
@@ -11,7 +11,7 @@ func (r ServiceRoles) Array() []string {
 	return roles
 }
 
-type ServiceRole struct {
+type Role struct {
 	ServiceName string `json:"-"`
 	Name        string `json:"name"`
 	Memo        string `json:"memo"`

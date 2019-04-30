@@ -1,8 +1,8 @@
 package domain
 
-type ServiceRoleMetadataList []ServiceRoleMetadata
+type RoleMetadataList []RoleMetadata
 
-type ServiceRoleMetadata struct {
+type RoleMetadata struct {
 	ServiceName string      `json:"-"`
 	RoleName    string      `json:"-"`
 	Namespace   string      `json:"-"`

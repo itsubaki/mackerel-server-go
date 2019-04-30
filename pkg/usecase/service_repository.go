@@ -3,9 +3,16 @@ package usecase
 import "github.com/itsubaki/mackerel-api/pkg/domain"
 
 type ServiceRepository interface {
-	FindAll() (domain.Services, error)
-	FindByName(serviceName string) (domain.Service, error)
-	ExistsByName(serviceName string) bool
-	Save(s domain.Service) error
+	MetricNames(serviceName string) ([]string, error)
+	MetricValues(serviceName, metricName string, from, to int64) (domain.ServiceMetricValues, error)
+	SaveMetricValues(values domain.ServiceMetricValues) error
+	RoleList(serviceName string) (domain.Roles, error)
+	Role(serviceName, roleName string) (*domain.Role, error)
+	SaveRole(role domain.Role) error
+	DeleteRole(serviceName, roleName string) error
+	List() (domain.Services, error)
+	Service(serviceName string) (domain.Service, error)
+	Save(service domain.Service) error
 	Delete(serviceName string) error
+	Exists(serviceName string) bool
 }

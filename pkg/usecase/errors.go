@@ -5,7 +5,7 @@ type Err struct {
 }
 
 func (e *Err) Error() string {
-	return e.Error()
+	return e.err.Error()
 }
 
 type PermissionDenied struct {
@@ -16,7 +16,7 @@ type ServiceNotFound struct {
 	Err
 }
 
-type ServiceRoleNotFound struct {
+type RoleNotFound struct {
 	Err
 }
 

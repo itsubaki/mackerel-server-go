@@ -7,14 +7,13 @@ import (
 )
 
 type ServiceInteractor struct {
-	ServiceNameRule       *regexp.Regexp
-	ServiceRoleNameRule   *regexp.Regexp
-	ServiceRepository     ServiceRepository
-	ServiceRoleRepository ServiceRoleRepository
+	ServiceNameRule     *regexp.Regexp
+	ServiceRoleNameRule *regexp.Regexp
+	ServiceRepository   ServiceRepository
 }
 
-func (s *ServiceInteractor) FindAll() (domain.Services, error) {
-	return s.ServiceRepository.FindAll()
+func (s *ServiceInteractor) List() (domain.Services, error) {
+	return s.ServiceRepository.List()
 }
 
 func (s *ServiceInteractor) Save(service *domain.Service) (*domain.Service, error) {
@@ -22,7 +21,7 @@ func (s *ServiceInteractor) Save(service *domain.Service) (*domain.Service, erro
 		return nil, &InvalidServiceName{}
 	}
 
-	if s.ServiceRepository.ExistsByName(service.Name) {
+	if s.ServiceRepository.Exists(service.Name) {
 		return nil, &InvalidServiceName{}
 	}
 
@@ -34,13 +33,9 @@ func (s *ServiceInteractor) Save(service *domain.Service) (*domain.Service, erro
 }
 
 func (s *ServiceInteractor) Delete(serviceName string) (*domain.Service, error) {
-	service, err := s.ServiceRepository.FindByName(serviceName)
+	service, err := s.ServiceRepository.Service(serviceName)
 	if err != nil {
 		return nil, &ServiceNotFound{}
-	}
-
-	if err := s.ServiceRoleRepository.DeleteAll(serviceName); err != nil {
-		return nil, err
 	}
 
 	if err := s.ServiceRepository.Delete(serviceName); err != nil {
@@ -48,4 +43,90 @@ func (s *ServiceInteractor) Delete(serviceName string) (*domain.Service, error) 
 	}
 
 	return &service, nil
+}
+
+func (s *ServiceInteractor) RoleList(serviceName string) (domain.Roles, error) {
+	list, err := s.ServiceRepository.RoleList(serviceName)
+	if err != nil {
+		return nil, &ServiceNotFound{}
+	}
+
+	return list, nil
+}
+
+func (s *ServiceInteractor) SaveRole(role *domain.Role) (*domain.Role, error) {
+	if !s.ServiceNameRule.Match([]byte(role.ServiceName)) {
+		return nil, &InvalidServiceName{}
+	}
+
+	if !s.ServiceRoleNameRule.Match([]byte(role.Name)) {
+		return nil, &InvalidRoleName{}
+	}
+
+	if s.ServiceRepository.Exists(role.ServiceName) {
+		return nil, &InvalidServiceName{}
+	}
+
+	if err := s.ServiceRepository.SaveRole(*role); err != nil {
+		return nil, err
+	}
+
+	return role, nil
+}
+
+func (s *ServiceInteractor) DeleteRole(serviceName, roleName string) (*domain.Role, error) {
+	r, err := s.ServiceRepository.Role(serviceName, roleName)
+	if err != nil {
+		return nil, &RoleNotFound{}
+	}
+
+	if err := s.ServiceRepository.DeleteRole(serviceName, roleName); err != nil {
+		return nil, err
+	}
+
+	return r, nil
+}
+
+func (s *ServiceInteractor) MetadataList() (domain.ServiceMetadataList, error) {
+	return domain.ServiceMetadataList{}, nil
+}
+
+func (s *ServiceInteractor) Metadata(serviceName, namespace string) (interface{}, error) {
+	return nil, nil
+}
+
+func (s *ServiceInteractor) SaveMetadata(serviceName, namespace string, metadata interface{}) error {
+	return nil
+}
+
+func (s *ServiceInteractor) DeleteMetadata(serviceName, namespace string) error {
+	return nil
+}
+
+func (s *ServiceInteractor) RoleMetadata(serviceName, roleName, spacename string) (interface{}, error) {
+	return nil, nil
+}
+
+func (s *ServiceInteractor) SaveRoleMetadata(serviceName, roleName, spacename string, metadata interface{}) error {
+	return nil
+}
+
+func (s *ServiceInteractor) DeleteRoleMetadata(serviceName, roleName, spacename string) error {
+	return nil
+}
+
+func (s *ServiceInteractor) RoleMetadataList(serviceName, roleName string) (domain.RoleMetadataList, error) {
+	return domain.RoleMetadataList{}, nil
+}
+
+func (s *ServiceInteractor) SaveServiceMetricValues(values domain.ServiceMetricValues) error {
+	return s.ServiceRepository.SaveMetricValues(values)
+}
+
+func (s *ServiceInteractor) MetricValues(serviceName, metricName string, from, to int64) (domain.ServiceMetricValues, error) {
+	return s.ServiceRepository.MetricValues(serviceName, metricName, from, to)
+}
+
+func (s *ServiceInteractor) MetricNames(serviceName string) ([]string, error) {
+	return s.ServiceRepository.MetricNames(serviceName)
 }

@@ -19,12 +19,12 @@ func NewServiceController(sqlHandler database.SQLHandler) *ServiceController {
 			ServiceNameRule:     regexp.MustCompile(`^[a-zA-Z0-9]{1,1}[a-zA-Z0-9_-]{1,62}`),
 			ServiceRoleNameRule: regexp.MustCompile(`^[a-zA-Z0-9]{1,1}[a-zA-Z0-9_-]{1,62}`),
 			ServiceRepository: &database.ServiceRepository{
-				SQLHandler: sqlHandler,
-				Internal:   domain.Services{},
-			},
-			ServiceRoleRepository: &database.ServiceRoleRepository{
-				SQLHandler: sqlHandelr,
-				Internal:   domain.ServiceRoles{},
+				SQLHandler:          sqlHandler,
+				Services:            domain.Services{},
+				ServiceMetadata:     domain.ServiceMetadataList{},
+				ServiceMetricValues: domain.ServiceMetricValues{},
+				Roles:               domain.Roles{},
+				RoleMetadata:        domain.RoleMetadataList{},
 			},
 		},
 	}
@@ -42,7 +42,7 @@ func (s *ServiceController) Save(c Context) {
 }
 
 func (s *ServiceController) List(c Context) {
-	out, err := s.Interactor.FindAll()
+	out, err := s.Interactor.List()
 	doResponse(c, out, err)
 }
 
