@@ -4,13 +4,13 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/itsubaki/mackerel-api/pkg/domain"
 	"github.com/itsubaki/mackerel-api/pkg/interfaces/controllers"
 )
 
 func Default() *gin.Engine {
 	g := gin.Default()
 
+	//handler := NewSQLHandler()
 	services := controllers.NewServiceController()
 
 	g.GET("/", func(c *gin.Context) {
@@ -120,7 +120,7 @@ func ApiV0Services(v0 *gin.RouterGroup, m *controllers.Mackerel) {
 	})
 
 	s.POST("/:serviceName/tsdb", func(c *gin.Context) {
-		var v domain.ServiceMetricValues
+		var v ServiceMetricValues
 		if err := c.BindJSON(&v); err != nil {
 			c.Status(http.StatusBadRequest)
 			return
@@ -335,7 +335,7 @@ func ApiV0Metrics(v0 *gin.RouterGroup, m *controllers.Mackerel) {
 	tsdb := v0.Group("/tsdb")
 
 	tsdb.POST("/", func(c *gin.Context) {
-		var v domain.HostMetricValues
+		var v HostMetricValues
 		if err := c.BindJSON(&v); err != nil {
 			c.Status(http.StatusBadRequest)
 			return
