@@ -8,10 +8,10 @@ import (
 )
 
 func Default() *gin.Engine {
-	g := gin.Default()
-
 	handler := NewSQLHandler()
 	services := controllers.NewServiceController(handler)
+
+	g := gin.Default()
 
 	g.GET("/", func(c *gin.Context) {
 		c.Status(http.StatusOK)
