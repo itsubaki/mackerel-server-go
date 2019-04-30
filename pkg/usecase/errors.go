@@ -1,4 +1,4 @@
-package mackerel
+package usecase
 
 type Err struct {
 	err error

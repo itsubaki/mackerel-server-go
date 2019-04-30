@@ -1,17 +1,6 @@
-package mackerel
+package domain
 
-type GetUserInput struct {
-}
-
-type GetUserOutput struct {
-	Users []User `json:"users"`
-}
-
-type DeleteUserInput struct {
-	UserID string `json:"-"`
-}
-
-type DeleteUserOutput User
+type Users []User
 
 type User struct {
 	ID                       string   `json:"id"`

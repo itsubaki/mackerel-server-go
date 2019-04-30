@@ -1,4 +1,6 @@
-package mackerel
+package controllers
+
+import "github.com/itsubaki/mackerel-api/pkg/domain"
 
 type GetHostMetadataInput struct {
 	HostID    string `json:"-"`
@@ -31,21 +33,17 @@ type GetHostMetadataListInput struct {
 }
 
 type GetHostMetadataListOutput struct {
-	Metadata []Metadata `json:"metadata"`
+	Metadata domain.HostMetadataList `json:"metadata"`
 }
 
-type HostMetadata struct {
-	HostID    string      `json:"-"`
-	Namespace string      `json:"-"`
-	Metadata  interface{} `json:"-"`
+func (m *Mackerel) GetHostMetadata(in *GetHostMetadataInput) (GetHostMetadataOutput, error) {
+	return "", nil
 }
 
-type HostMetadataRepository struct {
-	Internal []HostMetadata
+func (m *Mackerel) PutHostMetadata(in *PutHostMetadataInput) (*PutHostMetadataOutput, error) {
+	return &PutHostMetadataOutput{}, nil
 }
 
-func NewHostMetadataRepository() *HostMetadataRepository {
-	return &HostMetadataRepository{
-		Internal: []HostMetadata{},
-	}
+func (m *Mackerel) DeleteHostMetadata(in *DeleteHostMetadataInput) (*DeleteHostMetadataOutput, error) {
+	return &DeleteHostMetadataOutput{}, nil
 }

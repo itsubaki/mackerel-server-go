@@ -1,24 +1,27 @@
-package mackerel
+package infrastructure
 
 import (
 	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/itsubaki/mackerel-api/pkg/domain"
+	"github.com/itsubaki/mackerel-api/pkg/interfaces/controllers"
 )
 
 func Default() *gin.Engine {
-	return Router(gin.Default(), Must(New()))
+	return Router(gin.Default(), Must(controllers.New()))
 }
 
-func Must(m *Mackerel, err error) *Mackerel {
+func Must(m *controllers.Mackerel, err error) *controllers.Mackerel {
 	if err != nil {
 		log.Fatalf("new mackerel service: %v", err)
 	}
+
 	return m
 }
 
-func Router(g *gin.Engine, m *Mackerel) *gin.Engine {
+func Router(g *gin.Engine, m *controllers.Mackerel) *gin.Engine {
 	g.GET("/", func(c *gin.Context) {
 		c.Status(http.StatusOK)
 	})
@@ -34,47 +37,18 @@ func Router(g *gin.Engine, m *Mackerel) *gin.Engine {
 	return g
 }
 
-func doResponse(c *gin.Context, out interface{}, err error) {
-	switch err.(type) {
-	case
-		*ServiceNotFound,
-		*RoleNotFound,
-		*HostNotFound,
-		*HostMetricNotFound,
-		*ServiceMetricNotFound,
-		*UserNotFound:
-		c.Status(http.StatusNotFound)
-		return
-	case
-		*InvalidServiceName,
-		*InvalidRoleName,
-		*InvalidJSONFormat:
-		c.Status(http.StatusBadRequest)
-		return
-	case *ServiceMetricPostLimitExceeded:
-		c.Status(http.StatusTooManyRequests)
-		return
-	case *PermissionDenied:
-		c.Status(http.StatusForbidden)
-		return
-	default:
-		c.JSON(http.StatusOK, out)
-		return
-	}
-}
-
-func ApiV0Services(v0 *gin.RouterGroup, m *Mackerel) {
+func ApiV0Services(v0 *gin.RouterGroup, m *controllers.Mackerel) {
 	s := v0.Group("/services")
 
 	// https://mackerel.io/api-docs/entry/services#list
 	s.GET("", func(c *gin.Context) {
-		out, err := m.GetServices(&GetServicesInput{})
+		out, err := m.GetServices(&controllers.GetServicesInput{})
 		doResponse(c, out, err)
 	})
 
 	// https://mackerel.io/api-docs/entry/services#create
 	s.POST("", func(c *gin.Context) {
-		var in PostServiceInput
+		var in controllers.PostServiceInput
 		if err := c.BindJSON(&in); err != nil {
 			c.Status(http.StatusBadRequest)
 			return
@@ -86,7 +60,7 @@ func ApiV0Services(v0 *gin.RouterGroup, m *Mackerel) {
 
 	// https://mackerel.io/api-docs/entry/services#delete
 	s.DELETE("/:serviceName", func(c *gin.Context) {
-		in := DeleteServiceInput{
+		in := controllers.DeleteServiceInput{
 			ServiceName: c.Param("serviceName"),
 		}
 
@@ -96,40 +70,40 @@ func ApiV0Services(v0 *gin.RouterGroup, m *Mackerel) {
 
 	// https://mackerel.io/api-docs/entry/services#rolelist
 	s.GET("/:serviceName/roles", func(c *gin.Context) {
-		in := GetRolesInput{
+		in := controllers.GetServiceRolesInput{
 			ServiceName: c.Param("serviceName"),
 		}
 
-		out, err := m.GetRoles(&in)
+		out, err := m.GetServiceRoles(&in)
 		doResponse(c, out, err)
 	})
 
 	// https://mackerel.io/api-docs/entry/services#rolecreate
 	s.POST("/:serviceName/roles", func(c *gin.Context) {
-		var in PostRoleInput
+		var in controllers.PostServiceRoleInput
 		if err := c.BindJSON(&in); err != nil {
 			c.Status(http.StatusBadRequest)
 			return
 		}
 		in.ServiceName = c.Param("serviceName")
 
-		out, err := m.PostRole(&in)
+		out, err := m.PostServiceRole(&in)
 		doResponse(c, out, err)
 	})
 
 	// https://mackerel.io/api-docs/entry/services#roledelete
 	s.DELETE("/:serviceName/roles/:roleName", func(c *gin.Context) {
-		in := DeleteRoleInput{
+		in := controllers.DeleteServiceRoleInput{
 			ServiceName: c.Param("serviceName"),
 			RoleName:    c.Param("roleName"),
 		}
 
-		out, err := m.DeleteRole(&in)
+		out, err := m.DeleteServiceRole(&in)
 		doResponse(c, out, err)
 	})
 
 	s.GET("/:serviceName/roles/:roleName/metadata/:namespace", func(c *gin.Context) {
-		in := GetRoleMetadataInput{
+		in := controllers.GetRoleMetadataInput{
 			ServiceName: c.Param("serviceName"),
 			RoleName:    c.Param("roleName"),
 			Namespace:   c.Param("namespace"),
@@ -140,7 +114,7 @@ func ApiV0Services(v0 *gin.RouterGroup, m *Mackerel) {
 	})
 
 	s.PUT("/:serviceName/roles/:roleName/metadata/:namespace", func(c *gin.Context) {
-		in := PutRoleMetadataInput{
+		in := controllers.PutRoleMetadataInput{
 			ServiceName: c.Param("serviceName"),
 			RoleName:    c.Param("roleName"),
 			Namespace:   c.Param("namespace"),
@@ -151,7 +125,7 @@ func ApiV0Services(v0 *gin.RouterGroup, m *Mackerel) {
 	})
 
 	s.DELETE("/:serviceName/roles/:roleName/metadata/:namespace", func(c *gin.Context) {
-		in := DeleteRoleMetadataInput{
+		in := controllers.DeleteRoleMetadataInput{
 			ServiceName: c.Param("serviceName"),
 			RoleName:    c.Param("roleName"),
 			Namespace:   c.Param("namespace"),
@@ -162,7 +136,7 @@ func ApiV0Services(v0 *gin.RouterGroup, m *Mackerel) {
 	})
 
 	s.GET("/:serviceName/roles/:roleName/metadata", func(c *gin.Context) {
-		in := GetRoleMetadataListInput{
+		in := controllers.GetRoleMetadataListInput{
 			ServiceName: c.Param("serviceName"),
 			RoleName:    c.Param("roleName"),
 		}
@@ -173,7 +147,7 @@ func ApiV0Services(v0 *gin.RouterGroup, m *Mackerel) {
 
 	// https://mackerel.io/api-docs/entry/services#metric-names
 	s.GET("/:serviceName/metric-names", func(c *gin.Context) {
-		in := GetServiceMetricNamesInput{
+		in := controllers.GetServiceMetricNamesInput{
 			ServiceName: c.Param("serviceName"),
 		}
 
@@ -182,12 +156,12 @@ func ApiV0Services(v0 *gin.RouterGroup, m *Mackerel) {
 	})
 
 	s.POST("/:serviceName/tsdb", func(c *gin.Context) {
-		var v []ServiceMetricValue
+		var v domain.ServiceMetricValues
 		if err := c.BindJSON(&v); err != nil {
 			c.Status(http.StatusBadRequest)
 			return
 		}
-		in := PostServiceMetricInput{
+		in := controllers.PostServiceMetricInput{
 			ServiceName:        c.Param("serviceName"),
 			ServiceMetricValue: v,
 		}
@@ -197,7 +171,7 @@ func ApiV0Services(v0 *gin.RouterGroup, m *Mackerel) {
 	})
 
 	s.GET("/:serviceName/metrics", func(c *gin.Context) {
-		in := GetServiceMetricInput{
+		in := controllers.GetServiceMetricInput{
 			ServiceName: c.Param("serviceName"),
 		}
 
@@ -206,7 +180,7 @@ func ApiV0Services(v0 *gin.RouterGroup, m *Mackerel) {
 	})
 
 	s.GET("/:serviceName/metadata/:namespace", func(c *gin.Context) {
-		in := GetServiceMetadataInput{
+		in := controllers.GetServiceMetadataInput{
 			ServiceName: c.Param("serviceName"),
 			Namespace:   c.Param("namespace"),
 		}
@@ -222,7 +196,7 @@ func ApiV0Services(v0 *gin.RouterGroup, m *Mackerel) {
 			return
 		}
 
-		in := PutServiceMetadataInput{
+		in := controllers.PutServiceMetadataInput{
 			ServiceName: c.Param("serviceName"),
 			Namespace:   c.Param("namespace"),
 			Metadata:    v,
@@ -233,7 +207,7 @@ func ApiV0Services(v0 *gin.RouterGroup, m *Mackerel) {
 	})
 
 	s.DELETE("/:serviceName/metadata/:namespace", func(c *gin.Context) {
-		in := DeleteServiceMetadataInput{
+		in := controllers.DeleteServiceMetadataInput{
 			ServiceName: c.Param("serviceName"),
 			Namespace:   c.Param("namespace"),
 		}
@@ -243,7 +217,7 @@ func ApiV0Services(v0 *gin.RouterGroup, m *Mackerel) {
 	})
 
 	s.GET("/:serviceName/metadata", func(c *gin.Context) {
-		in := GetServiceMetadataListInput{
+		in := controllers.GetServiceMetadataListInput{
 			ServiceName: c.Param("serviceName"),
 		}
 
@@ -252,11 +226,11 @@ func ApiV0Services(v0 *gin.RouterGroup, m *Mackerel) {
 	})
 }
 
-func ApiV0Hosts(v0 *gin.RouterGroup, m *Mackerel) {
+func ApiV0Hosts(v0 *gin.RouterGroup, m *controllers.Mackerel) {
 	h := v0.Group("/hosts")
 
 	h.POST("", func(c *gin.Context) {
-		var in PostHostInput
+		var in controllers.PostHostInput
 		if err := c.BindJSON(&in); err != nil {
 			c.Status(http.StatusBadRequest)
 			return
@@ -267,7 +241,7 @@ func ApiV0Hosts(v0 *gin.RouterGroup, m *Mackerel) {
 	})
 
 	h.GET("/:hostId", func(c *gin.Context) {
-		in := GetHostInput{
+		in := controllers.GetHostInput{
 			HostID: c.Param("hostId"),
 		}
 
@@ -276,7 +250,7 @@ func ApiV0Hosts(v0 *gin.RouterGroup, m *Mackerel) {
 	})
 
 	h.PUT("/:hostId", func(c *gin.Context) {
-		var in PutHostInput
+		var in controllers.PutHostInput
 		if err := c.BindJSON(&in); err != nil {
 			c.Status(http.StatusBadRequest)
 			return
@@ -288,7 +262,7 @@ func ApiV0Hosts(v0 *gin.RouterGroup, m *Mackerel) {
 	})
 
 	h.POST("/:hostId/status", func(c *gin.Context) {
-		var in PostHostStatusInput
+		var in controllers.PostHostStatusInput
 		if err := c.BindJSON(&in); err != nil {
 			c.Status(http.StatusBadRequest)
 			return
@@ -308,7 +282,7 @@ func ApiV0Hosts(v0 *gin.RouterGroup, m *Mackerel) {
 	})
 
 	h.PUT("/:hostId/role-fullnames", func(c *gin.Context) {
-		var in PutHostRoleFullNamesInput
+		var in controllers.PutHostRoleFullNamesInput
 		if err := c.BindJSON(&in); err != nil {
 			c.Status(http.StatusBadRequest)
 			return
@@ -320,7 +294,7 @@ func ApiV0Hosts(v0 *gin.RouterGroup, m *Mackerel) {
 	})
 
 	h.POST("/:hostId/retire", func(c *gin.Context) {
-		var in PostHostRetiredInput
+		var in controllers.PostHostRetiredInput
 		if err := c.BindJSON(&in); err != nil {
 			c.Status(http.StatusBadRequest)
 			return
@@ -332,13 +306,13 @@ func ApiV0Hosts(v0 *gin.RouterGroup, m *Mackerel) {
 	})
 
 	h.GET("", func(c *gin.Context) {
-		var in GetHostsInput
+		var in controllers.GetHostsInput
 		out, err := m.GetHosts(&in)
 		doResponse(c, out, err)
 	})
 
 	h.GET("/:hostId/metric-names", func(c *gin.Context) {
-		in := GetHostMetricNamesInput{
+		in := controllers.GetHostMetricNamesInput{
 			HostID: c.Param("hostId"),
 		}
 
@@ -347,7 +321,7 @@ func ApiV0Hosts(v0 *gin.RouterGroup, m *Mackerel) {
 	})
 
 	h.GET("/:hostId/metrics", func(c *gin.Context) {
-		in := GetHostMetricInput{
+		in := controllers.GetHostMetricInput{
 			HostID: c.Param("hostId"),
 		}
 
@@ -356,7 +330,7 @@ func ApiV0Hosts(v0 *gin.RouterGroup, m *Mackerel) {
 	})
 
 	h.GET("/:hostId/metadata/:namespace", func(c *gin.Context) {
-		in := GetHostMetadataInput{
+		in := controllers.GetHostMetadataInput{
 			HostID:    c.Param("hostId"),
 			Namespace: c.Param("namespace"),
 		}
@@ -372,7 +346,7 @@ func ApiV0Hosts(v0 *gin.RouterGroup, m *Mackerel) {
 			return
 		}
 
-		in := PutHostMetadataInput{
+		in := controllers.PutHostMetadataInput{
 			HostID:    c.Param("hostId"),
 			Namespace: c.Param("namespace"),
 			Metadata:  v,
@@ -383,7 +357,7 @@ func ApiV0Hosts(v0 *gin.RouterGroup, m *Mackerel) {
 	})
 
 	h.DELETE("/:hostId/metadata/:namespace", func(c *gin.Context) {
-		in := DeleteHostMetadataInput{
+		in := controllers.DeleteHostMetadataInput{
 			HostID:    c.Param("hostId"),
 			Namespace: c.Param("namespace"),
 		}
@@ -393,16 +367,16 @@ func ApiV0Hosts(v0 *gin.RouterGroup, m *Mackerel) {
 	})
 }
 
-func ApiV0Metrics(v0 *gin.RouterGroup, m *Mackerel) {
+func ApiV0Metrics(v0 *gin.RouterGroup, m *controllers.Mackerel) {
 	tsdb := v0.Group("/tsdb")
 
 	tsdb.POST("/", func(c *gin.Context) {
-		var v []HostMetricValue
+		var v domain.HostMetricValues
 		if err := c.BindJSON(&v); err != nil {
 			c.Status(http.StatusBadRequest)
 			return
 		}
-		in := PostHostMetricInput{
+		in := controllers.PostHostMetricInput{
 			MetricValue: v,
 		}
 
@@ -411,18 +385,18 @@ func ApiV0Metrics(v0 *gin.RouterGroup, m *Mackerel) {
 	})
 
 	tsdb.GET("/latest", func(c *gin.Context) {
-		in := GetHostMetricLatestInput{}
+		in := controllers.GetHostMetricLatestInput{}
 
 		out, err := m.GetHostMetricLatest(&in)
 		doResponse(c, out, err)
 	})
 }
 
-func ApiV0Monitoring(v0 *gin.RouterGroup, m *Mackerel) {
+func ApiV0Monitoring(v0 *gin.RouterGroup, m *controllers.Mackerel) {
 	r := v0.Group("/monitoring/checks/report")
 
 	r.POST("/", func(c *gin.Context) {
-		var in PostCheckReportInput
+		var in controllers.PostCheckReportInput
 		if err := c.BindJSON(&in); err != nil {
 			c.Status(http.StatusBadRequest)
 			return
@@ -433,18 +407,18 @@ func ApiV0Monitoring(v0 *gin.RouterGroup, m *Mackerel) {
 	})
 }
 
-func ApiV0Alerts(v0 *gin.RouterGroup, m *Mackerel) {
+func ApiV0Alerts(v0 *gin.RouterGroup, m *controllers.Mackerel) {
 	r := v0.Group("/alerts")
 
 	r.GET("", func(c *gin.Context) {
-		in := GetAlertInput{}
+		in := controllers.GetAlertInput{}
 
 		out, err := m.GetAlert(&in)
 		doResponse(c, out, err)
 	})
 
 	r.POST("/:alertId/close", func(c *gin.Context) {
-		var in PostAlertInput
+		var in controllers.PostAlertInput
 		if err := c.BindJSON(&in); err != nil {
 			c.Status(http.StatusBadRequest)
 			return
@@ -456,18 +430,18 @@ func ApiV0Alerts(v0 *gin.RouterGroup, m *Mackerel) {
 	})
 }
 
-func ApiV0Users(v0 *gin.RouterGroup, m *Mackerel) {
+func ApiV0Users(v0 *gin.RouterGroup, m *controllers.Mackerel) {
 	r := v0.Group("/users")
 
 	r.GET("", func(c *gin.Context) {
-		in := GetUserInput{}
+		in := controllers.GetUserInput{}
 
 		out, err := m.GetUser(&in)
 		doResponse(c, out, err)
 	})
 
 	r.DELETE("/:userId", func(c *gin.Context) {
-		in := DeleteUserInput{
+		in := controllers.DeleteUserInput{
 			UserID: c.Param("userId"),
 		}
 

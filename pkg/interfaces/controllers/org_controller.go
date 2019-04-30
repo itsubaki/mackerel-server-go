@@ -1,4 +1,4 @@
-package mackerel
+package controllers
 
 type GetOrgInput struct {
 }

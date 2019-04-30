@@ -1,4 +1,6 @@
-package mackerel
+package controllers
+
+import "github.com/itsubaki/mackerel-api/pkg/domain"
 
 type GetRoleMetadataInput struct {
 	ServiceName string `json:"-"`
@@ -35,22 +37,21 @@ type GetRoleMetadataListInput struct {
 }
 
 type GetRoleMetadataListOutput struct {
-	Metadata []Metadata `json:"metadata"`
+	Metadata domain.ServiceRoleMetadataList `json:"metadata"`
 }
 
-type RoleMetadata struct {
-	ServiceName string      `json:"-"`
-	RoleName    string      `json:"-"`
-	Namespace   string      `json:"-"`
-	Metadata    interface{} `json:"-"`
+func (m *Mackerel) GetRoleMetadata(in *GetRoleMetadataInput) (GetRoleMetadataOutput, error) {
+	return "", nil
 }
 
-type RoleMetadataRepository struct {
-	Internal []RoleMetadata
+func (m *Mackerel) PutRoleMetadata(in *PutRoleMetadataInput) (*PutRoleMetadataOutput, error) {
+	return &PutRoleMetadataOutput{}, nil
 }
 
-func NewRoleMetadataRepositoryy() *RoleMetadataRepository {
-	return &RoleMetadataRepository{
-		Internal: []RoleMetadata{},
-	}
+func (m *Mackerel) DeleteRoleMetadata(in *DeleteRoleMetadataInput) (*DeleteRoleMetadataOutput, error) {
+	return &DeleteRoleMetadataOutput{}, nil
+}
+
+func (m *Mackerel) GetRoleMetadataList(in *GetRoleMetadataListInput) (*GetRoleMetadataListOutput, error) {
+	return &GetRoleMetadataListOutput{}, nil
 }

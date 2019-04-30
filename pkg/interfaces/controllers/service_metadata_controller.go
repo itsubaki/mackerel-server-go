@@ -1,4 +1,6 @@
-package mackerel
+package controllers
+
+import "github.com/itsubaki/mackerel-api/pkg/domain"
 
 type GetServiceMetadataInput struct {
 	ServiceName string `json:"-"`
@@ -31,21 +33,17 @@ type GetServiceMetadataListInput struct {
 }
 
 type GetServiceMetadataListOutput struct {
-	Metadata []Metadata `json:"metadata"`
+	Metadata domain.ServiceMetadataList `json:"metadata"`
 }
 
-type ServiceMetadataRepository struct {
-	Internal []ServiceMetadata
+func (m *Mackerel) PutServiceMetadata(in *PutServiceMetadataInput) (*PutServiceMetadataOutput, error) {
+	return &PutServiceMetadataOutput{}, nil
 }
 
-type ServiceMetadata struct {
-	ServiceName string      `json:"-"`
-	Namespace   string      `json:"-"`
-	Metadata    interface{} `json:"-"`
+func (m *Mackerel) DeleteServiceMetadata(in *DeleteServiceMetadataInput) (*DeleteServiceMetadataOutput, error) {
+	return &DeleteServiceMetadataOutput{}, nil
 }
 
-func NewServiceMetadataRepositoryy() *ServiceMetadataRepository {
-	return &ServiceMetadataRepository{
-		Internal: []ServiceMetadata{},
-	}
+func (m *Mackerel) GetServiceMetadataList(in *GetServiceMetadataListInput) (*GetServiceMetadataListOutput, error) {
+	return &GetServiceMetadataListOutput{}, nil
 }

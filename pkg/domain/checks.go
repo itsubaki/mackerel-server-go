@@ -1,12 +1,6 @@
-package mackerel
+package domain
 
-type PostCheckReportInput struct {
-	Reports []CheckReport `json:"reports"`
-}
-
-type PostCheckReportOutput struct {
-	Status string `json:"status"`
-}
+type CheckReports []CheckReport
 
 type CheckReport struct {
 	Source               Source `json:"source"`
@@ -21,19 +15,4 @@ type CheckReport struct {
 type Source struct {
 	Type   string `json:"type"`
 	HostID string `json:"hostId"`
-}
-
-type CheckReportRepository struct {
-	Internal []CheckReport
-}
-
-func NewCheckReportRepository() *CheckReportRepository {
-	return &CheckReportRepository{
-		Internal: []CheckReport{},
-	}
-}
-
-func (repo *CheckReportRepository) Save(v CheckReport) error {
-	repo.Internal = append(repo.Internal, v)
-	return nil
 }
