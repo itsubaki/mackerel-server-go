@@ -6,12 +6,6 @@ type UserRepository struct {
 	Internal domain.Users
 }
 
-func NewUserRepository() *UserRepository {
-	return &UserRepository{
-		Internal: domain.Users{},
-	}
-}
-
 func (repo *UserRepository) FindAll() (domain.Users, error) {
 	return repo.Internal, nil
 }

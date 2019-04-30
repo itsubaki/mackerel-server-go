@@ -6,12 +6,6 @@ type HostMetadataRepository struct {
 	Internal domain.HostMetadataList
 }
 
-func NewHostMetadataRepository() *HostMetadataRepository {
-	return &HostMetadataRepository{
-		Internal: domain.HostMetadataList{},
-	}
-}
-
 func (repo *HostMetadataRepository) Find(hostID, namespace string) (domain.HostMetadataList, error) {
 	list := domain.HostMetadataList{}
 	for i := range repo.Internal {

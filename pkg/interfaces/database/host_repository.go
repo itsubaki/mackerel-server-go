@@ -10,12 +10,6 @@ type HostRepository struct {
 	Internal domain.Hosts
 }
 
-func NewHostRepository() *HostRepository {
-	return &HostRepository{
-		Internal: domain.Hosts{},
-	}
-}
-
 func (repo *HostRepository) ExistsByName(hostName string) bool {
 	for i := range repo.Internal {
 		if repo.Internal[i].Name == hostName {

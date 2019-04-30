@@ -13,13 +13,19 @@ type ServiceController struct {
 	Interactor *usecase.ServiceInteractor
 }
 
-func NewServiceController() *ServiceController {
+func NewServiceController(sqlHandler database.SQLHandler) *ServiceController {
 	return &ServiceController{
 		Interactor: &usecase.ServiceInteractor{
-			ServiceNameRule:       regexp.MustCompile(`^[a-zA-Z0-9]{1,1}[a-zA-Z0-9_-]{1,62}`),
-			ServiceRoleNameRule:   regexp.MustCompile(`^[a-zA-Z0-9]{1,1}[a-zA-Z0-9_-]{1,62}`),
-			ServiceRepository:     database.NewServiceRepository(),
-			ServiceRoleRepository: database.NewServiceRoleRepository(),
+			ServiceNameRule:     regexp.MustCompile(`^[a-zA-Z0-9]{1,1}[a-zA-Z0-9_-]{1,62}`),
+			ServiceRoleNameRule: regexp.MustCompile(`^[a-zA-Z0-9]{1,1}[a-zA-Z0-9_-]{1,62}`),
+			ServiceRepository: &database.ServiceRepository{
+				SQLHandler: sqlHandler,
+				Internal:   domain.Services{},
+			},
+			ServiceRoleRepository: &database.ServiceRoleRepository{
+				SQLHandler: sqlHandelr,
+				Internal:   domain.ServiceRoles{},
+			},
 		},
 	}
 }

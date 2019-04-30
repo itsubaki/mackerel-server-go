@@ -7,13 +7,8 @@ import (
 )
 
 type ServiceRoleRepository struct {
-	Internal domain.ServiceRoles
-}
-
-func NewServiceRoleRepository() *ServiceRoleRepository {
-	return &ServiceRoleRepository{
-		Internal: domain.ServiceRoles{},
-	}
+	SQLHandler SQLHandler
+	Internal   domain.ServiceRoles
 }
 
 func (repo *ServiceRoleRepository) ExistsByName(serviceName, roleName string) bool {

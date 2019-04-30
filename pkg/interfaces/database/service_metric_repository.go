@@ -6,12 +6,6 @@ type ServiceMetricRepository struct {
 	Internal domain.ServiceMetricValues
 }
 
-func NewServiceMetricRepository() *ServiceMetricRepository {
-	return &ServiceMetricRepository{
-		Internal: domain.ServiceMetricValues{},
-	}
-}
-
 func (repo *ServiceMetricRepository) FindAll() (domain.ServiceMetricValues, error) {
 	return repo.Internal, nil
 }

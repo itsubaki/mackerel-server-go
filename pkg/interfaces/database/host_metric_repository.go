@@ -6,12 +6,6 @@ type HostMetricRepository struct {
 	Internal domain.HostMetricValues
 }
 
-func NewHostMetricRepository() *HostMetricRepository {
-	return &HostMetricRepository{
-		Internal: domain.HostMetricValues{},
-	}
-}
-
 func (repo *HostMetricRepository) FindAll() (domain.HostMetricValues, error) {
 	return repo.Internal, nil
 }
