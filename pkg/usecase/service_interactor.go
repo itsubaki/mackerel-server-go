@@ -7,9 +7,9 @@ import (
 )
 
 type ServiceInteractor struct {
-	ServiceNameRule     *regexp.Regexp
-	ServiceRoleNameRule *regexp.Regexp
-	ServiceRepository   ServiceRepository
+	NameRule          *regexp.Regexp
+	RoleNameRule      *regexp.Regexp
+	ServiceRepository ServiceRepository
 }
 
 func (s *ServiceInteractor) List() (*domain.Services, error) {
@@ -17,7 +17,7 @@ func (s *ServiceInteractor) List() (*domain.Services, error) {
 }
 
 func (s *ServiceInteractor) Save(service *domain.Service) (*domain.Service, error) {
-	if !s.ServiceNameRule.Match([]byte(service.Name)) {
+	if !s.NameRule.Match([]byte(service.Name)) {
 		return nil, &InvalidServiceName{}
 	}
 
@@ -51,11 +51,11 @@ func (s *ServiceInteractor) RoleList(serviceName string) (*domain.Roles, error) 
 }
 
 func (s *ServiceInteractor) SaveRole(serviceName string, role *domain.Role) (*domain.Role, error) {
-	if !s.ServiceNameRule.Match([]byte(serviceName)) {
+	if !s.NameRule.Match([]byte(serviceName)) {
 		return nil, &InvalidServiceName{}
 	}
 
-	if !s.ServiceRoleNameRule.Match([]byte(role.Name)) {
+	if !s.RoleNameRule.Match([]byte(role.Name)) {
 		return nil, &InvalidRoleName{}
 	}
 

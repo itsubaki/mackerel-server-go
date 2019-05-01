@@ -6,6 +6,7 @@ type HostRepository interface {
 	List() (*domain.Hosts, error)
 	Save(host *domain.Host) (*domain.HostID, error)
 	Host(hostID string) (*domain.Host, error)
+	Exists(hostID string) bool
 	Status(hostID, status string) (*domain.Success, error)
 	SaveRoleFullNames(hostID string, names *domain.RoleFullNames) (*domain.Success, error)
 	Retire(hostID string, retire *domain.HostRetire) (*domain.Success, error)

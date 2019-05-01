@@ -32,6 +32,16 @@ func (repo *HostRepository) Host(hostID string) (*domain.Host, error) {
 	return nil, fmt.Errorf("host not found")
 }
 
+func (repo *HostRepository) Exists(hostID string) bool {
+	for i := range repo.Hosts.Hosts {
+		if repo.Hosts.Hosts[i].ID == hostID {
+			return true
+		}
+	}
+
+	return false
+}
+
 func (repo *HostRepository) Status(hostID, status string) (*domain.Success, error) {
 	for i := range repo.Hosts.Hosts {
 		if repo.Hosts.Hosts[i].ID == hostID {

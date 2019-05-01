@@ -1,6 +1,10 @@
 package usecase
 
-import "github.com/itsubaki/mackerel-api/pkg/domain"
+import (
+	"errors"
+
+	"github.com/itsubaki/mackerel-api/pkg/domain"
+)
 
 type HostInteractor struct {
 	HostRepository HostRepository
@@ -11,9 +15,15 @@ func (s *HostInteractor) List() (*domain.Hosts, error) {
 }
 
 func (s *HostInteractor) Save(host *domain.Host) (*domain.HostID, error) {
-	if len(host.ID) < 1 {
-		host.ID = "genHostID"
+	host.ID = "genHostID"
+	return s.HostRepository.Save(host)
+}
+
+func (s *HostInteractor) Update(host *domain.Host) (*domain.HostID, error) {
+	if !s.HostRepository.Exists(host.ID) {
+		return nil, &HostNotFound{Err{errors.New("the host that corresponds to the <hostId> can’t be located")}}
 	}
+
 	return s.HostRepository.Save(host)
 }
 
@@ -22,18 +32,34 @@ func (s *HostInteractor) Host(hostID string) (*domain.Host, error) {
 }
 
 func (s *HostInteractor) Status(hostID, status string) (*domain.Success, error) {
+	if !s.HostRepository.Exists(hostID) {
+		return nil, &HostNotFound{Err{errors.New("the host that corresponds to the <hostId> can’t be located")}}
+	}
+
 	return s.HostRepository.Status(hostID, status)
 }
 
 func (s *HostInteractor) SaveRoleFullNames(hostID string, names *domain.RoleFullNames) (*domain.Success, error) {
+	if !s.HostRepository.Exists(hostID) {
+		return nil, &HostNotFound{Err{errors.New("the host that corresponds to the <hostId> can’t be located")}}
+	}
+
 	return s.HostRepository.SaveRoleFullNames(hostID, names)
 }
 
 func (s *HostInteractor) Retire(hostID string, retire *domain.HostRetire) (*domain.Success, error) {
+	if !s.HostRepository.Exists(hostID) {
+		return nil, &HostNotFound{Err{errors.New("the host that corresponds to the <hostId> can’t be located")}}
+	}
+
 	return s.HostRepository.Retire(hostID, retire)
 }
 
 func (s *HostInteractor) MetricNames(hostID string) (*domain.MetricNames, error) {
+	if !s.HostRepository.Exists(hostID) {
+		return nil, &HostNotFound{Err{errors.New("the host that corresponds to the <hostId> can’t be located")}}
+	}
+
 	return s.HostRepository.MetricNames(hostID)
 }
 

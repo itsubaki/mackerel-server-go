@@ -34,6 +34,10 @@ type ServiceMetricNotFound struct {
 	Err
 }
 
+type AlertNotFound struct {
+	Err
+}
+
 type UserNotFound struct {
 	Err
 }
@@ -46,6 +50,10 @@ type InvalidRoleName struct {
 }
 
 type InvalidJSONFormat struct {
+	Err
+}
+
+type LimitOver struct {
 	Err
 }
 

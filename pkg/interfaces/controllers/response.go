@@ -14,13 +14,15 @@ func doResponse(c Context, out interface{}, err error) {
 		*usecase.HostNotFound,
 		*usecase.HostMetricNotFound,
 		*usecase.ServiceMetricNotFound,
+		*usecase.AlertNotFound,
 		*usecase.UserNotFound:
 		c.Status(http.StatusNotFound)
 		return
 	case
 		*usecase.InvalidServiceName,
 		*usecase.InvalidRoleName,
-		*usecase.InvalidJSONFormat:
+		*usecase.InvalidJSONFormat,
+		*usecase.LimitOver:
 		c.Status(http.StatusBadRequest)
 		return
 	case *usecase.ServiceMetricPostLimitExceeded:
