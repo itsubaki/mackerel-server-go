@@ -3,10 +3,10 @@ package init
 import (
 	"net/http"
 
-	"github.com/itsubaki/mackerel-api/pkg/mackerel"
+	"github.com/itsubaki/mackerel-api/pkg/infrastructure"
 )
 
 // GoogleAppEngine endpoint
 func init() {
-	http.Handle("/", mackerel.Default())
+	http.Handle("/", infrastructure.Default())
 }

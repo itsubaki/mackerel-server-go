@@ -1,22 +1,13 @@
-package mackerel
+package domain
 
-type GetAlertInput struct {
-	WithClosed bool   `json:"withClosed,omitempty"`
-	NextID     string `json:"nextId,omitempty"`
-	Limit      int64  `json:"limit,omitempty"`
+type Reason struct {
+	Reason string `json:"reason"`
 }
 
-type GetAlertOutput struct {
+type Alerts struct {
 	Alerts []Alert `json:"alerts"`
 	NextID string  `json:"nextId"`
 }
-
-type PostAlertInput struct {
-	AlertID string `json:"-"`
-	Reason  string `json:"reason"`
-}
-
-type PostAlertOutput Alert
 
 type Alert struct {
 	ID        string  `json:"id"`
@@ -29,14 +20,4 @@ type Alert struct {
 	Reason    string  `json:"reason,omitempty"`
 	OpenedAt  string  `json:"openedAt"`
 	ClosedAt  string  `json:"closedAt,omitempty"`
-}
-
-type AlertRepository struct {
-	Internal []Alert
-}
-
-func NewAlertRepository() *AlertRepository {
-	return &AlertRepository{
-		Internal: []Alert{},
-	}
 }

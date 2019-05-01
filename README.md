@@ -23,3 +23,5 @@ mackerel compatible monitoring service
  - Persistence
    - [ ] Database
    - [ ] Transaction
+ - Security
+   - [ ] `X-API-KEY`
