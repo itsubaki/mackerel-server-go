@@ -1,6 +1,9 @@
 package domain
 
-type Alerts []Alert
+type Alerts struct {
+	Alerts []Alert `json:"alerts"`
+	NextID string  `json:"nextId"`
+}
 
 type Alert struct {
 	ID        string  `json:"id"`

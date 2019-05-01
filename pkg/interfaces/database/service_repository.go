@@ -8,59 +8,64 @@ import (
 
 type ServiceRepository struct {
 	SQLHandler          SQLHandler
-	Services            domain.Services
-	ServiceMetadata     domain.ServiceMetadataList
-	ServiceMetricValues domain.ServiceMetricValues
-	Roles               domain.Roles
-	RoleMetadata        domain.RoleMetadataList
+	Services            *domain.Services
+	ServiceMetadata     *domain.ServiceMetadataList
+	ServiceMetricValues *domain.ServiceMetricValues
+	Roles               *domain.Roles
+	RoleMetadata        *domain.RoleMetadataList
 }
 
-func (repo *ServiceRepository) MetricNames(serviceName string) ([]string, error) {
-	return []string{}, nil
+func (repo *ServiceRepository) MetricNames(serviceName string) (*domain.ServiceMetricValueNames, error) {
+	return &domain.ServiceMetricValueNames{}, nil
 }
 
-func (repo *ServiceRepository) MetricValues(serviceName, metricName string, from, to int64) (domain.ServiceMetricValues, error) {
-	list := domain.ServiceMetricValues{}
-	for i := range repo.ServiceMetricValues {
-		if repo.ServiceMetricValues[i].ServiceName != serviceName {
+func (repo *ServiceRepository) MetricValues(serviceName, metricName string, from, to int64) (*domain.ServiceMetricValues, error) {
+	list := &domain.ServiceMetricValues{
+		Metrics: []domain.ServiceMetricValue{},
+	}
+
+	for i := range repo.ServiceMetricValues.Metrics {
+		if repo.ServiceMetricValues.Metrics[i].ServiceName != serviceName {
 			continue
 		}
-		if repo.ServiceMetricValues[i].Name != metricName {
+		if repo.ServiceMetricValues.Metrics[i].Name != metricName {
 			continue
 		}
-		if from > repo.ServiceMetricValues[i].Time {
+		if from > repo.ServiceMetricValues.Metrics[i].Time {
 			continue
 		}
-		if repo.ServiceMetricValues[i].Time > to {
+		if repo.ServiceMetricValues.Metrics[i].Time > to {
 			continue
 		}
 
-		list = append(list, repo.ServiceMetricValues[i])
+		list.Metrics = append(list.Metrics, repo.ServiceMetricValues.Metrics[i])
 	}
 
 	return list, nil
 }
 
 func (repo *ServiceRepository) SaveMetricValues(v domain.ServiceMetricValues) error {
-	repo.ServiceMetricValues = append(repo.ServiceMetricValues, v...)
+	repo.ServiceMetricValues.Metrics = append(repo.ServiceMetricValues.Metrics, v.Metrics...)
 	return nil
 }
 
 func (repo *ServiceRepository) Role(serviceName, roleName string) (*domain.Role, error) {
-	for i := range repo.Roles {
-		if repo.Roles[i].ServiceName == serviceName && repo.Roles[i].Name == roleName {
-			return &repo.Roles[i], nil
+	for i := range repo.Roles.Roles {
+		if repo.Roles.Roles[i].ServiceName == serviceName && repo.Roles.Roles[i].Name == roleName {
+			return &repo.Roles.Roles[i], nil
 		}
 	}
 
 	return nil, fmt.Errorf("role not found")
 }
 
-func (repo *ServiceRepository) RoleList(serviceName string) (domain.Roles, error) {
-	list := domain.Roles{}
-	for i := range repo.Roles {
-		if repo.Roles[i].ServiceName == serviceName {
-			list = append(list, repo.Roles[i])
+func (repo *ServiceRepository) RoleList(serviceName string) (*domain.Roles, error) {
+	list := &domain.Roles{
+		Roles: []domain.Role{},
+	}
+	for i := range repo.Roles.Roles {
+		if repo.Roles.Roles[i].ServiceName == serviceName {
+			list.Roles = append(list.Roles, repo.Roles.Roles[i])
 		}
 	}
 
@@ -68,17 +73,20 @@ func (repo *ServiceRepository) RoleList(serviceName string) (domain.Roles, error
 }
 
 func (repo *ServiceRepository) SaveRole(r domain.Role) error {
-	repo.Roles = append(repo.Roles, r)
+	repo.Roles.Roles = append(repo.Roles.Roles, r)
 	return nil
 }
 
 func (repo *ServiceRepository) DeleteRole(serviceName, roleName string) error {
-	list := domain.Roles{}
-	for i := range repo.Roles {
-		if repo.Roles[i].ServiceName != serviceName || repo.Roles[i].Name != roleName {
-			list = append(list, repo.Roles[i])
+	list := &domain.Roles{
+		Roles: []domain.Role{},
+	}
+	for i := range repo.Roles.Roles {
+		if repo.Roles.Roles[i].ServiceName != serviceName || repo.Roles.Roles[i].Name != roleName {
+			list.Roles = append(list.Roles, repo.Roles.Roles[i])
 		}
 	}
+
 	repo.Roles = list
 
 	return nil
@@ -94,14 +102,14 @@ func (repo *ServiceRepository) Exists(serviceName string) bool {
 	return false
 }
 
-func (repo *ServiceRepository) Service(serviceName string) (domain.Service, error) {
+func (repo *ServiceRepository) Service(serviceName string) (*domain.Service, error) {
 	for i := range repo.Services {
 		if repo.Services[i].Name == serviceName {
-			return repo.Services[i], nil
+			return &repo.Services[i], nil
 		}
 	}
 
-	return domain.Service{}, fmt.Errorf("service not found")
+	return nil, fmt.Errorf("service not found")
 }
 
 func (repo *ServiceRepository) List() (domain.Services, error) {

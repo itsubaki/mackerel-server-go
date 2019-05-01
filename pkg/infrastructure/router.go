@@ -8,8 +8,6 @@ import (
 )
 
 func Default() *gin.Engine {
-	handler := NewSQLHandler()
-	services := controllers.NewServiceController(handler)
 
 	g := gin.Default()
 
@@ -19,11 +17,26 @@ func Default() *gin.Engine {
 
 	v0 := g.Group("/api").Group("/v0")
 
+	handler := NewSQLHandler()
 	{
+		services := controllers.NewServiceController(handler)
+
 		s := v0.Group("/services")
 		s.GET("", func(c *gin.Context) { services.List(c) })
 		s.POST("", func(c *gin.Context) { services.Save(c) })
 		s.DELETE("/:serviceName", func(c *gin.Context) { services.Delete(c) })
+
+		s.GET("/:serviceName/roles", func(c *gin.Context) { services.RoleList(c) })
+		s.POST("/:serviceName/roles", func(c *gin.Context) { services.SaveRole(c) })
+		s.DELETE("/:serviceName/roles/:roleName", func(c *gin.Context) { services.DeleteRole(c) })
+
+		s.GET("/:serviceName/roles/:roleName/metadata", func(c *gin.Context) { services.RoleMetadataList(c) })
+		s.GET("/:serviceName/roles/:roleName/metadata/:namespace", func(c *gin.Context) { services.RoleMetadata(c) })
+		s.PUT("/:serviceName/roles/:roleName/metadata/:namespace", func(c *gin.Context) { services.SaveRoleMetadata(c) })
+		s.DELETE("/:serviceName/roles/:roleName/metadata/:namespace", func(c *gin.Context) { services.DeleteRoleMetadata(c) })
+
+		s.GET("/:serviceName/metric-names", func(c *gin.Context) { services.MetricNames(c) })
+		s.GET("/:serviceName/metrics", func(c *gin.Context) { services.MetricValues(c) })
 	}
 
 	return g
@@ -31,93 +44,6 @@ func Default() *gin.Engine {
 
 func ApiV0Services(v0 *gin.RouterGroup, m *controllers.Mackerel) {
 	s := v0.Group("/services")
-
-	// https://mackerel.io/api-docs/entry/services#rolelist
-	s.GET("/:serviceName/roles", func(c *gin.Context) {
-		in := controllers.GetServiceRolesInput{
-			ServiceName: c.Param("serviceName"),
-		}
-
-		out, err := m.GetServiceRoles(&in)
-		doResponse(c, out, err)
-	})
-
-	// https://mackerel.io/api-docs/entry/services#rolecreate
-	s.POST("/:serviceName/roles", func(c *gin.Context) {
-		var in controllers.PostServiceRoleInput
-		if err := c.BindJSON(&in); err != nil {
-			c.Status(http.StatusBadRequest)
-			return
-		}
-		in.ServiceName = c.Param("serviceName")
-
-		out, err := m.PostServiceRole(&in)
-		doResponse(c, out, err)
-	})
-
-	// https://mackerel.io/api-docs/entry/services#roledelete
-	s.DELETE("/:serviceName/roles/:roleName", func(c *gin.Context) {
-		in := controllers.DeleteServiceRoleInput{
-			ServiceName: c.Param("serviceName"),
-			RoleName:    c.Param("roleName"),
-		}
-
-		out, err := m.DeleteServiceRole(&in)
-		doResponse(c, out, err)
-	})
-
-	s.GET("/:serviceName/roles/:roleName/metadata/:namespace", func(c *gin.Context) {
-		in := controllers.GetRoleMetadataInput{
-			ServiceName: c.Param("serviceName"),
-			RoleName:    c.Param("roleName"),
-			Namespace:   c.Param("namespace"),
-		}
-
-		out, err := m.GetRoleMetadata(&in)
-		doResponse(c, out, err)
-	})
-
-	s.PUT("/:serviceName/roles/:roleName/metadata/:namespace", func(c *gin.Context) {
-		in := controllers.PutRoleMetadataInput{
-			ServiceName: c.Param("serviceName"),
-			RoleName:    c.Param("roleName"),
-			Namespace:   c.Param("namespace"),
-		}
-
-		out, err := m.PutRoleMetadata(&in)
-		doResponse(c, out, err)
-	})
-
-	s.DELETE("/:serviceName/roles/:roleName/metadata/:namespace", func(c *gin.Context) {
-		in := controllers.DeleteRoleMetadataInput{
-			ServiceName: c.Param("serviceName"),
-			RoleName:    c.Param("roleName"),
-			Namespace:   c.Param("namespace"),
-		}
-
-		out, err := m.DeleteRoleMetadata(&in)
-		doResponse(c, out, err)
-	})
-
-	s.GET("/:serviceName/roles/:roleName/metadata", func(c *gin.Context) {
-		in := controllers.GetRoleMetadataListInput{
-			ServiceName: c.Param("serviceName"),
-			RoleName:    c.Param("roleName"),
-		}
-
-		out, err := m.GetRoleMetadataList(&in)
-		doResponse(c, out, err)
-	})
-
-	// https://mackerel.io/api-docs/entry/services#metric-names
-	s.GET("/:serviceName/metric-names", func(c *gin.Context) {
-		in := controllers.GetServiceMetricNamesInput{
-			ServiceName: c.Param("serviceName"),
-		}
-
-		out, err := m.GetServiceMetricNames(&in)
-		doResponse(c, out, err)
-	})
 
 	s.POST("/:serviceName/tsdb", func(c *gin.Context) {
 		var v ServiceMetricValues
@@ -131,15 +57,6 @@ func ApiV0Services(v0 *gin.RouterGroup, m *controllers.Mackerel) {
 		}
 
 		out, err := m.PostServiceMetric(&in)
-		doResponse(c, out, err)
-	})
-
-	s.GET("/:serviceName/metrics", func(c *gin.Context) {
-		in := controllers.GetServiceMetricInput{
-			ServiceName: c.Param("serviceName"),
-		}
-
-		out, err := m.GetServiceMetric(&in)
 		doResponse(c, out, err)
 	})
 

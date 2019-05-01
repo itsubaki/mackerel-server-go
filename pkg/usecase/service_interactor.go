@@ -42,7 +42,7 @@ func (s *ServiceInteractor) Delete(serviceName string) (*domain.Service, error) 
 		return nil, err
 	}
 
-	return &service, nil
+	return service, nil
 }
 
 func (s *ServiceInteractor) RoleList(serviceName string) (domain.Roles, error) {
@@ -103,15 +103,15 @@ func (s *ServiceInteractor) DeleteMetadata(serviceName, namespace string) error 
 	return nil
 }
 
-func (s *ServiceInteractor) RoleMetadata(serviceName, roleName, spacename string) (interface{}, error) {
+func (s *ServiceInteractor) RoleMetadata(serviceName, roleName, namespace string) (interface{}, error) {
 	return nil, nil
 }
 
-func (s *ServiceInteractor) SaveRoleMetadata(serviceName, roleName, spacename string, metadata interface{}) error {
+func (s *ServiceInteractor) SaveRoleMetadata(serviceName, roleName, namespace string, metadata interface{}) error {
 	return nil
 }
 
-func (s *ServiceInteractor) DeleteRoleMetadata(serviceName, roleName, spacename string) error {
+func (s *ServiceInteractor) DeleteRoleMetadata(serviceName, roleName, namespace string) error {
 	return nil
 }
 
@@ -119,14 +119,14 @@ func (s *ServiceInteractor) RoleMetadataList(serviceName, roleName string) (doma
 	return domain.RoleMetadataList{}, nil
 }
 
-func (s *ServiceInteractor) SaveServiceMetricValues(values domain.ServiceMetricValues) error {
+func (s *ServiceInteractor) SaveMetricValues(values domain.ServiceMetricValues) error {
 	return s.ServiceRepository.SaveMetricValues(values)
 }
 
-func (s *ServiceInteractor) MetricValues(serviceName, metricName string, from, to int64) (domain.ServiceMetricValues, error) {
+func (s *ServiceInteractor) MetricValues(serviceName, metricName string, from, to int64) (*domain.ServiceMetricValues, error) {
 	return s.ServiceRepository.MetricValues(serviceName, metricName, from, to)
 }
 
-func (s *ServiceInteractor) MetricNames(serviceName string) ([]string, error) {
+func (s *ServiceInteractor) MetricNames(serviceName string) (*domain.ServiceMetricValueNames, error) {
 	return s.ServiceRepository.MetricNames(serviceName)
 }

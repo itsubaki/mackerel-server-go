@@ -1,11 +1,13 @@
 package usecase
 
+import "fmt"
+
 type Err struct {
 	err error
 }
 
 func (e *Err) Error() string {
-	return e.err.Error()
+	return fmt.Sprint(e.err)
 }
 
 type PermissionDenied struct {

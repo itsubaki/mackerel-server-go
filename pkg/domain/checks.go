@@ -16,3 +16,7 @@ type Source struct {
 	Type   string `json:"type"`
 	HostID string `json:"hostId"`
 }
+
+type CheckReportStatus struct {
+	Status string `json:"status"`
+}

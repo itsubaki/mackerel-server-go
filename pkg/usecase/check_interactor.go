@@ -6,6 +6,6 @@ type CheckInteractor struct {
 	CheckRepository CheckRepository
 }
 
-func (s *CheckInteractor) Save(reports domain.CheckReports) (string, error) {
-	return "status", nil
+func (s *CheckInteractor) Save(reports domain.CheckReports) (*domain.CheckReportStatus, error) {
+	return &domain.CheckReportStatus{}, nil
 }

@@ -3,21 +3,21 @@ package database
 import "github.com/itsubaki/mackerel-api/pkg/domain"
 
 type UserRepository struct {
-	Internal domain.Users
+	Users domain.Users
 }
 
 func (repo *UserRepository) FindAll() (domain.Users, error) {
-	return repo.Internal, nil
+	return repo.Users, nil
 }
 
 func (repo *UserRepository) Delete(userId string) error {
 	list := domain.Users{}
-	for i := range repo.Internal {
-		if repo.Internal[i].ID != userId {
-			list = append(list, repo.Internal[i])
+	for i := range repo.Users {
+		if repo.Users[i].ID != userId {
+			list = append(list, repo.Users[i])
 		}
 	}
-	repo.Internal = list
+	repo.Users = list
 
 	return nil
 }
