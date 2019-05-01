@@ -58,6 +58,10 @@ type HostIsRetired struct {
 	Err
 }
 
+type InvitationNotFound struct {
+	Err
+}
+
 type InvalidServiceName struct {
 	Err
 }

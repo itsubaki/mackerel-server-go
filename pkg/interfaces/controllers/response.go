@@ -18,6 +18,7 @@ func doResponse(c Context, out interface{}, err error) {
 		*usecase.ServiceMetricNotFound,
 		*usecase.ServiceMetadataNotFound,
 		*usecase.AlertNotFound,
+		*usecase.InvitationNotFound,
 		*usecase.UserNotFound:
 		c.Status(http.StatusNotFound)
 		return
