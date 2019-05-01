@@ -12,7 +12,7 @@ type ServiceInteractor struct {
 	ServiceRepository   ServiceRepository
 }
 
-func (s *ServiceInteractor) List() (domain.Services, error) {
+func (s *ServiceInteractor) List() (*domain.Services, error) {
 	return s.ServiceRepository.List()
 }
 
@@ -25,7 +25,7 @@ func (s *ServiceInteractor) Save(service *domain.Service) (*domain.Service, erro
 		return nil, &InvalidServiceName{}
 	}
 
-	if err := s.ServiceRepository.Save(*service); err != nil {
+	if err := s.ServiceRepository.Save(service); err != nil {
 		return nil, err
 	}
 
@@ -45,7 +45,7 @@ func (s *ServiceInteractor) Delete(serviceName string) (*domain.Service, error) 
 	return service, nil
 }
 
-func (s *ServiceInteractor) RoleList(serviceName string) (domain.Roles, error) {
+func (s *ServiceInteractor) RoleList(serviceName string) (*domain.Roles, error) {
 	list, err := s.ServiceRepository.RoleList(serviceName)
 	if err != nil {
 		return nil, &ServiceNotFound{}
@@ -54,8 +54,8 @@ func (s *ServiceInteractor) RoleList(serviceName string) (domain.Roles, error) {
 	return list, nil
 }
 
-func (s *ServiceInteractor) SaveRole(role *domain.Role) (*domain.Role, error) {
-	if !s.ServiceNameRule.Match([]byte(role.ServiceName)) {
+func (s *ServiceInteractor) SaveRole(serviceName string, role *domain.Role) (*domain.Role, error) {
+	if !s.ServiceNameRule.Match([]byte(serviceName)) {
 		return nil, &InvalidServiceName{}
 	}
 
@@ -63,11 +63,11 @@ func (s *ServiceInteractor) SaveRole(role *domain.Role) (*domain.Role, error) {
 		return nil, &InvalidRoleName{}
 	}
 
-	if s.ServiceRepository.Exists(role.ServiceName) {
+	if !s.ServiceRepository.Exists(serviceName) {
 		return nil, &InvalidServiceName{}
 	}
 
-	if err := s.ServiceRepository.SaveRole(*role); err != nil {
+	if err := s.ServiceRepository.SaveRole(serviceName, role); err != nil {
 		return nil, err
 	}
 
@@ -87,40 +87,40 @@ func (s *ServiceInteractor) DeleteRole(serviceName, roleName string) (*domain.Ro
 	return r, nil
 }
 
-func (s *ServiceInteractor) MetadataList() (domain.ServiceMetadataList, error) {
-	return domain.ServiceMetadataList{}, nil
+func (s *ServiceInteractor) MetadataList(serviceName string) (*domain.ServiceMetadataList, error) {
+	return &domain.ServiceMetadataList{}, nil
 }
 
 func (s *ServiceInteractor) Metadata(serviceName, namespace string) (interface{}, error) {
 	return nil, nil
 }
 
-func (s *ServiceInteractor) SaveMetadata(serviceName, namespace string, metadata interface{}) error {
-	return nil
+func (s *ServiceInteractor) SaveMetadata(serviceName, namespace string, metadata interface{}) (*domain.Success, error) {
+	return &domain.Success{}, nil
 }
 
-func (s *ServiceInteractor) DeleteMetadata(serviceName, namespace string) error {
-	return nil
+func (s *ServiceInteractor) DeleteMetadata(serviceName, namespace string) (*domain.Success, error) {
+	return &domain.Success{}, nil
 }
 
 func (s *ServiceInteractor) RoleMetadata(serviceName, roleName, namespace string) (interface{}, error) {
 	return nil, nil
 }
 
-func (s *ServiceInteractor) SaveRoleMetadata(serviceName, roleName, namespace string, metadata interface{}) error {
-	return nil
+func (s *ServiceInteractor) SaveRoleMetadata(serviceName, roleName, namespace string, metadata interface{}) (*domain.Success, error) {
+	return &domain.Success{}, nil
 }
 
-func (s *ServiceInteractor) DeleteRoleMetadata(serviceName, roleName, namespace string) error {
-	return nil
+func (s *ServiceInteractor) DeleteRoleMetadata(serviceName, roleName, namespace string) (*domain.Success, error) {
+	return &domain.Success{}, nil
 }
 
-func (s *ServiceInteractor) RoleMetadataList(serviceName, roleName string) (domain.RoleMetadataList, error) {
-	return domain.RoleMetadataList{}, nil
+func (s *ServiceInteractor) RoleMetadataList(serviceName, roleName string) (*domain.RoleMetadataList, error) {
+	return &domain.RoleMetadataList{}, nil
 }
 
-func (s *ServiceInteractor) SaveMetricValues(values domain.ServiceMetricValues) error {
-	return s.ServiceRepository.SaveMetricValues(values)
+func (s *ServiceInteractor) SaveMetricValues(serviceName string, values []domain.ServiceMetricValue) (*domain.Success, error) {
+	return &domain.Success{}, s.ServiceRepository.SaveMetricValues(serviceName, values)
 }
 
 func (s *ServiceInteractor) MetricValues(serviceName, metricName string, from, to int64) (*domain.ServiceMetricValues, error) {

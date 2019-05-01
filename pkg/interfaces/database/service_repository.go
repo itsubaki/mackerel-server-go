@@ -20,9 +20,7 @@ func (repo *ServiceRepository) MetricNames(serviceName string) (*domain.ServiceM
 }
 
 func (repo *ServiceRepository) MetricValues(serviceName, metricName string, from, to int64) (*domain.ServiceMetricValues, error) {
-	list := &domain.ServiceMetricValues{
-		Metrics: []domain.ServiceMetricValue{},
-	}
+	metrics := []domain.ServiceMetricValue{}
 
 	for i := range repo.ServiceMetricValues.Metrics {
 		if repo.ServiceMetricValues.Metrics[i].ServiceName != serviceName {
@@ -38,14 +36,18 @@ func (repo *ServiceRepository) MetricValues(serviceName, metricName string, from
 			continue
 		}
 
-		list.Metrics = append(list.Metrics, repo.ServiceMetricValues.Metrics[i])
+		metrics = append(metrics, repo.ServiceMetricValues.Metrics[i])
 	}
 
-	return list, nil
+	return &domain.ServiceMetricValues{Metrics: metrics}, nil
 }
 
-func (repo *ServiceRepository) SaveMetricValues(v domain.ServiceMetricValues) error {
-	repo.ServiceMetricValues.Metrics = append(repo.ServiceMetricValues.Metrics, v.Metrics...)
+func (repo *ServiceRepository) SaveMetricValues(serviceName string, values []domain.ServiceMetricValue) error {
+	for i := range values {
+		values[i].ServiceName = serviceName
+		repo.ServiceMetricValues.Metrics = append(repo.ServiceMetricValues.Metrics, values[i])
+	}
+
 	return nil
 }
 
@@ -72,8 +74,9 @@ func (repo *ServiceRepository) RoleList(serviceName string) (*domain.Roles, erro
 	return list, nil
 }
 
-func (repo *ServiceRepository) SaveRole(r domain.Role) error {
-	repo.Roles.Roles = append(repo.Roles.Roles, r)
+func (repo *ServiceRepository) SaveRole(serviceName string, r *domain.Role) error {
+	r.ServiceName = serviceName
+	repo.Roles.Roles = append(repo.Roles.Roles, *r)
 	return nil
 }
 
@@ -93,8 +96,8 @@ func (repo *ServiceRepository) DeleteRole(serviceName, roleName string) error {
 }
 
 func (repo *ServiceRepository) Exists(serviceName string) bool {
-	for i := range repo.Services {
-		if repo.Services[i].Name == serviceName {
+	for i := range repo.Services.Services {
+		if repo.Services.Services[i].Name == serviceName {
 			return true
 		}
 	}
@@ -103,40 +106,47 @@ func (repo *ServiceRepository) Exists(serviceName string) bool {
 }
 
 func (repo *ServiceRepository) Service(serviceName string) (*domain.Service, error) {
-	for i := range repo.Services {
-		if repo.Services[i].Name == serviceName {
-			return &repo.Services[i], nil
+	for i := range repo.Services.Services {
+		if repo.Services.Services[i].Name != serviceName {
+			continue
 		}
+
+		s := repo.Services.Services[i]
+		if s.Roles == nil {
+			s.Roles = []string{}
+		}
+
+		return &s, nil
 	}
 
 	return nil, fmt.Errorf("service not found")
 }
 
-func (repo *ServiceRepository) List() (domain.Services, error) {
+func (repo *ServiceRepository) List() (*domain.Services, error) {
 	return repo.Services, nil
 }
 
-func (repo *ServiceRepository) Save(s domain.Service) error {
-	repo.Services = append(repo.Services, s)
+func (repo *ServiceRepository) Save(s *domain.Service) error {
+	repo.Services.Services = append(repo.Services.Services, *s)
 	return nil
 }
 
 func (repo *ServiceRepository) Delete(serviceName string) error {
-	services := domain.Services{}
-	for i := range repo.Services {
-		if repo.Services[i].Name != serviceName {
-			services = append(services, repo.Services[i])
+	services := []domain.Service{}
+	for i := range repo.Services.Services {
+		if repo.Services.Services[i].Name != serviceName {
+			services = append(services, repo.Services.Services[i])
 		}
 	}
-	repo.Services = services
+	repo.Services.Services = services
 
-	roles := domain.Roles{}
-	for i := range repo.Roles {
-		if repo.Roles[i].ServiceName != serviceName {
-			roles = append(roles, repo.Roles[i])
+	roles := []domain.Role{}
+	for i := range repo.Roles.Roles {
+		if repo.Roles.Roles[i].ServiceName != serviceName {
+			roles = append(roles, repo.Roles.Roles[i])
 		}
 	}
-	repo.Roles = roles
+	repo.Roles.Roles = roles
 
 	return nil
 }

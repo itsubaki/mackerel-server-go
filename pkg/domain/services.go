@@ -1,6 +1,8 @@
 package domain
 
-type Services []Service
+type Services struct {
+	Services []Service `json:"services"`
+}
 
 type Service struct {
 	Name  string   `json:"name"`
@@ -8,7 +10,9 @@ type Service struct {
 	Roles []string `json:"roles"`
 }
 
-type ServiceMetadataList []ServiceMetadata
+type ServiceMetadataList struct {
+	Metadata []ServiceMetadata `json:"metadata"`
+}
 
 type ServiceMetadata struct {
 	ServiceName string      `json:"-"`
@@ -35,7 +39,9 @@ type Role struct {
 	Memo        string `json:"memo"`
 }
 
-type RoleMetadataList []RoleMetadata
+type RoleMetadataList struct {
+	Metadata []RoleMetadata `json:"metadata"`
+}
 
 type RoleMetadata struct {
 	ServiceName string      `json:"-"`
