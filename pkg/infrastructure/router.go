@@ -69,6 +69,13 @@ func Default() *gin.Engine {
 	}
 
 	{
+		graphs := controllers.NewGraphController(handler)
+
+		d := v0.Group("/graph-defs")
+		d.POST("/create", func(c *gin.Context) { graphs.Save(c) })
+	}
+
+	{
 		reports := controllers.NewCheckReportController(handler)
 
 		r := v0.Group("/monitoring/checks/report")

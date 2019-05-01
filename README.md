@@ -20,7 +20,7 @@ mackerel compatible monitoring service
    - [x] Alerts
    - [ ] Dashboards
    - [x] Users
-   - [ ] Invitations
+   - [x] Invitations
    - [x] Organizations
  - Persistence
    - [ ] Database
