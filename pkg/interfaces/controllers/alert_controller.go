@@ -13,7 +13,7 @@ type AlertController struct {
 	Interactor *usecase.AlertInteractor
 }
 
-func NewAlertController(sqlHandler database.SQLHandler) *AlertController {
+func NewAlertController(handler database.SQLHandler) *AlertController {
 	return &AlertController{}
 }
 

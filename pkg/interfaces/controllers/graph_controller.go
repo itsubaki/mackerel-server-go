@@ -12,7 +12,7 @@ type GraphController struct {
 	Interactor *usecase.GraphInteractor
 }
 
-func NewGraphController(sqlHandler database.SQLHandler) *GraphController {
+func NewGraphController(handler database.SQLHandler) *GraphController {
 	return &GraphController{}
 }
 

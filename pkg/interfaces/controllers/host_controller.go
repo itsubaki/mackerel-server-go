@@ -6,6 +6,7 @@ import (
 
 	"github.com/itsubaki/mackerel-api/pkg/domain"
 	"github.com/itsubaki/mackerel-api/pkg/interfaces/database"
+	"github.com/itsubaki/mackerel-api/pkg/interfaces/memory"
 	"github.com/itsubaki/mackerel-api/pkg/usecase"
 )
 
@@ -13,16 +14,19 @@ type HostController struct {
 	Interactor *usecase.HostInteractor
 }
 
-func NewHostController(sqlHandler database.SQLHandler) *HostController {
+func NewHostController(handler database.SQLHandler) *HostController {
 	return &HostController{
 		Interactor: &usecase.HostInteractor{
-			HostRepository: &database.HostRepository{
-				SQLHandler:       sqlHandler,
-				Hosts:            &domain.Hosts{},
-				HostMetrics:      &domain.Metrics{},
-				HostMetricValues: &domain.MetricValues{},
-			},
+			HostRepository: NewHostInteractorOnMemory(),
 		},
+	}
+}
+
+func NewHostInteractorOnMemory() usecase.HostRepository {
+	return &memory.HostRepository{
+		Hosts:            &domain.Hosts{},
+		HostMetrics:      &domain.Metrics{},
+		HostMetricValues: &domain.MetricValues{},
 	}
 }
 

@@ -9,7 +9,7 @@ type OrgController struct {
 	Interactor *usecase.OrgInteractor
 }
 
-func NewOrgController(sqlHandler database.SQLHandler) *OrgController {
+func NewOrgController(handler database.SQLHandler) *OrgController {
 	return &OrgController{}
 }
 

@@ -1,4 +1,4 @@
-package database
+package memory
 
 import (
 	"fmt"
@@ -7,7 +7,6 @@ import (
 )
 
 type ServiceRepository struct {
-	SQLHandler          SQLHandler
 	Services            *domain.Services
 	ServiceMetadata     *domain.ServiceMetadataList
 	ServiceMetricValues *domain.ServiceMetricValues

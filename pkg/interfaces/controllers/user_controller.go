@@ -9,7 +9,7 @@ type UserController struct {
 	Interactor *usecase.UserInteractor
 }
 
-func NewUserController(sqlHandler database.SQLHandler) *UserController {
+func NewUserController(handler database.SQLHandler) *UserController {
 	return &UserController{}
 }
 

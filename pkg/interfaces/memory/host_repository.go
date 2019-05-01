@@ -1,4 +1,4 @@
-package database
+package memory
 
 import (
 	"fmt"
@@ -7,7 +7,6 @@ import (
 )
 
 type HostRepository struct {
-	SQLHandler       SQLHandler
 	Hosts            *domain.Hosts
 	HostMetrics      *domain.Metrics
 	HostMetricValues *domain.MetricValues

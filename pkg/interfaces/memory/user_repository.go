@@ -1,10 +1,9 @@
-package database
+package memory
 
 import "github.com/itsubaki/mackerel-api/pkg/domain"
 
 type UserRepository struct {
-	SQLHandler SQLHandler
-	Users      *domain.Users
+	Users *domain.Users
 }
 
 func (repo *UserRepository) List() (*domain.Users, error) {
