@@ -40,11 +40,6 @@ func Default() *gin.Engine {
 		s.PUT("/:serviceName/roles/:roleName/metadata/:namespace", func(c *gin.Context) { services.SaveRoleMetadata(c) })
 		s.DELETE("/:serviceName/roles/:roleName/metadata/:namespace", func(c *gin.Context) { services.DeleteRoleMetadata(c) })
 
-		s.GET("/:serviceName/roles/:roleName/metadata", func(c *gin.Context) { services.RoleMetadataList(c) })
-		s.GET("/:serviceName/roles/:roleName/metadata/:namespace", func(c *gin.Context) { services.RoleMetadata(c) })
-		s.PUT("/:serviceName/roles/:roleName/metadata/:namespace", func(c *gin.Context) { services.SaveRoleMetadata(c) })
-		s.DELETE("/:serviceName/roles/:roleName/metadata/:namespace", func(c *gin.Context) { services.DeleteRoleMetadata(c) })
-
 		s.GET("/:serviceName/metric-names", func(c *gin.Context) { services.MetricNames(c) })
 		s.GET("/:serviceName/metrics", func(c *gin.Context) { services.MetricValues(c) })
 		s.POST("/:serviceName/tsdb", func(c *gin.Context) { services.SaveMetricValues(c) })
