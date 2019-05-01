@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"math"
 	"net/http"
 	"regexp"
 
@@ -30,35 +31,25 @@ func NewServiceController(sqlHandler database.SQLHandler) *ServiceController {
 	}
 }
 
-func (s *ServiceController) MetricNames(c Context) {
-	out, err := s.Interactor.MetricNames(
-		c.Param("serviceName"),
-	)
-
+func (s *ServiceController) List(c Context) {
+	out, err := s.Interactor.List()
 	doResponse(c, out, err)
 }
 
-func (s *ServiceController) MetricValues(c Context) {
-	out, err := s.Interactor.MetricValues(
-		c.Param("serviceName"),
-		c.Param("metricName"),
-		0,
-		0,
-	)
-
-	doResponse(c, out, err)
-}
-
-func (s *ServiceController) SaveMetricValues(c Context) {
-	var v []domain.ServiceMetricValue
-	if err := c.BindJSON(&v); err != nil {
+func (s *ServiceController) Save(c Context) {
+	var in domain.Service
+	if err := c.BindJSON(&in); err != nil {
 		c.Status(http.StatusBadRequest)
 		return
 	}
 
-	out, err := s.Interactor.SaveMetricValues(
+	out, err := s.Interactor.Save(&in)
+	doResponse(c, out, err)
+}
+
+func (s *ServiceController) Delete(c Context) {
+	out, err := s.Interactor.Delete(
 		c.Param("serviceName"),
-		v,
 	)
 
 	doResponse(c, out, err)
@@ -180,25 +171,35 @@ func (s *ServiceController) DeleteRoleMetadata(c Context) {
 	doResponse(c, out, err)
 }
 
-func (s *ServiceController) Save(c Context) {
-	var in domain.Service
-	if err := c.BindJSON(&in); err != nil {
+func (s *ServiceController) MetricNames(c Context) {
+	out, err := s.Interactor.MetricNames(
+		c.Param("serviceName"),
+	)
+
+	doResponse(c, out, err)
+}
+
+func (s *ServiceController) MetricValues(c Context) {
+	out, err := s.Interactor.MetricValues(
+		c.Param("serviceName"),
+		c.Param("metricName"),
+		math.MinInt32,
+		math.MaxInt32,
+	)
+
+	doResponse(c, out, err)
+}
+
+func (s *ServiceController) SaveMetricValues(c Context) {
+	var v []domain.ServiceMetricValue
+	if err := c.BindJSON(&v); err != nil {
 		c.Status(http.StatusBadRequest)
 		return
 	}
 
-	out, err := s.Interactor.Save(&in)
-	doResponse(c, out, err)
-}
-
-func (s *ServiceController) List(c Context) {
-	out, err := s.Interactor.List()
-	doResponse(c, out, err)
-}
-
-func (s *ServiceController) Delete(c Context) {
-	out, err := s.Interactor.Delete(
+	out, err := s.Interactor.SaveMetricValues(
 		c.Param("serviceName"),
+		v,
 	)
 
 	doResponse(c, out, err)

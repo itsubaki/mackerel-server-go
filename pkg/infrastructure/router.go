@@ -26,6 +26,11 @@ func Default() *gin.Engine {
 		s.POST("", func(c *gin.Context) { services.Save(c) })
 		s.DELETE("/:serviceName", func(c *gin.Context) { services.Delete(c) })
 
+		s.GET("/:serviceName/metadata", func(c *gin.Context) { services.MetadataList(c) })
+		s.GET("/:serviceName/metadata/:namespace", func(c *gin.Context) { services.Metadata(c) })
+		s.PUT("/:serviceName/metadata/:namespace", func(c *gin.Context) { services.SaveMetadata(c) })
+		s.DELETE("/:serviceName/metadata/:namespace", func(c *gin.Context) { services.DeleteMetadata(c) })
+
 		s.GET("/:serviceName/roles", func(c *gin.Context) { services.RoleList(c) })
 		s.POST("/:serviceName/roles", func(c *gin.Context) { services.SaveRole(c) })
 		s.DELETE("/:serviceName/roles/:roleName", func(c *gin.Context) { services.DeleteRole(c) })
@@ -35,10 +40,10 @@ func Default() *gin.Engine {
 		s.PUT("/:serviceName/roles/:roleName/metadata/:namespace", func(c *gin.Context) { services.SaveRoleMetadata(c) })
 		s.DELETE("/:serviceName/roles/:roleName/metadata/:namespace", func(c *gin.Context) { services.DeleteRoleMetadata(c) })
 
-		s.GET("/:serviceName/metadata", func(c *gin.Context) { services.MetadataList(c) })
-		s.GET("/:serviceName/metadata/:namespace", func(c *gin.Context) { services.Metadata(c) })
-		s.PUT("/:serviceName/metadata/:namespace", func(c *gin.Context) { services.SaveMetadata(c) })
-		s.DELETE("/:serviceName/metadata/:namespace", func(c *gin.Context) { services.DeleteMetadata(c) })
+		s.GET("/:serviceName/roles/:roleName/metadata", func(c *gin.Context) { services.RoleMetadataList(c) })
+		s.GET("/:serviceName/roles/:roleName/metadata/:namespace", func(c *gin.Context) { services.RoleMetadata(c) })
+		s.PUT("/:serviceName/roles/:roleName/metadata/:namespace", func(c *gin.Context) { services.SaveRoleMetadata(c) })
+		s.DELETE("/:serviceName/roles/:roleName/metadata/:namespace", func(c *gin.Context) { services.DeleteRoleMetadata(c) })
 
 		s.GET("/:serviceName/metric-names", func(c *gin.Context) { services.MetricNames(c) })
 		s.GET("/:serviceName/metrics", func(c *gin.Context) { services.MetricValues(c) })
