@@ -123,7 +123,7 @@ func (s *ServiceInteractor) SaveMetricValues(serviceName string, values []domain
 	return &domain.Success{}, s.ServiceRepository.SaveMetricValues(serviceName, values)
 }
 
-func (s *ServiceInteractor) MetricValues(serviceName, metricName string, from, to int64) (*domain.ServiceMetricValues, error) {
+func (s *ServiceInteractor) MetricValues(serviceName, metricName string, from, to int) (*domain.ServiceMetricValues, error) {
 	return s.ServiceRepository.MetricValues(serviceName, metricName, from, to)
 }
 

@@ -57,7 +57,7 @@ type ServiceMetricValues struct {
 type ServiceMetricValue struct {
 	ServiceName string  `json:"-"`
 	Name        string  `json:"name"`
-	Time        int64   `json:"time"`
+	Time        int     `json:"time"`
 	Value       float64 `json:"value"`
 }
 

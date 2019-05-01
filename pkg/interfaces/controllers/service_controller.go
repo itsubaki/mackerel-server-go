@@ -182,7 +182,7 @@ func (s *ServiceController) MetricNames(c Context) {
 func (s *ServiceController) MetricValues(c Context) {
 	out, err := s.Interactor.MetricValues(
 		c.Param("serviceName"),
-		c.Param("metricName"),
+		c.Query("metricName"),
 		math.MinInt32,
 		math.MaxInt32,
 	)

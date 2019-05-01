@@ -50,5 +50,57 @@ func Default() *gin.Engine {
 		s.POST("/:serviceName/tsdb", func(c *gin.Context) { services.SaveMetricValues(c) })
 	}
 
+	{
+		hosts := controllers.NewHostController(handler)
+
+		h := v0.Group("/hosts")
+		h.GET("", func(c *gin.Context) { hosts.List(c) })
+		h.POST("", func(c *gin.Context) { hosts.Save(c) })
+
+		h.GET("/:hostId", func(c *gin.Context) { hosts.Host(c) })
+		h.PUT("/:hostId", func(c *gin.Context) { hosts.Save(c) })
+		h.PUT("/:hostId/role-fullnames", func(c *gin.Context) { hosts.RoleFullNames(c) })
+		h.POST("/:hostId/status", func(c *gin.Context) { hosts.Status(c) })
+		h.POST("/:hostId/retire", func(c *gin.Context) { hosts.Retire(c) })
+
+		h.GET("/:hostId/metadata", func(c *gin.Context) { hosts.MetadataList(c) })
+		h.GET("/:hostId/metadata/:namespace", func(c *gin.Context) { hosts.Metadata(c) })
+		h.PUT("/:hostId/metadata/:namespace", func(c *gin.Context) { hosts.SaveMetadata(c) })
+		h.DELETE("/:hostId/metadata/:namespace", func(c *gin.Context) { hosts.DeleteMetadata(c) })
+
+		h.GET("/:hostId/metric-names", func(c *gin.Context) { hosts.MetricNames(c) })
+		h.GET("/:hostId/metrics", func(c *gin.Context) { hosts.MetricValues(c) })
+	}
+
+	{
+		reports := controllers.NewCheckReportController(handler)
+
+		r := v0.Group("/monitoring/checks/report")
+		r.POST("", func(c *gin.Context) { reports.Save(c) })
+	}
+
+	{
+		alerts := controllers.NewAlertController(handler)
+
+		a := v0.Group("/alerts")
+		a.GET("", func(c *gin.Context) { alerts.List(c) })
+		a.POST("/:alertId/close", func(c *gin.Context) { alerts.Close(c) })
+	}
+
+	{
+		users := controllers.NewUserController(handler)
+
+		u := v0.Group("/users")
+		u.GET("", func(c *gin.Context) { users.List(c) })
+		u.DELETE("/:userId", func(c *gin.Context) { users.Delete(c) })
+	}
+
+	{
+		org := controllers.NewOrgController(handler)
+
+		o := v0.Group("/org")
+		o.GET("", func(c *gin.Context) { org.Org(c) })
+	}
+
 	return g
 }

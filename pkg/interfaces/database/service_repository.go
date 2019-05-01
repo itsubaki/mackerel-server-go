@@ -19,7 +19,7 @@ func (repo *ServiceRepository) MetricNames(serviceName string) (*domain.ServiceM
 	return &domain.ServiceMetricValueNames{}, nil
 }
 
-func (repo *ServiceRepository) MetricValues(serviceName, metricName string, from, to int64) (*domain.ServiceMetricValues, error) {
+func (repo *ServiceRepository) MetricValues(serviceName, metricName string, from, to int) (*domain.ServiceMetricValues, error) {
 	metrics := []domain.ServiceMetricValue{}
 
 	for i := range repo.ServiceMetricValues.Metrics {

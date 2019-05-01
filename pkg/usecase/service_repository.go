@@ -15,6 +15,6 @@ type ServiceRepository interface {
 	DeleteRole(serviceName, roleName string) error
 
 	MetricNames(serviceName string) (*domain.ServiceMetricValueNames, error)
-	MetricValues(serviceName, metricName string, from, to int64) (*domain.ServiceMetricValues, error)
+	MetricValues(serviceName, metricName string, from, to int) (*domain.ServiceMetricValues, error)
 	SaveMetricValues(serviceName string, values []domain.ServiceMetricValue) error
 }
