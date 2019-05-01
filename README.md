@@ -12,12 +12,12 @@ mackerel compatible monitoring service
    - [x] Service Metrics
    - [x] Check Monitoring
    - [x] Metadata
-   - [ ] Monitors
+   - [x] Monitors
    - [ ] Notification channels
    - [ ] Notification groups
-   - [ ] Alerts
+   - [x] Alerts
    - [ ] Dashboards
-   - [ ] Users
+   - [x] Users
    - [ ] Invitations
    - [x] Organizations
  - Persistence

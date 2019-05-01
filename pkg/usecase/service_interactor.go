@@ -21,10 +21,6 @@ func (s *ServiceInteractor) Save(service *domain.Service) (*domain.Service, erro
 		return nil, &InvalidServiceName{}
 	}
 
-	if s.ServiceRepository.Exists(service.Name) {
-		return nil, &InvalidServiceName{}
-	}
-
 	if err := s.ServiceRepository.Save(service); err != nil {
 		return nil, err
 	}
