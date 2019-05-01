@@ -1,5 +1,9 @@
 package domain
 
+type TSDBLatest struct {
+	TSDBLatest map[string]map[string]string `json:"tsdbLatest"`
+}
+
 type HostMetadata struct {
 	Metadata []Namespace `json:"metadata"`
 }

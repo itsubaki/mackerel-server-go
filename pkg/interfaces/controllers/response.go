@@ -11,9 +11,12 @@ func doResponse(c Context, out interface{}, err error) {
 	case
 		*usecase.ServiceNotFound,
 		*usecase.RoleNotFound,
+		*usecase.RoleMetadataNotFound,
 		*usecase.HostNotFound,
 		*usecase.HostMetricNotFound,
+		*usecase.HostMetadataNotFound,
 		*usecase.ServiceMetricNotFound,
+		*usecase.ServiceMetadataNotFound,
 		*usecase.AlertNotFound,
 		*usecase.UserNotFound:
 		c.Status(http.StatusNotFound)
@@ -22,12 +25,16 @@ func doResponse(c Context, out interface{}, err error) {
 		*usecase.InvalidServiceName,
 		*usecase.InvalidRoleName,
 		*usecase.InvalidJSONFormat,
-		*usecase.LimitOver:
+		*usecase.HostIsRetired,
+		*usecase.MetadataLimitExceeded,
+		*usecase.AlertLimitOver:
 		c.Status(http.StatusBadRequest)
 		return
 	case *usecase.ServiceMetricPostLimitExceeded:
 		c.Status(http.StatusTooManyRequests)
 		return
+	case *usecase.MetadataTooLarge:
+		c.Status(http.StatusRequestEntityTooLarge)
 	case *usecase.PermissionDenied:
 		c.Status(http.StatusForbidden)
 		return

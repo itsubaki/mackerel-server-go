@@ -11,9 +11,13 @@ type HostRepository interface {
 	SaveRoleFullNames(hostID string, names *domain.RoleFullNames) (*domain.Success, error)
 	Retire(hostID string, retire *domain.HostRetire) (*domain.Success, error)
 
+	ExistsMetric(hostID, name string) bool
 	MetricNames(hostID string) (*domain.MetricNames, error)
 	MetricValues(hostID, name string, from, to int) (*domain.MetricValues, error)
+	MetricValuesLatest(hostId, name []string) (*domain.TSDBLatest, error)
+	SaveMetricValues(values []domain.MetricValue) (*domain.Success, error)
 
+	ExistsMetadata(hostID, namespace string) bool
 	MetadataList(hostID string) (*domain.HostMetadata, error)
 	Metadata(hostID, namespace string) (interface{}, error)
 	SaveMetadata(hostID, namespace string, metadata interface{}) (*domain.Success, error)

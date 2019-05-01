@@ -1,9 +1,9 @@
 package controllers
 
 import (
-	"math"
 	"net/http"
 	"regexp"
+	"strconv"
 
 	"github.com/itsubaki/mackerel-api/pkg/domain"
 	"github.com/itsubaki/mackerel-api/pkg/interfaces/database"
@@ -18,14 +18,14 @@ func NewServiceController(sqlHandler database.SQLHandler) *ServiceController {
 	return &ServiceController{
 		Interactor: &usecase.ServiceInteractor{
 			NameRule:     regexp.MustCompile(`^[a-zA-Z0-9]{1,1}[a-zA-Z0-9_-]{1,62}`),
-			RoleNameRule: regexp.MustCompile(`^[a-zA-Z0-9]{1,1}[a-zA-Z0-9_-.]{1,62}`),
+			RoleNameRule: regexp.MustCompile(`^[a-zA-Z0-9]{1,1}[a-zA-Z0-9_-]{1,62}`),
 			ServiceRepository: &database.ServiceRepository{
 				SQLHandler:          sqlHandler,
 				Services:            &domain.Services{},
 				ServiceMetadata:     &domain.ServiceMetadataList{},
 				ServiceMetricValues: &domain.ServiceMetricValues{},
 				Roles:               &domain.Roles{},
-				RoleMetadata:        &domain.RoleMetadataList{},
+				RoleMetadataL:       &domain.RoleMetadataList{},
 			},
 		},
 	}
@@ -180,11 +180,23 @@ func (s *ServiceController) MetricNames(c Context) {
 }
 
 func (s *ServiceController) MetricValues(c Context) {
+	from, err := strconv.Atoi(c.Query("from"))
+	if err != nil {
+		c.Status(http.StatusBadRequest)
+		return
+	}
+
+	to, err := strconv.Atoi(c.Query("to"))
+	if err != nil {
+		c.Status(http.StatusBadRequest)
+		return
+	}
+
 	out, err := s.Interactor.MetricValues(
 		c.Param("serviceName"),
 		c.Query("metricName"),
-		math.MinInt32,
-		math.MaxInt32,
+		from,
+		to,
 	)
 
 	doResponse(c, out, err)

@@ -12,7 +12,7 @@ type AlertInteractor struct {
 
 func (s *AlertInteractor) List(withClosed bool, nextID string, limit int) (*domain.Alerts, error) {
 	if limit > 100 {
-		return nil, &LimitOver{Err{errors.New("`limit` value is larger than maximum allowed value(100)")}}
+		return nil, &AlertLimitOver{Err{errors.New("`limit` value is larger than maximum allowed value(100)")}}
 	}
 
 	return s.AlertRepository.List(withClosed, nextID, limit)

@@ -22,6 +22,10 @@ type RoleNotFound struct {
 	Err
 }
 
+type RoleMetadataNotFound struct {
+	Err
+}
+
 type HostNotFound struct {
 	Err
 }
@@ -30,7 +34,15 @@ type HostMetricNotFound struct {
 	Err
 }
 
+type HostMetadataNotFound struct {
+	Err
+}
+
 type ServiceMetricNotFound struct {
+	Err
+}
+
+type ServiceMetadataNotFound struct {
 	Err
 }
 
@@ -39,6 +51,10 @@ type AlertNotFound struct {
 }
 
 type UserNotFound struct {
+	Err
+}
+
+type HostIsRetired struct {
 	Err
 }
 
@@ -53,7 +69,15 @@ type InvalidJSONFormat struct {
 	Err
 }
 
-type LimitOver struct {
+type AlertLimitOver struct {
+	Err
+}
+
+type MetadataTooLarge struct {
+	Err
+}
+
+type MetadataLimitExceeded struct {
 	Err
 }
 

@@ -1,7 +1,9 @@
 # mackerel-api
 mackerel compatible monitoring service
 
-[API](https://mackerel.io/ja/api-docs/)
+[API](https://mackerel.io/api-docs/)
+
+[API(ja)](https://mackerel.io/ja/api-docs/)
 
 # TODO
 

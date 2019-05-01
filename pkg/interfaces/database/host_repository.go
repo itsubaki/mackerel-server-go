@@ -77,6 +77,17 @@ func (repo *HostRepository) Retire(hostID string, retire *domain.HostRetire) (*d
 	return &domain.Success{Success: true}, nil
 }
 
+func (repo *HostRepository) ExistsMetric(hostID, name string) bool {
+	for i := range repo.HostMetrics.Metrics {
+		metric := repo.HostMetrics.Metrics[i]
+		if metric.HostID == hostID && metric.Name == name {
+			return true
+		}
+	}
+
+	return false
+}
+
 func (repo *HostRepository) MetricNames(hostID string) (*domain.MetricNames, error) {
 	names := []string{}
 	for i := range repo.HostMetrics.Metrics {
@@ -109,6 +120,18 @@ func (repo *HostRepository) MetricValues(hostID, name string, from, to int) (*do
 	}
 
 	return &domain.MetricValues{Metrics: metrics}, nil
+}
+
+func (repo *HostRepository) MetricValuesLatest(hostId, name []string) (*domain.TSDBLatest, error) {
+	return &domain.TSDBLatest{}, nil
+}
+
+func (repo *HostRepository) SaveMetricValues(values []domain.MetricValue) (*domain.Success, error) {
+	return nil, nil
+}
+
+func (repo *HostRepository) ExistsMetadata(hostID, namespace string) bool {
+	return true
 }
 
 func (repo *HostRepository) MetadataList(hostID string) (*domain.HostMetadata, error) {

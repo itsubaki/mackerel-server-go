@@ -19,6 +19,9 @@ func (s *UserController) List(c Context) {
 }
 
 func (s *UserController) Delete(c Context) {
-	out, err := s.Interactor.Delete(c.Param("userId"))
+	out, err := s.Interactor.Delete(
+		c.Param("userId"),
+	)
+
 	doResponse(c, out, err)
 }

@@ -44,7 +44,10 @@ func (s *HostController) Save(c Context) {
 }
 
 func (s *HostController) Host(c Context) {
-	out, err := s.Interactor.Host(c.Param("hostId"))
+	out, err := s.Interactor.Host(
+		c.Param("hostId"),
+	)
+
 	doResponse(c, out, err)
 }
 
@@ -55,7 +58,11 @@ func (s *HostController) Status(c Context) {
 		return
 	}
 
-	out, err := s.Interactor.Status(c.Param("hostId"), in.Status)
+	out, err := s.Interactor.Status(
+		c.Param("hostId"),
+		in.Status,
+	)
+
 	doResponse(c, out, err)
 }
 
@@ -66,7 +73,11 @@ func (s *HostController) RoleFullNames(c Context) {
 		return
 	}
 
-	out, err := s.Interactor.SaveRoleFullNames(c.Param("hostId"), &in)
+	out, err := s.Interactor.SaveRoleFullNames(
+		c.Param("hostId"),
+		&in,
+	)
+
 	doResponse(c, out, err)
 }
 
@@ -77,12 +88,19 @@ func (s *HostController) Retire(c Context) {
 		return
 	}
 
-	out, err := s.Interactor.Retire(c.Param("hostId"), &in)
+	out, err := s.Interactor.Retire(
+		c.Param("hostId"),
+		&in,
+	)
+
 	doResponse(c, out, err)
 }
 
 func (s *HostController) MetricNames(c Context) {
-	out, err := s.Interactor.MetricNames(c.Param("hostId"))
+	out, err := s.Interactor.MetricNames(
+		c.Param("hostId"),
+	)
+
 	doResponse(c, out, err)
 }
 
@@ -94,6 +112,26 @@ func (s *HostController) MetricValues(c Context) {
 		math.MaxInt64,
 	)
 
+	doResponse(c, out, err)
+}
+
+func (s *HostController) MetricValuesLatest(c Context) {
+	out, err := s.Interactor.MetricValuesLatest(
+		c.QueryArray("hostId"),
+		c.QueryArray("name"),
+	)
+
+	doResponse(c, out, err)
+}
+
+func (s *HostController) SaveMetricValues(c Context) {
+	var in []domain.MetricValue
+	if err := c.BindJSON(&in); err != nil {
+		c.Status(http.StatusBadRequest)
+		return
+	}
+
+	out, err := s.Interactor.SaveMetricValues(in)
 	doResponse(c, out, err)
 }
 

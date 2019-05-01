@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/itsubaki/mackerel-api/pkg/domain"
 	"github.com/itsubaki/mackerel-api/pkg/interfaces/database"
@@ -17,10 +18,22 @@ func NewAlertController(sqlHandler database.SQLHandler) *AlertController {
 }
 
 func (s *AlertController) List(c Context) {
+	withClosed, err := strconv.ParseBool(c.Query("withClosed"))
+	if err != nil {
+		c.Status(http.StatusBadRequest)
+		return
+	}
+
+	limit, err := strconv.Atoi(c.Query("limit"))
+	if err != nil {
+		c.Status(http.StatusBadRequest)
+		return
+	}
+
 	out, err := s.Interactor.List(
-		false,
+		withClosed,
 		c.Query("nextId"),
-		100,
+		limit,
 	)
 
 	doResponse(c, out, err)
