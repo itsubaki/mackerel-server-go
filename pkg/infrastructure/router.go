@@ -65,7 +65,7 @@ func Default() *gin.Engine {
 
 		h.GET("/:hostId/metric-names", func(c *gin.Context) { hosts.MetricNames(c) })
 		h.GET("/:hostId/metrics", func(c *gin.Context) { hosts.MetricValues(c) })
-		h.POST("/:hostId/metrics", func(c *gin.Context) { hosts.SaveMetricValues(c) })
+		h.POST("/tsdb", func(c *gin.Context) { hosts.SaveMetricValues(c) })
 	}
 
 	{
