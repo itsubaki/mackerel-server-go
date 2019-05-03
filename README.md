@@ -23,7 +23,8 @@ mackerel compatible monitoring service
    - [x] Invitations
    - [x] Organizations
  - Persistence
-   - [ ] Database
-   - [ ] Transaction
+   - [ ] Memory
+   - [ ] Database/Transaction
+   - [ ] Amazon Timestream
  - Security
    - [ ] `X-API-KEY`
