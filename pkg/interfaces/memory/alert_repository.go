@@ -11,6 +11,7 @@ type AlertRepository struct {
 	Alerts []domain.Alert
 }
 
+// select * from alerts where id=${alertID} limit=1
 func (repo *AlertRepository) Exists(alertID string) bool {
 	for _, a := range repo.Alerts {
 		if a.ID == alertID {
@@ -21,6 +22,7 @@ func (repo *AlertRepository) Exists(alertID string) bool {
 	return false
 }
 
+// select * from alerts where closed=${withClosed} order by openedAt desc limit ${limit}
 func (repo *AlertRepository) List(withClosed bool, nextID string, limit int) (*domain.Alerts, error) {
 	return &domain.Alerts{
 		Alerts: repo.Alerts,
@@ -28,6 +30,7 @@ func (repo *AlertRepository) List(withClosed bool, nextID string, limit int) (*d
 	}, nil
 }
 
+// update alerts set reason=${reason}, status=OK, closedAt=time.Now().Unix() where id=${alertID}
 func (repo *AlertRepository) Close(alertID, reason string) (*domain.Alert, error) {
 	for i := range repo.Alerts {
 		if repo.Alerts[i].ID == alertID {
