@@ -56,7 +56,7 @@ func Default() *gin.Engine {
 		h.POST("", func(c *gin.Context) { hosts.Save(c) })
 
 		h.GET("/:hostId", func(c *gin.Context) { hosts.Host(c) })
-		h.PUT("/:hostId", func(c *gin.Context) { hosts.Save(c) })
+		h.PUT("/:hostId", func(c *gin.Context) { hosts.Update(c) })
 		h.PUT("/:hostId/role-fullnames", func(c *gin.Context) { hosts.RoleFullNames(c) })
 		h.POST("/:hostId/status", func(c *gin.Context) { hosts.Status(c) })
 		h.POST("/:hostId/retire", func(c *gin.Context) { hosts.Retire(c) })

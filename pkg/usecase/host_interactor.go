@@ -20,6 +20,12 @@ func (s *HostInteractor) List() (*domain.Hosts, error) {
 func (s *HostInteractor) Save(host *domain.Host) (*domain.HostID, error) {
 	host.ID = uuid.Must(uuid.NewRandom()).String()
 	host.CreatedAt = time.Now().Unix()
+	host.Roles = make(map[string][]string)
+	host.Checks = []domain.Check{}
+	if len(host.Status) == 0 {
+		host.Status = "working"
+	}
+
 	return s.HostRepository.Save(host)
 }
 

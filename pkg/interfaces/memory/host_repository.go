@@ -2,6 +2,7 @@ package memory
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/itsubaki/mackerel-api/pkg/domain"
 )
@@ -58,6 +59,13 @@ func (repo *HostRepository) SaveRoleFullNames(hostID string, names *domain.RoleF
 	for i := range repo.Hosts.Hosts {
 		if repo.Hosts.Hosts[i].ID == hostID {
 			repo.Hosts.Hosts[i].RoleFullNames = names.Names
+			roles := make(map[string][]string)
+			for j := range names.Names {
+				spl := strings.Split(names.Names[j], ":")
+				roles[spl[0]] = append(roles[spl[0]], spl[1])
+			}
+
+			repo.Hosts.Hosts[i].Roles = roles
 			return &domain.Success{Success: true}, nil
 		}
 	}
@@ -131,6 +139,13 @@ func (repo *HostRepository) MetricValuesLatest(hostId, name []string) (*domain.T
 
 func (repo *HostRepository) SaveMetricValues(values []domain.MetricValue) (*domain.Success, error) {
 	repo.HostMetricValues.Metrics = append(repo.HostMetricValues.Metrics, values...)
+
+	for i := range values {
+		repo.HostMetrics.Metrics = append(repo.HostMetrics.Metrics, domain.Metric{
+			HostID: values[i].HostID,
+			Name:   values[i].Name,
+		})
+	}
 
 	for i := range values {
 		if _, ok := repo.HostMetricValuesLatest[values[i].HostID]; !ok {

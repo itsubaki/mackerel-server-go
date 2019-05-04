@@ -27,7 +27,7 @@ func NewServiceController(handler database.SQLHandler) *ServiceController {
 
 func NewServiceInteractorOnMemory() usecase.ServiceRepository {
 	return &memory.ServiceRepository{
-		Services:            &domain.Services{},
+		Services:            &domain.Services{Services: []domain.Service{}},
 		ServiceMetadata:     &domain.ServiceMetadataList{},
 		ServiceMetricValues: &domain.ServiceMetricValues{},
 		Roles:               &domain.Roles{},

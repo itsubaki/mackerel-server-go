@@ -47,7 +47,7 @@ type Host struct {
 	Meta             Meta                `json:"meta"`
 	Interfaces       Interfaces          `json:"interfaces,omitempty"`
 	RoleFullNames    []string            `json:"roleFullnames,omitempty"`
-	Checks           Check               `json:"checks,omitempty"`
+	Checks           []Check             `json:"checks,omitempty"`
 	DisplayName      string              `json:"displayName,omitempty"`
 	CustomIdentifier string              `json:"customIdentifier,omitempty"`
 	CreatedAt        int64               `json:"createdAt"`

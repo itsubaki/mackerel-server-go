@@ -24,7 +24,7 @@ func NewHostController(handler database.SQLHandler) *HostController {
 
 func NewHostInteractorOnMemory() usecase.HostRepository {
 	return &memory.HostRepository{
-		Hosts:                  &domain.Hosts{},
+		Hosts:                  &domain.Hosts{Hosts: []domain.Host{}},
 		HostMetadata:           []domain.HostMetadata{},
 		HostMetrics:            &domain.Metrics{},
 		HostMetricValues:       &domain.MetricValues{},
@@ -39,13 +39,24 @@ func (s *HostController) List(c Context) {
 
 func (s *HostController) Save(c Context) {
 	var in domain.Host
-	if err := c.BindJSON(in); err != nil {
+	if err := c.BindJSON(&in); err != nil {
+		c.Status(http.StatusBadRequest)
+		return
+	}
+
+	out, err := s.Interactor.Save(&in)
+	doResponse(c, out, err)
+}
+
+func (s *HostController) Update(c Context) {
+	var in domain.Host
+	if err := c.BindJSON(&in); err != nil {
 		c.Status(http.StatusBadRequest)
 		return
 	}
 	in.ID = c.Param("hostId")
 
-	out, err := s.Interactor.Save(&in)
+	out, err := s.Interactor.Update(&in)
 	doResponse(c, out, err)
 }
 
@@ -59,7 +70,7 @@ func (s *HostController) Host(c Context) {
 
 func (s *HostController) Status(c Context) {
 	var in domain.HostStatus
-	if err := c.BindJSON(in); err != nil {
+	if err := c.BindJSON(&in); err != nil {
 		c.Status(http.StatusBadRequest)
 		return
 	}
@@ -74,7 +85,7 @@ func (s *HostController) Status(c Context) {
 
 func (s *HostController) RoleFullNames(c Context) {
 	var in domain.RoleFullNames
-	if err := c.BindJSON(in); err != nil {
+	if err := c.BindJSON(&in); err != nil {
 		c.Status(http.StatusBadRequest)
 		return
 	}
@@ -89,7 +100,7 @@ func (s *HostController) RoleFullNames(c Context) {
 
 func (s *HostController) Retire(c Context) {
 	var in domain.HostRetire
-	if err := c.BindJSON(in); err != nil {
+	if err := c.BindJSON(&in); err != nil {
 		c.Status(http.StatusBadRequest)
 		return
 	}

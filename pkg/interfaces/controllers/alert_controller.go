@@ -6,6 +6,7 @@ import (
 
 	"github.com/itsubaki/mackerel-api/pkg/domain"
 	"github.com/itsubaki/mackerel-api/pkg/interfaces/database"
+	"github.com/itsubaki/mackerel-api/pkg/interfaces/memory"
 	"github.com/itsubaki/mackerel-api/pkg/usecase"
 )
 
@@ -14,7 +15,13 @@ type AlertController struct {
 }
 
 func NewAlertController(handler database.SQLHandler) *AlertController {
-	return &AlertController{}
+	return &AlertController{
+		Interactor: &usecase.AlertInteractor{
+			AlertRepository: &memory.AlertRepository{
+				Alerts: []domain.Alert{},
+			},
+		},
+	}
 }
 
 func (s *AlertController) List(c Context) {
