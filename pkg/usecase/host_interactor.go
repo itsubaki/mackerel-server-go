@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 
+	"github.com/google/uuid"
 	"github.com/itsubaki/mackerel-api/pkg/domain"
 )
 
@@ -16,7 +17,7 @@ func (s *HostInteractor) List() (*domain.Hosts, error) {
 }
 
 func (s *HostInteractor) Save(host *domain.Host) (*domain.HostID, error) {
-	host.ID = "genHostID"
+	host.ID = uuid.Must(uuid.NewRandom()).String()
 	return s.HostRepository.Save(host)
 }
 

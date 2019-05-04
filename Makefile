@@ -4,7 +4,7 @@ HASH := $(shell git rev-parse HEAD)
 
 runserver:
 	-rm ${GOPATH}/bin/mackerel-api
-	go install github.com/itsubaki/mackerel-api/cmd/mackerel-api
+	go install
 	GIN_MODE=debug mackerel-api
 
 test:

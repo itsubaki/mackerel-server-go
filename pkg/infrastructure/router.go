@@ -8,6 +8,9 @@ import (
 )
 
 func Default() *gin.Engine {
+	handler := NewSQLHandler()
+	handler.ShutdownHook()
+
 	g := gin.Default()
 
 	{
@@ -16,7 +19,6 @@ func Default() *gin.Engine {
 		})
 	}
 
-	handler := NewSQLHandler()
 	v0 := g.Group("/api").Group("/v0")
 	{
 		services := controllers.NewServiceController(handler)
@@ -46,6 +48,7 @@ func Default() *gin.Engine {
 	}
 
 	{
+
 		hosts := controllers.NewHostController(handler)
 
 		h := v0.Group("/hosts")
@@ -65,7 +68,7 @@ func Default() *gin.Engine {
 
 		h.GET("/:hostId/metric-names", func(c *gin.Context) { hosts.MetricNames(c) })
 		h.GET("/:hostId/metrics", func(c *gin.Context) { hosts.MetricValues(c) })
-		h.POST("/tsdb", func(c *gin.Context) { hosts.SaveMetricValues(c) })
+		v0.POST("/tsdb", func(c *gin.Context) { hosts.SaveMetricValues(c) })
 	}
 
 	{
