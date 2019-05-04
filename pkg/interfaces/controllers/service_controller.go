@@ -131,7 +131,7 @@ func (s *ServiceController) DeleteRole(c Context) {
 
 func (s *ServiceController) RoleMetadata(c Context) {
 	out, err := s.Interactor.RoleMetadata(
-		c.Param("serviveName"),
+		c.Param("serviceName"),
 		c.Param("roleName"),
 		c.Param("namespace"),
 	)
@@ -141,7 +141,7 @@ func (s *ServiceController) RoleMetadata(c Context) {
 
 func (s *ServiceController) RoleMetadataList(c Context) {
 	out, err := s.Interactor.RoleMetadataList(
-		c.Param("serviveName"),
+		c.Param("serviceName"),
 		c.Param("roleName"),
 	)
 
@@ -156,7 +156,7 @@ func (s *ServiceController) SaveRoleMetadata(c Context) {
 	}
 
 	out, err := s.Interactor.SaveRoleMetadata(
-		c.Param("serviveName"),
+		c.Param("serviceName"),
 		c.Param("roleName"),
 		c.Param("namespace"),
 		in,
@@ -167,7 +167,7 @@ func (s *ServiceController) SaveRoleMetadata(c Context) {
 
 func (s *ServiceController) DeleteRoleMetadata(c Context) {
 	out, err := s.Interactor.DeleteRoleMetadata(
-		c.Param("serviveName"),
+		c.Param("serviceName"),
 		c.Param("roleName"),
 		c.Param("namespace"),
 	)
