@@ -198,7 +198,7 @@ func (s *ServiceController) MetricValues(c Context) {
 
 	out, err := s.Interactor.MetricValues(
 		c.Param("serviceName"),
-		c.Query("metricName"),
+		c.Query("name"),
 		from,
 		to,
 	)

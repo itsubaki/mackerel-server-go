@@ -23,4 +23,7 @@ test:
 	curl -v localhost:8080/api/v0/services/ExampleService/roles/ExampleRole/metadata
 	curl -v localhost:8080/api/v0/services/ExampleService/roles/ExampleRole/metadata/foobar -X DELETE
 	curl -v localhost:8080/api/v0/services/ExampleService/roles/ExampleRole -X DELETE
+	curl -v localhost:8080/api/v0/services/ExampleService/tsdb -X POST -H "Content-Type: application/json" -d '[{"name":"hoge", "time": 1351700030, "value": 1.234},{"name":"foobar", "time": 1351700050, "value": 5.678}]'
+	curl -v "localhost:8080/api/v0/services/ExampleService/metrics?name=hoge&from=1351700000&to=1351700100"
+	curl -v localhost:8080/api/v0/services/ExampleService/metric-names
 	curl -v localhost:8080/api/v0/services/ExampleService -X DELETE
