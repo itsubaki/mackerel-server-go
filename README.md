@@ -23,7 +23,7 @@ mackerel compatible monitoring service
    - [x] Invitations
    - [x] Organizations
  - Persistence
-   - [ ] Memory
+   - [x] Memory
    - [ ] Database/Transaction
    - [ ] Amazon Timestream
  - Security
