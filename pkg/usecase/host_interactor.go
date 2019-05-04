@@ -3,6 +3,7 @@ package usecase
 import (
 	"encoding/json"
 	"errors"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/itsubaki/mackerel-api/pkg/domain"
@@ -18,6 +19,7 @@ func (s *HostInteractor) List() (*domain.Hosts, error) {
 
 func (s *HostInteractor) Save(host *domain.Host) (*domain.HostID, error) {
 	host.ID = uuid.Must(uuid.NewRandom()).String()
+	host.CreatedAt = time.Now().Unix()
 	return s.HostRepository.Save(host)
 }
 
@@ -85,7 +87,7 @@ func (s *HostInteractor) SaveMetricValues(values []domain.MetricValue) (*domain.
 	return s.HostRepository.SaveMetricValues(values)
 }
 
-func (s *HostInteractor) MetadataList(hostID string) (*domain.HostMetadata, error) {
+func (s *HostInteractor) MetadataList(hostID string) (*domain.HostMetadataList, error) {
 	if !s.HostRepository.Exists(hostID) {
 		return nil, &HostNotFound{Err{errors.New("the host does not exist")}}
 	}

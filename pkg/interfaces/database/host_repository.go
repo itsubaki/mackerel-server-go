@@ -62,8 +62,8 @@ func (repo *HostRepository) ExistsMetadata(hostID, namespace string) bool {
 	return true
 }
 
-func (repo *HostRepository) MetadataList(hostID string) (*domain.HostMetadata, error) {
-	return &domain.HostMetadata{}, nil
+func (repo *HostRepository) MetadataList(hostID string) (*domain.HostMetadataList, error) {
+	return &domain.HostMetadataList{}, nil
 }
 
 func (repo *HostRepository) Metadata(hostID, namespace string) (interface{}, error) {

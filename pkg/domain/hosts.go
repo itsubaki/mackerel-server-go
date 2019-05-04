@@ -1,10 +1,17 @@
 package domain
 
 type TSDBLatest struct {
-	TSDBLatest map[string]map[string]string `json:"tsdbLatest"`
+	// [hostId][name]metricValue
+	TSDBLatest map[string]map[string]float64 `json:"tsdbLatest"`
 }
 
 type HostMetadata struct {
+	HostID    string      `json:"-"`
+	Namespace string      `json:"-"`
+	Metadata  interface{} `json:"-"`
+}
+
+type HostMetadataList struct {
 	Metadata []Namespace `json:"metadata"`
 }
 

@@ -7,9 +7,11 @@ import (
 )
 
 type HostRepository struct {
-	Hosts            *domain.Hosts
-	HostMetrics      *domain.Metrics
-	HostMetricValues *domain.MetricValues
+	Hosts                  *domain.Hosts
+	HostMetadata           []domain.HostMetadata
+	HostMetrics            *domain.Metrics
+	HostMetricValues       *domain.MetricValues
+	HostMetricValuesLatest map[string]map[string]float64
 }
 
 func (repo *HostRepository) List() (*domain.Hosts, error) {
@@ -122,29 +124,81 @@ func (repo *HostRepository) MetricValues(hostID, name string, from, to int) (*do
 }
 
 func (repo *HostRepository) MetricValuesLatest(hostId, name []string) (*domain.TSDBLatest, error) {
-	return &domain.TSDBLatest{}, nil
+	return &domain.TSDBLatest{
+		TSDBLatest: repo.HostMetricValuesLatest,
+	}, nil
 }
 
 func (repo *HostRepository) SaveMetricValues(values []domain.MetricValue) (*domain.Success, error) {
-	return nil, nil
+	repo.HostMetricValues.Metrics = append(repo.HostMetricValues.Metrics, values...)
+
+	for i := range values {
+		if _, ok := repo.HostMetricValuesLatest[values[i].HostID]; !ok {
+			repo.HostMetricValuesLatest[values[i].HostID] = make(map[string]float64)
+		}
+
+		repo.HostMetricValuesLatest[values[i].HostID][values[i].Name] = values[i].Value
+	}
+
+	return &domain.Success{Success: true}, nil
 }
 
 func (repo *HostRepository) ExistsMetadata(hostID, namespace string) bool {
-	return true
+	for _, m := range repo.HostMetadata {
+		if m.HostID == hostID && m.Namespace == namespace {
+			return true
+		}
+	}
+
+	return false
 }
 
-func (repo *HostRepository) MetadataList(hostID string) (*domain.HostMetadata, error) {
-	return &domain.HostMetadata{}, nil
+func (repo *HostRepository) MetadataList(hostID string) (*domain.HostMetadataList, error) {
+	names := []domain.Namespace{}
+	for i := range repo.HostMetadata {
+		names = append(names, domain.Namespace{Namespace: repo.HostMetadata[i].Namespace})
+	}
+
+	return &domain.HostMetadataList{
+		Metadata: names,
+	}, nil
 }
 
 func (repo *HostRepository) Metadata(hostID, namespace string) (interface{}, error) {
-	return "", nil
+	for i := range repo.HostMetadata {
+		if repo.HostMetadata[i].HostID == hostID && repo.HostMetadata[i].Namespace == namespace {
+			return repo.HostMetadata[i].Metadata, nil
+		}
+	}
+	return nil, fmt.Errorf("metadata not found")
 }
 
 func (repo *HostRepository) SaveMetadata(hostID, namespace string, metadata interface{}) (*domain.Success, error) {
+	for i := range repo.HostMetadata {
+		if repo.HostMetadata[i].HostID == hostID && repo.HostMetadata[i].Namespace == namespace {
+			repo.HostMetadata[i].Metadata = metadata
+			return &domain.Success{Success: true}, nil
+		}
+	}
+
+	repo.HostMetadata = append(repo.HostMetadata, domain.HostMetadata{
+		HostID:    hostID,
+		Namespace: namespace,
+		Metadata:  metadata,
+	})
+
 	return &domain.Success{Success: true}, nil
 }
 
 func (repo *HostRepository) DeleteMetadata(hostID, namespace string) (*domain.Success, error) {
+	list := []domain.HostMetadata{}
+	for i := range repo.HostMetadata {
+		if repo.HostMetadata[i].HostID == hostID && repo.HostMetadata[i].Namespace == namespace {
+			continue
+		}
+		list = append(list, repo.HostMetadata[i])
+	}
+	repo.HostMetadata = list
+
 	return &domain.Success{Success: true}, nil
 }

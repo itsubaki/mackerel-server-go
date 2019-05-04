@@ -95,6 +95,7 @@ func Default() *gin.Engine {
 
 	{
 		invitations := controllers.NewInvitationController(handler)
+
 		i := v0.Group("/invitations")
 		i.GET("", func(c *gin.Context) { invitations.List(c) })
 		i.POST("", func(c *gin.Context) { invitations.Save(c) })

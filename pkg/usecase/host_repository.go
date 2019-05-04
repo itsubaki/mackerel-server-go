@@ -18,7 +18,7 @@ type HostRepository interface {
 	SaveMetricValues(values []domain.MetricValue) (*domain.Success, error)
 
 	ExistsMetadata(hostID, namespace string) bool
-	MetadataList(hostID string) (*domain.HostMetadata, error)
+	MetadataList(hostID string) (*domain.HostMetadataList, error)
 	Metadata(hostID, namespace string) (interface{}, error)
 	SaveMetadata(hostID, namespace string, metadata interface{}) (*domain.Success, error)
 	DeleteMetadata(hostID, namespace string) (*domain.Success, error)

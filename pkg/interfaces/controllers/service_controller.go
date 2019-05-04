@@ -78,7 +78,7 @@ func (s *ServiceController) Metadata(c Context) {
 
 func (s *ServiceController) SaveMetadata(c Context) {
 	var in interface{}
-	if err := c.BindJSON(in); err != nil {
+	if err := c.BindJSON(&in); err != nil {
 		c.Status(http.StatusBadRequest)
 		return
 	}
@@ -150,7 +150,7 @@ func (s *ServiceController) RoleMetadataList(c Context) {
 
 func (s *ServiceController) SaveRoleMetadata(c Context) {
 	var in interface{}
-	if err := c.BindJSON(in); err != nil {
+	if err := c.BindJSON(&in); err != nil {
 		c.Status(http.StatusBadRequest)
 		return
 	}

@@ -9,7 +9,7 @@ type CheckReport struct {
 	Name                 string `json:"name"`
 	Status               string `json:"status"` // OK, CRITICAL, WARNING, UNKNOWN
 	Message              string `json:"message"`
-	OccurredAt           string `json:"occurredAt"`
+	OccurredAt           int64  `json:"occurredAt"`
 	NotificationInterval string `json:"notificationInterval,omitempty"`
 	MaxCheckAttempts     string `json:"maxCheckAttempts,omitempty"`
 }

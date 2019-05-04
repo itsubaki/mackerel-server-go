@@ -12,5 +12,5 @@ type User struct {
 	IsInRegisterationProcess bool     `json:"isInRegisterationProcess"`
 	IsMFAEnabled             bool     `json:"isMFAEnabled"`
 	AuthenticationMethods    []string `json:"authenticationMethods"`
-	JoinedAt                 string   `json:"joinedAt"`
+	JoinedAt                 int64    `json:"joinedAt"`
 }

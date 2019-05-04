@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	"math"
 	"net/http"
+	"strconv"
 
 	"github.com/itsubaki/mackerel-api/pkg/domain"
 	"github.com/itsubaki/mackerel-api/pkg/interfaces/database"
@@ -24,9 +24,11 @@ func NewHostController(handler database.SQLHandler) *HostController {
 
 func NewHostInteractorOnMemory() usecase.HostRepository {
 	return &memory.HostRepository{
-		Hosts:            &domain.Hosts{},
-		HostMetrics:      &domain.Metrics{},
-		HostMetricValues: &domain.MetricValues{},
+		Hosts:                  &domain.Hosts{},
+		HostMetadata:           []domain.HostMetadata{},
+		HostMetrics:            &domain.Metrics{},
+		HostMetricValues:       &domain.MetricValues{},
+		HostMetricValuesLatest: make(map[string]map[string]float64),
 	}
 }
 
@@ -109,11 +111,23 @@ func (s *HostController) MetricNames(c Context) {
 }
 
 func (s *HostController) MetricValues(c Context) {
+	from, err := strconv.Atoi(c.Query("from"))
+	if err != nil {
+		c.Status(http.StatusBadRequest)
+		return
+	}
+
+	to, err := strconv.Atoi(c.Query("to"))
+	if err != nil {
+		c.Status(http.StatusBadRequest)
+		return
+	}
+
 	out, err := s.Interactor.MetricValues(
 		c.Param("hostId"),
 		c.Query("name"),
-		math.MinInt64,
-		math.MaxInt64,
+		from,
+		to,
 	)
 
 	doResponse(c, out, err)
@@ -158,7 +172,7 @@ func (s *HostController) Metadata(c Context) {
 
 func (s *HostController) SaveMetadata(c Context) {
 	var in interface{}
-	if err := c.BindJSON(in); err != nil {
+	if err := c.BindJSON(&in); err != nil {
 		c.Status(http.StatusBadRequest)
 		return
 	}

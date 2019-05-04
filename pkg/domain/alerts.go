@@ -18,6 +18,6 @@ type Alert struct {
 	Value     float64 `json:"value,omitempty"`
 	Message   string  `json:"message,omitempty"`
 	Reason    string  `json:"reason,omitempty"`
-	OpenedAt  string  `json:"openedAt"`
-	ClosedAt  string  `json:"closedAt,omitempty"`
+	OpenedAt  int64   `json:"openedAt"`
+	ClosedAt  int64   `json:"closedAt,omitempty"`
 }
