@@ -56,6 +56,7 @@ type Host struct {
 	Memo             string              `json:"memo"`
 	Roles            map[string][]string `json:"roles"`
 	IsRetired        bool                `json:"isRetired"`
+	RetiredAt        int64               `json:"retiredAt,omitempty"`
 }
 
 type Meta struct {
