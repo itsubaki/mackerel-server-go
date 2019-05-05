@@ -1,9 +1,11 @@
 package domain
 
 type TSDBLatest struct {
-	// [hostId][name]metricValue
-	TSDBLatest map[string]map[string]float64 `json:"tsdbLatest"`
+	TSDBLatest TSDBLatestValue `json:"tsdbLatest"`
 }
+
+// [hostId][name]metric_value
+type TSDBLatestValue map[string]map[string]float64
 
 type HostMetadata struct {
 	HostID    string      `json:"-"`
