@@ -37,6 +37,7 @@ test:
 	curl -v localhost:8080/api/v0/hosts/${HOSTID}/metadata
 	curl -v localhost:8080/api/v0/hosts/${HOSTID}/metadata/foobar -X DELETE
 	curl -v localhost:8080/api/v0/tsdb -X POST -H "Content-Type: application/json" -d '[{"hostId": "${HOSTID}", "name":"hoge", "time": 1351700030, "value": 1.234},{"hostId": "${HOSTID}", "name":"foobar", "time": 1351700050, "value": 5.678}]'
+	curl -v "localhost:8080/api/v0/tsdb/latest?hostId=${HOSTID}&name=foobar&name=hoge&name=piyo"
 	curl -v "localhost:8080/api/v0/hosts/${HOSTID}/metrics?name=hoge&from=1351700000&to=1351700100"
 	curl -v localhost:8080/api/v0/hosts/${HOSTID}/metric-names
 	curl -v localhost:8080/api/v0/hosts

@@ -131,9 +131,26 @@ func (repo *HostRepository) MetricValues(hostID, name string, from, to int) (*do
 	return &domain.MetricValues{Metrics: metrics}, nil
 }
 
-func (repo *HostRepository) MetricValuesLatest(hostId, name []string) (*domain.TSDBLatest, error) {
+func (repo *HostRepository) MetricValuesLatest(hostID, name []string) (*domain.TSDBLatest, error) {
+	latest := make(map[string]map[string]float64)
+	for i := range hostID {
+		if _, ok := repo.HostMetricValuesLatest[hostID[i]]; !ok {
+			continue
+		}
+
+		if _, ok := latest[hostID[i]]; !ok {
+			latest[hostID[i]] = make(map[string]float64)
+		}
+
+		for j := range name {
+			if v, ok := repo.HostMetricValuesLatest[hostID[i]][name[j]]; ok {
+				latest[hostID[i]][name[j]] = v
+			}
+		}
+	}
+
 	return &domain.TSDBLatest{
-		TSDBLatest: repo.HostMetricValuesLatest,
+		TSDBLatest: latest,
 	}, nil
 }
 
