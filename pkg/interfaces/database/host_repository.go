@@ -10,30 +10,37 @@ type HostRepository struct {
 	SQLHanler SQLHandler
 }
 
+// select * from hosts
 func (repo *HostRepository) List() (*domain.Hosts, error) {
 	return nil, nil
 }
 
+// insert into hosts values(${host.ID}, ...)
 func (repo *HostRepository) Save(host *domain.Host) (*domain.HostID, error) {
 	return &domain.HostID{}, nil
 }
 
+// select * from hosts where ID=${hostID}
 func (repo *HostRepository) Host(hostID string) (*domain.Host, error) {
 	return nil, fmt.Errorf("host not found")
 }
 
+// select * from hosts where id=${hostID} limit=1
 func (repo *HostRepository) Exists(hostID string) bool {
 	return false
 }
 
+// update hosts set status=${status} where id=${hostID}
 func (repo *HostRepository) Status(hostID, status string) (*domain.Success, error) {
 	return &domain.Success{Success: false}, fmt.Errorf("host not found")
 }
 
+// update hosts set roles=${roles} where id=${hostID}
 func (repo *HostRepository) SaveRoleFullNames(hostID string, names *domain.RoleFullNames) (*domain.Success, error) {
 	return nil, fmt.Errorf("host not found")
 }
 
+// update hosts set isRetired=true, retiredAt=time.Now().Unix() where id=${hostID}
 func (repo *HostRepository) Retire(hostID string, retire *domain.HostRetire) (*domain.Success, error) {
 	return &domain.Success{Success: true}, nil
 }
