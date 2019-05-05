@@ -3,11 +3,21 @@ DATE := $(shell date +%Y%m%d-%H:%M:%S)
 HASH := $(shell git rev-parse HEAD)
 
 runserver:
+	set -x
 	-rm ${GOPATH}/bin/mackerel-api
 	go install
 	GIN_MODE=debug mackerel-api
 
+runmysql:
+	set -x
+	docker pull mysql
+	docker run --name mysqld -e MYSQL_ROOT_PASSWORD=secret -p 3307:3306 -d mysql
+	# mysql -h127.0.0.1 -P3307 -psecret -uroot -e'create database mackerel;'
+	# docker stop mysqld
+	# docker rm mysqld
+
 test:
+	set -x
 	curl -v localhost:8080/api/v0/services -X POST -H "Content-Type: application/json" -d '{"name": "ExampleService", "memo": "This is an example."}'
 	curl -v localhost:8080/api/v0/services/ExampleService/metadata/foobar -X PUT -H "Content-Type: application/json" -d '{"message": "this is service metadata"}'
 	curl -v localhost:8080/api/v0/services/ExampleService/metadata/foobar
