@@ -32,9 +32,35 @@ func TestUserRepositoryList(t *testing.T) {
 		JoinedAt:                 time.Now().Unix(),
 	}
 
-	sql := "insert into users values('" + user.ID + "','" + user.ScreenName + "')"
-	_, err = db.Exec(sql)
+	stmt, err := db.Prepare("insert into users (id, screen_name) values(?, ?)")
 	if err != nil {
+		t.Error(err)
+	}
+
+	tx, err := db.Begin()
+	if err != nil {
+		t.Error(err)
+	}
+
+	_, err = tx.Stmt(stmt).Exec(user.ID, user.ScreenName)
+	if err != nil {
+		tx.Rollback()
+		t.Error(err)
+	}
+
+	get := domain.User{}
+	row := tx.QueryRow("select * from users where id=?", user.ID)
+	if err := row.Scan(&get.ID, &get.ScreenName); err != nil {
+		tx.Rollback()
+		t.Error(err)
+	}
+
+	if get.ID != "user001" || get.ScreenName != "itsubaki" {
+		tx.Rollback()
+		t.Error("query failed")
+	}
+
+	if err := tx.Commit(); err != nil {
 		t.Error(err)
 	}
 

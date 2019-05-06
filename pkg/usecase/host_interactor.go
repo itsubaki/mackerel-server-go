@@ -73,7 +73,7 @@ func (s *HostInteractor) MetricNames(hostID string) (*domain.MetricNames, error)
 	return s.HostRepository.MetricNames(hostID)
 }
 
-func (s *HostInteractor) MetricValues(hostID, name string, from, to int) (*domain.MetricValues, error) {
+func (s *HostInteractor) MetricValues(hostID, name string, from, to int64) (*domain.MetricValues, error) {
 	if !s.HostRepository.Exists(hostID) {
 		return nil, &HostNotFound{Err{errors.New("the host doesn't exist")}}
 	}

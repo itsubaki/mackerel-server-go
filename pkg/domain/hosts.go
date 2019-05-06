@@ -45,20 +45,20 @@ type Hosts struct {
 }
 
 type Host struct {
+	ID               string              `json:"id"`
 	Name             string              `json:"name"`
-	Meta             Meta                `json:"meta"`
-	Interfaces       Interfaces          `json:"interfaces,omitempty"`
-	RoleFullNames    []string            `json:"roleFullnames,omitempty"`
-	Checks           []Check             `json:"checks,omitempty"`
+	Status           string              `json:"status"`
+	Memo             string              `json:"memo"`
 	DisplayName      string              `json:"displayName,omitempty"`
 	CustomIdentifier string              `json:"customIdentifier,omitempty"`
 	CreatedAt        int64               `json:"createdAt"`
-	ID               string              `json:"id"`
-	Status           string              `json:"status"`
-	Memo             string              `json:"memo"`
-	Roles            map[string][]string `json:"roles"`
+	RetiredAt        int64               `json:"-"`
 	IsRetired        bool                `json:"isRetired"`
-	RetiredAt        int64               `json:"retiredAt,omitempty"`
+	Roles            map[string][]string `json:"roles"`
+	RoleFullNames    []string            `json:"roleFullnames,omitempty"`
+	Interfaces       []Interface         `json:"interfaces,omitempty"`
+	Checks           []Check             `json:"checks,omitempty"`
+	Meta             Meta                `json:"meta"`
 }
 
 type Meta struct {
@@ -71,8 +71,6 @@ type Meta struct {
 	Kernel        map[string]string      `json:"kernel"`
 	Memory        map[string]string      `json:"memory"`
 }
-
-type Interfaces []Interface
 
 type Interface struct {
 	Name          string   `json:"name"`
@@ -94,7 +92,7 @@ type MetricValues struct {
 type MetricValue struct {
 	HostID string  `json:"hostId,omitempty"`
 	Name   string  `json:"name,omitempty"`
-	Time   int     `json:"time"`
+	Time   int64   `json:"time"`
 	Value  float64 `json:"value"`
 }
 

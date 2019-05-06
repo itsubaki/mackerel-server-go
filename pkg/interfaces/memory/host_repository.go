@@ -108,7 +108,7 @@ func (repo *HostRepository) MetricNames(hostID string) (*domain.MetricNames, err
 	return &domain.MetricNames{Names: names}, nil
 }
 
-func (repo *HostRepository) MetricValues(hostID, name string, from, to int) (*domain.MetricValues, error) {
+func (repo *HostRepository) MetricValues(hostID, name string, from, to int64) (*domain.MetricValues, error) {
 	metrics := []domain.MetricValue{}
 
 	for i := range repo.HostMetricValues.Metrics {

@@ -237,7 +237,7 @@ func (s *ServiceInteractor) MetricNames(serviceName string) (*domain.ServiceMetr
 	return s.ServiceRepository.MetricNames(serviceName)
 }
 
-func (s *ServiceInteractor) MetricValues(serviceName, metricName string, from, to int) (*domain.ServiceMetricValues, error) {
+func (s *ServiceInteractor) MetricValues(serviceName, metricName string, from, to int64) (*domain.ServiceMetricValues, error) {
 	if !s.ServiceRepository.Exists(serviceName) {
 		return nil, &ServiceNotFound{Err{errors.New("the service does not exist")}}
 	}

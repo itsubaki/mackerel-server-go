@@ -184,13 +184,13 @@ func (s *ServiceController) MetricNames(c Context) {
 }
 
 func (s *ServiceController) MetricValues(c Context) {
-	from, err := strconv.Atoi(c.Query("from"))
+	from, err := strconv.ParseInt(c.Query("from"), 10, 64)
 	if err != nil {
 		c.Status(http.StatusBadRequest)
 		return
 	}
 
-	to, err := strconv.Atoi(c.Query("to"))
+	to, err := strconv.ParseInt(c.Query("to"), 10, 64)
 	if err != nil {
 		c.Status(http.StatusBadRequest)
 		return

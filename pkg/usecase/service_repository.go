@@ -29,6 +29,6 @@ type ServiceRepository interface {
 
 	ExistsMetric(serviceName, metricName string) bool
 	MetricNames(serviceName string) (*domain.ServiceMetricValueNames, error)
-	MetricValues(serviceName, metricName string, from, to int) (*domain.ServiceMetricValues, error)
+	MetricValues(serviceName, metricName string, from, to int64) (*domain.ServiceMetricValues, error)
 	SaveMetricValues(serviceName string, values []domain.ServiceMetricValue) (*domain.Success, error)
 }

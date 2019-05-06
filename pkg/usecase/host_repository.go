@@ -13,7 +13,7 @@ type HostRepository interface {
 
 	ExistsMetric(hostID, name string) bool
 	MetricNames(hostID string) (*domain.MetricNames, error)
-	MetricValues(hostID, name string, from, to int) (*domain.MetricValues, error)
+	MetricValues(hostID, name string, from, to int64) (*domain.MetricValues, error)
 	MetricValuesLatest(hostID, name []string) (*domain.TSDBLatest, error)
 	SaveMetricValues(values []domain.MetricValue) (*domain.Success, error)
 

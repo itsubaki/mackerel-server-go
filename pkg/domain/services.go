@@ -16,7 +16,7 @@ type ServiceMetadataList struct {
 
 type ServiceMetadata struct {
 	ServiceName string      `json:"-"`
-	Namespace   string      `json:"-"`
+	Namespace   string      `json:"namespace"`
 	Metadata    interface{} `json:"-"`
 }
 
@@ -46,7 +46,7 @@ type RoleMetadataList struct {
 type RoleMetadata struct {
 	ServiceName string      `json:"-"`
 	RoleName    string      `json:"-"`
-	Namespace   string      `json:"-"`
+	Namespace   string      `json:"namespace"`
 	Metadata    interface{} `json:"-"`
 }
 
@@ -57,7 +57,7 @@ type ServiceMetricValues struct {
 type ServiceMetricValue struct {
 	ServiceName string  `json:"-"`
 	Name        string  `json:"name"`
-	Time        int     `json:"time"`
+	Time        int64   `json:"time"`
 	Value       float64 `json:"value"`
 }
 
