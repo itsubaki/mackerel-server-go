@@ -21,6 +21,7 @@ clean:
 
 test:
 	set -x
+	curl -s localhost:8080/api/v0/org -H "X-Api-Key: secret" | jq .
 	curl -s localhost:8080/api/v0/services -X POST -H "Content-Type: application/json" -d '{"name": "ExampleService", "memo": "This is an example."}' | jq .
 	curl -s localhost:8080/api/v0/services/ExampleService/metadata/foobar -X PUT -H "Content-Type: application/json" -d '{"message": "this is service metadata"}' | jq .
 	curl -s localhost:8080/api/v0/services/ExampleService/metadata/foobar | jq .

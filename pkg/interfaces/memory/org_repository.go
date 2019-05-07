@@ -12,7 +12,12 @@ type OrgRepository struct {
 
 func NewOrgRepository() *OrgRepository {
 	return &OrgRepository{
-		Orgs: []domain.Org{},
+		Orgs: []domain.Org{
+			domain.Org{
+				Name:    "mackerel-api",
+				XAPIKey: "secret",
+			},
+		},
 	}
 }
 
