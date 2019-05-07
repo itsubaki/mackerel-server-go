@@ -44,6 +44,10 @@ type Hosts struct {
 	Hosts []Host `json:"hosts"`
 }
 
+type HostInfo struct {
+	Host Host `json:"host"`
+}
+
 type Host struct {
 	ID               string              `json:"id"`
 	Name             string              `json:"name"`

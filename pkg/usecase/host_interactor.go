@@ -37,8 +37,13 @@ func (s *HostInteractor) Update(host *domain.Host) (*domain.HostID, error) {
 	return s.HostRepository.Save(host)
 }
 
-func (s *HostInteractor) Host(hostID string) (*domain.Host, error) {
-	return s.HostRepository.Host(hostID)
+func (s *HostInteractor) Host(hostID string) (*domain.HostInfo, error) {
+	host, err := s.HostRepository.Host(hostID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &domain.HostInfo{Host: *host}, nil
 }
 
 func (s *HostInteractor) Status(hostID, status string) (*domain.Success, error) {
@@ -136,7 +141,7 @@ func (s *HostInteractor) SaveMetadata(hostID, namespace string, metadata interfa
 		return nil, &HostNotFound{Err{errors.New("the host does not exist")}}
 	}
 
-	h, err := s.Host(hostID)
+	h, err := s.HostRepository.Host(hostID)
 	if err != nil {
 		return nil, err
 	}
@@ -175,7 +180,7 @@ func (s *HostInteractor) DeleteMetadata(hostID, namespace string) (*domain.Succe
 		return nil, &HostMetadataNotFound{Err{errors.New("the specified metadata does not exist for the host")}}
 	}
 
-	h, err := s.Host(hostID)
+	h, err := s.HostRepository.Host(hostID)
 	if err != nil {
 		return nil, err
 	}

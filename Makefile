@@ -13,8 +13,11 @@ runmysql:
 	docker pull mysql
 	docker run --name mysqld -e MYSQL_ROOT_PASSWORD=secret -p 3307:3306 -d mysql
 	# mysql -h127.0.0.1 -P3307 -psecret -uroot -e'create database mackerel;'
-	# docker stop mysqld
-	# docker rm mysqld
+
+clean:
+	docker stop mysqld
+	docker rm mysqld
+	rm ~/Library/mackerel-agent/id
 
 test:
 	set -x
