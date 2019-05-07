@@ -1,6 +1,10 @@
 package memory
 
-import "github.com/itsubaki/mackerel-api/pkg/domain"
+import (
+	"fmt"
+
+	"github.com/itsubaki/mackerel-api/pkg/domain"
+)
 
 type OrgRepository struct {
 	Orgs []domain.Org
@@ -13,5 +17,11 @@ func NewOrgRepository() *OrgRepository {
 }
 
 func (repo *OrgRepository) Org(apikey string) (*domain.Org, error) {
-	return &domain.Org{}, nil
+	for i := range repo.Orgs {
+		if repo.Orgs[i].XAPIKey == apikey {
+			return &repo.Orgs[i], nil
+		}
+	}
+
+	return nil, fmt.Errorf("org not found")
 }
