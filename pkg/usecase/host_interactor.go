@@ -1,6 +1,8 @@
 package usecase
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"time"
@@ -18,7 +20,10 @@ func (s *HostInteractor) List() (*domain.Hosts, error) {
 }
 
 func (s *HostInteractor) Save(host *domain.Host) (*domain.HostID, error) {
-	host.ID = uuid.Must(uuid.NewRandom()).String()
+	sha := sha256.Sum256([]byte(uuid.Must(uuid.NewRandom()).String()))
+	hash := hex.EncodeToString(sha[:])
+
+	host.ID = hash[:11]
 	host.CreatedAt = time.Now().Unix()
 	host.Roles = make(map[string][]string)
 	host.Checks = []domain.Check{}
