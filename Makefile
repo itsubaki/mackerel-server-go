@@ -56,3 +56,6 @@ test:
 	curl -s localhost:8080/api/v0/hosts/${HOSTID}/metric-names | jq .
 	curl -s localhost:8080/api/v0/hosts | jq .
 	curl -s localhost:8080/api/v0/hosts/${HOSTID}/retire -X POST -H "Content-Type: application/json" -d '{}' | jq .
+	curl -s localhost:8080/api/v0/invitations -X POST -H "Content-Type: application/json" -d '{"email": "example@example.com","authority": "viewer"}' | jq .
+	curl -s localhost:8080/api/v0/invitations
+	curl -s localhost:8080/api/v0/invitations/revoke -X POST -H "Content-Type: application/json" -d '{"email": "example@example.com"}' | jq .

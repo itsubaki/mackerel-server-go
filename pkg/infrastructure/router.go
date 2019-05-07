@@ -100,7 +100,7 @@ func Default() *gin.Engine {
 		i := v0.Group("/invitations")
 		i.GET("", func(c *gin.Context) { invitations.List(c) })
 		i.POST("", func(c *gin.Context) { invitations.Save(c) })
-		i.GET("/revoke", func(c *gin.Context) { invitations.Revoke(c) })
+		i.POST("/revoke", func(c *gin.Context) { invitations.Revoke(c) })
 	}
 
 	{
