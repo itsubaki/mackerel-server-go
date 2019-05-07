@@ -37,7 +37,7 @@ $ mackerel-api
 ```
 
 ```
-$ go get mackerelio/mackerel-agent/mackerel-agent
+$ go get github.com/mackerelio/mackerel-agent/mackerel-agent
 $ mackerel-agent -conf /usr/local/etc/mackerel-agent.conf -apibase=http://localhost:8080
 2019/05/07 12:06:09 main.go:171: INFO <main> Starting mackerel-agent version:0.59.0, rev:, apibase:http://localhost:8080
 2019/05/07 12:06:17 command.go:90: DEBUG <command> Registering new host on mackerel...

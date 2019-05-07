@@ -30,6 +30,13 @@ func (repo *HostRepository) List() (*domain.Hosts, error) {
 }
 
 func (repo *HostRepository) Save(host *domain.Host) (*domain.HostID, error) {
+	roles := make(map[string][]string)
+	for j := range host.RoleFullNames {
+		spl := strings.Split(host.RoleFullNames[j], ":")
+		roles[spl[0]] = append(roles[spl[0]], spl[1])
+	}
+	host.Roles = roles
+
 	repo.Hosts.Hosts = append(repo.Hosts.Hosts, *host)
 	return &domain.HostID{ID: host.ID}, nil
 }
@@ -69,6 +76,7 @@ func (repo *HostRepository) SaveRoleFullNames(hostID string, names *domain.RoleF
 	for i := range repo.Hosts.Hosts {
 		if repo.Hosts.Hosts[i].ID == hostID {
 			repo.Hosts.Hosts[i].RoleFullNames = names.Names
+
 			roles := make(map[string][]string)
 			for j := range names.Names {
 				spl := strings.Split(names.Names[j], ":")
