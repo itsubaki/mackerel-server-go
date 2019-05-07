@@ -27,7 +27,11 @@ func (s *ServiceInteractor) Save(service *domain.Service) (*domain.Service, erro
 		return nil, err
 	}
 
-	return service, nil
+	return &domain.Service{
+		Name:  service.Name,
+		Memo:  service.Memo,
+		Roles: []string{},
+	}, nil
 }
 
 func (s *ServiceInteractor) Delete(serviceName string) (*domain.Service, error) {

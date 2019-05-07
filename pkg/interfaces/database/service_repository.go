@@ -7,7 +7,13 @@ import (
 )
 
 type ServiceRepository struct {
-	SQLHandler SQLHandler
+	DB SQLHandler
+}
+
+func NewServiceRepository(handler SQLHandler) *ServiceRepository {
+	return &ServiceRepository{
+		DB: handler,
+	}
 }
 
 // select * from services

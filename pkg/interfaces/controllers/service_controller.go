@@ -20,18 +20,8 @@ func NewServiceController(handler database.SQLHandler) *ServiceController {
 		Interactor: &usecase.ServiceInteractor{
 			NameRule:          regexp.MustCompile(`^[a-zA-Z0-9]{1,1}[a-zA-Z0-9_-]{1,62}`),
 			RoleNameRule:      regexp.MustCompile(`^[a-zA-Z0-9]{1,1}[a-zA-Z0-9_-]{1,62}`),
-			ServiceRepository: NewServiceInteractorOnMemory(),
+			ServiceRepository: memory.NewServiceRepository(),
 		},
-	}
-}
-
-func NewServiceInteractorOnMemory() usecase.ServiceRepository {
-	return &memory.ServiceRepository{
-		Services:            &domain.Services{Services: []domain.Service{}},
-		ServiceMetadata:     &domain.ServiceMetadataList{},
-		ServiceMetricValues: &domain.ServiceMetricValues{},
-		Roles:               &domain.Roles{},
-		RoleMetadataL:       &domain.RoleMetadataList{},
 	}
 }
 

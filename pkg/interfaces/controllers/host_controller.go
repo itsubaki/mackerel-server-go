@@ -17,18 +17,8 @@ type HostController struct {
 func NewHostController(handler database.SQLHandler) *HostController {
 	return &HostController{
 		Interactor: &usecase.HostInteractor{
-			HostRepository: NewHostInteractorOnMemory(),
+			HostRepository: memory.NewHostRepository(),
 		},
-	}
-}
-
-func NewHostInteractorOnMemory() usecase.HostRepository {
-	return &memory.HostRepository{
-		Hosts:                  &domain.Hosts{Hosts: []domain.Host{}},
-		HostMetadata:           []domain.HostMetadata{},
-		HostMetrics:            &domain.Metrics{},
-		HostMetricValues:       &domain.MetricValues{},
-		HostMetricValuesLatest: make(map[string]map[string]float64),
 	}
 }
 

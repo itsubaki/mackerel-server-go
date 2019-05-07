@@ -14,6 +14,16 @@ type ServiceRepository struct {
 	RoleMetadataL       *domain.RoleMetadataList
 }
 
+func NewServiceRepository() *ServiceRepository {
+	return &ServiceRepository{
+		Services:            &domain.Services{Services: []domain.Service{}},
+		ServiceMetadata:     &domain.ServiceMetadataList{},
+		ServiceMetricValues: &domain.ServiceMetricValues{},
+		Roles:               &domain.Roles{},
+		RoleMetadataL:       &domain.RoleMetadataList{},
+	}
+}
+
 func (repo *ServiceRepository) List() (*domain.Services, error) {
 	return repo.Services, nil
 }

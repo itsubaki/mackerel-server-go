@@ -15,6 +15,16 @@ type HostRepository struct {
 	HostMetricValuesLatest map[string]map[string]float64
 }
 
+func NewHostRepository() *HostRepository {
+	return &HostRepository{
+		Hosts:                  &domain.Hosts{Hosts: []domain.Host{}},
+		HostMetadata:           []domain.HostMetadata{},
+		HostMetrics:            &domain.Metrics{},
+		HostMetricValues:       &domain.MetricValues{},
+		HostMetricValuesLatest: make(map[string]map[string]float64),
+	}
+}
+
 func (repo *HostRepository) List() (*domain.Hosts, error) {
 	return repo.Hosts, nil
 }

@@ -6,6 +6,12 @@ type UserRepository struct {
 	Users *domain.Users
 }
 
+func NewUserRepository() *UserRepository {
+	return &UserRepository{
+		Users: &domain.Users{},
+	}
+}
+
 func (repo *UserRepository) List() (*domain.Users, error) {
 	return repo.Users, nil
 }

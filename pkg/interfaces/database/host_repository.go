@@ -7,7 +7,13 @@ import (
 )
 
 type HostRepository struct {
-	SQLHanler SQLHandler
+	DB SQLHandler
+}
+
+func NewHostRepository(handler SQLHandler) *HostRepository {
+	return &HostRepository{
+		DB: handler,
+	}
 }
 
 // select * from hosts

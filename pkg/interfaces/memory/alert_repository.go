@@ -11,6 +11,12 @@ type AlertRepository struct {
 	Alerts []domain.Alert
 }
 
+func NewAlertRepository() *AlertRepository {
+	return &AlertRepository{
+		Alerts: []domain.Alert{},
+	}
+}
+
 // select * from alerts where id=${alertID} limit=1
 func (repo *AlertRepository) Exists(alertID string) bool {
 	for _, a := range repo.Alerts {
