@@ -8,6 +8,11 @@ runserver:
 	go install
 	GIN_MODE=debug mackerel-api
 
+runclient:
+	set -x
+	-rm ~/Library/mackerel-agent/id
+	mackerel-agent -conf /usr/local/etc/mackerel-agent.conf -apibase=http://localhost:8080
+
 runmysql:
 	set -x
 	docker pull mysql
@@ -16,8 +21,6 @@ runmysql:
 	# docker stop mysqld
 	# docker rm mysqld
 
-clean:
-	rm ~/Library/mackerel-agent/id
 
 test:
 	set -x
