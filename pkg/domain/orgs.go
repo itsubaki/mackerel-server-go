@@ -1,5 +1,6 @@
 package domain
 
 type Org struct {
-	Name string `json:"name"`
+	XAPIKey string `json:"-"`
+	Name    string `json:"name"`
 }

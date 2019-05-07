@@ -5,6 +5,7 @@ import (
 
 	"github.com/itsubaki/mackerel-api/pkg/domain"
 	"github.com/itsubaki/mackerel-api/pkg/interfaces/database"
+	"github.com/itsubaki/mackerel-api/pkg/interfaces/memory"
 	"github.com/itsubaki/mackerel-api/pkg/usecase"
 )
 
@@ -13,7 +14,11 @@ type GraphController struct {
 }
 
 func NewGraphController(handler database.SQLHandler) *GraphController {
-	return &GraphController{}
+	return &GraphController{
+		Interactor: &usecase.GraphInteractor{
+			GraphRepository: memory.NewGraphRepository(),
+		},
+	}
 }
 
 func (s *GraphController) Save(c Context) {

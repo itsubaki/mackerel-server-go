@@ -6,6 +6,6 @@ type OrgInteractor struct {
 	OrgRepository OrgRepository
 }
 
-func (s *OrgInteractor) Org() (*domain.Org, error) {
-	return s.OrgRepository.Org()
+func (s *OrgInteractor) Org(apikey string) (*domain.Org, error) {
+	return s.OrgRepository.Org(apikey), nil
 }

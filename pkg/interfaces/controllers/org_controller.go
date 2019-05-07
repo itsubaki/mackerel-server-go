@@ -10,7 +10,9 @@ type OrgController struct {
 }
 
 func NewOrgController(handler database.SQLHandler) *OrgController {
-	return &OrgController{}
+	return &OrgController{
+		Interactor: &usecase.OrgInteractor{},
+	}
 }
 
 func (s *OrgController) Org(c Context) {

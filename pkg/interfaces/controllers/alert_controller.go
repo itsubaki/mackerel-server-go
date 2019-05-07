@@ -17,9 +17,7 @@ type AlertController struct {
 func NewAlertController(handler database.SQLHandler) *AlertController {
 	return &AlertController{
 		Interactor: &usecase.AlertInteractor{
-			AlertRepository: &memory.AlertRepository{
-				Alerts: []domain.Alert{},
-			},
+			AlertRepository: memory.NewAlertRepository(),
 		},
 	}
 }
@@ -48,7 +46,7 @@ func (s *AlertController) List(c Context) {
 
 func (s *AlertController) Close(c Context) {
 	var in domain.Reason
-	if err := c.BindJSON(in); err != nil {
+	if err := c.BindJSON(&in); err != nil {
 		c.Status(http.StatusBadRequest)
 		return
 	}
