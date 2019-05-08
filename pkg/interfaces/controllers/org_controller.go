@@ -10,7 +10,7 @@ type OrgController struct {
 	Interactor *usecase.OrgInteractor
 }
 
-func NewOrgController(handler database.SQLHandler) *OrgController {
+func NewOrgController(handler database.DB) *OrgController {
 	return &OrgController{
 		Interactor: &usecase.OrgInteractor{
 			OrgRepository: memory.NewOrgRepository(),

@@ -14,7 +14,7 @@ type AlertController struct {
 	Interactor *usecase.AlertInteractor
 }
 
-func NewAlertController(handler database.SQLHandler) *AlertController {
+func NewAlertController(handler database.DB) *AlertController {
 	return &AlertController{
 		Interactor: &usecase.AlertInteractor{
 			AlertRepository: memory.NewAlertRepository(),

@@ -9,7 +9,6 @@ import (
 
 func Default() *gin.Engine {
 	handler := NewSQLHandler()
-	handler.ShutdownHook()
 
 	g := gin.Default()
 

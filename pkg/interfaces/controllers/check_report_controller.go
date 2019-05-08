@@ -13,7 +13,7 @@ type CheckReportController struct {
 	Interactor *usecase.CheckReportInteractor
 }
 
-func NewCheckReportController(handler database.SQLHandler) *CheckReportController {
+func NewCheckReportController(handler database.DB) *CheckReportController {
 	return &CheckReportController{
 		Interactor: &usecase.CheckReportInteractor{
 			CheckReportRepository: memory.NewCheckReportRepository(),

@@ -15,7 +15,7 @@ type ServiceController struct {
 	Interactor *usecase.ServiceInteractor
 }
 
-func NewServiceController(handler database.SQLHandler) *ServiceController {
+func NewServiceController(handler database.DB) *ServiceController {
 	return &ServiceController{
 		Interactor: &usecase.ServiceInteractor{
 			NameRule:          regexp.MustCompile(`^[a-zA-Z0-9]{1,1}[a-zA-Z0-9_-]{1,62}`),

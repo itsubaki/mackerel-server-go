@@ -13,7 +13,7 @@ type GraphController struct {
 	Interactor *usecase.GraphInteractor
 }
 
-func NewGraphController(handler database.SQLHandler) *GraphController {
+func NewGraphController(handler database.DB) *GraphController {
 	return &GraphController{
 		Interactor: &usecase.GraphInteractor{
 			GraphRepository: memory.NewGraphRepository(),
