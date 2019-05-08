@@ -14,7 +14,7 @@ type HostController struct {
 	Interactor *usecase.HostInteractor
 }
 
-func NewHostController(handler database.DB) *HostController {
+func NewHostController(handler database.SQLHandler) *HostController {
 	return &HostController{
 		Interactor: &usecase.HostInteractor{
 			HostRepository: memory.NewHostRepository(),

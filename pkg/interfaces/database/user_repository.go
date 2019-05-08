@@ -3,12 +3,12 @@ package database
 import "github.com/itsubaki/mackerel-api/pkg/domain"
 
 type UserRepository struct {
-	DB DB
+	SQLHandler SQLHandler
 }
 
-func NewUserRepository(db DB) *UserRepository {
+func NewUserRepository(handler SQLHandler) *UserRepository {
 	return &UserRepository{
-		DB: db,
+		SQLHandler: handler,
 	}
 }
 

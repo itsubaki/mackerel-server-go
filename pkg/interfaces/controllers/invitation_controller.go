@@ -13,7 +13,7 @@ type InvitationController struct {
 	Interactor *usecase.InvitationInteractor
 }
 
-func NewInvitationController(handler database.DB) *InvitationController {
+func NewInvitationController(handler database.SQLHandler) *InvitationController {
 	return &InvitationController{
 		Interactor: &usecase.InvitationInteractor{
 			InvitationRepository: memory.NewInvitationRepository(),
