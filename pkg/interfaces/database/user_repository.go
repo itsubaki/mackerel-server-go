@@ -7,6 +7,10 @@ type UserRepository struct {
 }
 
 func NewUserRepository(handler SQLHandler) *UserRepository {
+	handler.Transact(func(tx Tx) error {
+		return nil
+	})
+
 	return &UserRepository{
 		SQLHandler: handler,
 	}

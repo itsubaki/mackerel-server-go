@@ -25,7 +25,7 @@ func NewSQLHandler() database.SQLHandler {
 	}
 }
 
-func (h *SQLHandler) Transact(txFunc func(database.Tx) error) (err error) {
+func (h *SQLHandler) Transact(txFunc func(tx database.Tx) error) (err error) {
 	tx, err := h.DB.Begin()
 	if err != nil {
 		return

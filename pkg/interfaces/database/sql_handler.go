@@ -4,7 +4,7 @@ type SQLHandler interface {
 	ShutdownHook()
 	Close() error
 	Begin() (Tx, error)
-	Transact(txFunc func(Tx) error) (err error)
+	Transact(txFunc func(tx Tx) error) (err error)
 }
 
 type Tx interface {
