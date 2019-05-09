@@ -7,7 +7,7 @@ import (
 )
 
 type HostRepository struct {
-	SQLHandler SQLHandler
+	SQLHandler
 }
 
 func NewHostRepository(handler SQLHandler) *HostRepository {

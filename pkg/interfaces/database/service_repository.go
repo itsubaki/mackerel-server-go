@@ -7,7 +7,7 @@ import (
 )
 
 type ServiceRepository struct {
-	SQLHandler SQLHandler
+	SQLHandler
 }
 
 func NewServiceRepository(handler SQLHandler) *ServiceRepository {
