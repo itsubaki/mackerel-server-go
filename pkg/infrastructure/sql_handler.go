@@ -6,6 +6,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/itsubaki/mackerel-api/pkg/interfaces/database"
 )
 

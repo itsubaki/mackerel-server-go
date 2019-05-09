@@ -17,14 +17,33 @@ func (repo *UserRepository) List() (*domain.Users, error) {
 }
 
 func (repo *UserRepository) Delete(userID string) (*domain.User, error) {
+	var user domain.User
+
 	repo.Transact(func(tx Tx) error {
-		_, err := tx.Exec("delete from users where id=?", userID)
+		rows, err := tx.Query("select * from uses where id=?", userID)
 		if err != nil {
+			return err
+		}
+
+		if _, err := tx.Exec("delete from users where id=?", userID); err != nil {
+			return err
+		}
+
+		if err := rows.Scan(
+			&user.ID,
+			&user.ScreenName,
+			&user.Email,
+			&user.Authority,
+			&user.AuthenticationMethods,
+			&user.IsInRegisterationProcess,
+			&user.IsMFAEnabled,
+			&user.JoinedAt,
+		); err != nil {
 			return err
 		}
 
 		return nil
 	})
 
-	return nil, nil
+	return &user, nil
 }
