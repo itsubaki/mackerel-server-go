@@ -37,8 +37,6 @@ type Tx interface {
 	QueryRow(query string, args ...interface{}) Row
 	QueryRowContext(ctx context.Context, query string, args ...interface{}) Row
 	Rollback() error
-	Stmt(stmt Stmt) Stmt
-	StmtContext(ctx context.Context, stmt Stmt) Stmt
 }
 
 type Result interface {

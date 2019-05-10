@@ -1,6 +1,7 @@
 package infrastructure
 
 import (
+	"context"
 	"database/sql"
 	"os"
 	"os/signal"
@@ -107,11 +108,64 @@ func (h *SQLHandler) Begin() (database.Tx, error) {
 }
 
 type Stmt struct {
-	stmt *sql.Stmt
+	Stmt *sql.Stmt
+}
+
+func (stmt *Stmt) Close() error {
+	return stmt.Stmt.Close()
+}
+func (stmt *Stmt) Exec(args ...interface{}) (database.Result, error) {
+	result, err := stmt.Stmt.Exec(args...)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Result{result}, nil
+}
+
+func (stmt *Stmt) ExecContext(ctx context.Context, args ...interface{}) (database.Result, error) {
+	result, err := stmt.Stmt.ExecContext(ctx, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Result{result}, nil
+}
+
+func (stmt *Stmt) Query(args ...interface{}) (database.Rows, error) {
+	rows, err := stmt.Stmt.Query(args...)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Rows{rows}, nil
+}
+
+func (stmt *Stmt) QueryContext(ctx context.Context, args ...interface{}) (database.Rows, error) {
+	rows, err := stmt.Stmt.QueryContext(ctx, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Rows{rows}, nil
+}
+
+func (stmt *Stmt) QueryRow(args ...interface{}) database.Row {
+	row := stmt.Stmt.QueryRow(args...)
+	return &Row{row}
+}
+
+func (stmt *Stmt) QueryRowContext(ctx context.Context, args ...interface{}) database.Row {
+	row := stmt.Stmt.QueryRowContext(ctx, args...)
+	return &Row{row}
 }
 
 type Tx struct {
 	Tx *sql.Tx
+}
+
+func (tx *Tx) Commit() error {
+	return tx.Tx.Commit()
 }
 
 func (tx *Tx) Exec(statement string, args ...interface{}) (database.Result, error) {
@@ -123,6 +177,33 @@ func (tx *Tx) Exec(statement string, args ...interface{}) (database.Result, erro
 	return &Result{result}, nil
 }
 
+func (tx *Tx) ExecContext(ctx context.Context, query string, args ...interface{}) (database.Result, error) {
+	result, err := tx.Tx.ExecContext(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Result{result}, nil
+}
+
+func (tx *Tx) Prepare(query string) (database.Stmt, error) {
+	stmt, err := tx.Tx.Prepare(query)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Stmt{stmt}, nil
+}
+
+func (tx *Tx) PrepareContext(ctx context.Context, query string) (database.Stmt, error) {
+	stmt, err := tx.Tx.PrepareContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Stmt{stmt}, nil
+}
+
 func (tx *Tx) Query(statement string, args ...interface{}) (database.Rows, error) {
 	rows, err := tx.Tx.Query(statement, args...)
 	if err != nil {
@@ -132,8 +213,23 @@ func (tx *Tx) Query(statement string, args ...interface{}) (database.Rows, error
 	return &Rows{rows}, nil
 }
 
-func (tx *Tx) Commit() error {
-	return tx.Tx.Commit()
+func (tx *Tx) QueryContext(ctx context.Context, query string, args ...interface{}) (database.Rows, error) {
+	rows, err := tx.Tx.QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Rows{rows}, nil
+}
+
+func (tx *Tx) QueryRow(query string, args ...interface{}) database.Row {
+	row := tx.Tx.QueryRow(query, args...)
+	return &Row{row}
+}
+
+func (tx *Tx) QueryRowContext(ctx context.Context, query string, args ...interface{}) database.Row {
+	row := tx.Tx.QueryRowContext(ctx, query, args...)
+	return &Row{row}
 }
 
 func (tx *Tx) Rollback() error {
