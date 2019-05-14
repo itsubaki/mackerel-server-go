@@ -9,7 +9,7 @@ import (
 	"github.com/itsubaki/mackerel-api/pkg/domain"
 )
 
-func TestUserRepositoryList(t *testing.T) {
+func UserRepositoryList(t *testing.T) {
 	db, err := sql.Open("mysql", "root:secret@tcp(127.0.0.1:3307)/mackerel")
 	if err != nil {
 		t.Error(err)
