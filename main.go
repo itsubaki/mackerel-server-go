@@ -14,7 +14,6 @@ import (
 // CommandLine endpoint
 func main() {
 	h := infrastructure.NewSQLHandler()
-	r := infrastructure.Router(h)
 
 	c := make(chan os.Signal, 2)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
@@ -28,7 +27,7 @@ func main() {
 		os.Exit(0)
 	}()
 
-	if err := r.Run(":8080"); err != nil {
+	if err := infrastructure.Router(nil).Run(":8080"); err != nil {
 		log.Fatalf("run mackerel-api: %v", err)
 	}
 }

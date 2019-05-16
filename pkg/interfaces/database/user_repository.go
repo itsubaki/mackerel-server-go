@@ -59,6 +59,10 @@ func (repo *UserRepository) List() (*domain.Users, error) {
 	return &domain.Users{Users: users}, nil
 }
 
+func (repo *UserRepository) Exists(userID string) bool {
+	return true
+}
+
 func (repo *UserRepository) Delete(userID string) (*domain.User, error) {
 	var user domain.User
 
