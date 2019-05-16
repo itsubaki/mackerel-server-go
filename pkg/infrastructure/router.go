@@ -5,14 +5,16 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/itsubaki/mackerel-api/pkg/interfaces/controllers"
+	"github.com/itsubaki/mackerel-api/pkg/interfaces/database"
 )
 
 func Default() *gin.Engine {
 	handler := NewSQLHandler()
-	handler.ShutdownHook()
+	ShutdownHook(handler)
+	return Router(gin.Default(), handler)
+}
 
-	g := gin.Default()
-
+func Router(g *gin.Engine, handler database.SQLHandler) *gin.Engine {
 	{
 		g.GET("/", func(c *gin.Context) {
 			c.Status(http.StatusOK)

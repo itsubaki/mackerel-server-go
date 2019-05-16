@@ -1,7 +1,6 @@
 package database
 
 type SQLHandler interface {
-	ShutdownHook()
 	Transact(txFunc func(tx Tx) error) (err error)
 	Close() error
 	Begin() (Tx, error)

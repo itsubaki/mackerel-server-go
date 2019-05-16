@@ -2,9 +2,6 @@ package infrastructure
 
 import (
 	"database/sql"
-	"os"
-	"os/signal"
-	"syscall"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/itsubaki/mackerel-api/pkg/interfaces/database"
@@ -23,18 +20,6 @@ func NewSQLHandler() database.SQLHandler {
 	return &SQLHandler{
 		DB: db,
 	}
-}
-
-func (h *SQLHandler) ShutdownHook() {
-	c := make(chan os.Signal, 2)
-	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
-	go func() {
-		<-c
-		if err := h.Close(); err != nil {
-			panic(err)
-		}
-		os.Exit(0)
-	}()
 }
 
 func (h *SQLHandler) Transact(txFunc func(tx database.Tx) error) (err error) {
