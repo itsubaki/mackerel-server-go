@@ -8,13 +8,8 @@ import (
 	"github.com/itsubaki/mackerel-api/pkg/interfaces/database"
 )
 
-func Default() *gin.Engine {
-	handler := NewSQLHandler()
-	ShutdownHook(handler)
-	return Router(gin.Default(), handler)
-}
-
-func Router(g *gin.Engine, handler database.SQLHandler) *gin.Engine {
+func Router(handler database.SQLHandler) *gin.Engine {
+	g := gin.Default()
 	{
 		g.GET("/", func(c *gin.Context) {
 			c.Status(http.StatusOK)
