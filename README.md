@@ -34,6 +34,102 @@ mackerel compatible monitoring service
 ```
 $ go get github.com/itsubaki/mackerel-api
 $ mackerel-api
+GIN_MODE=debug mackerel-api
+[GIN-debug] [WARNING] Now Gin requires Go 1.6 or later and Go 1.7 will be required soon.
+
+[GIN-debug] [WARNING] Creating an Engine instance with the Logger and Recovery middleware already attached.
+
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] GET    /                         --> github.com/itsubaki/mackerel-api/pkg/infrastructure.Default.func1 (3 handlers)
+[GIN-debug] GET    /api/v0/services          --> github.com/itsubaki/mackerel-api/pkg/infrastructure.Default.func2 (3 handlers)
+[GIN-debug] POST   /api/v0/services          --> github.com/itsubaki/mackerel-api/pkg/infrastructure.Default.func3 (3 handlers)
+[GIN-debug] DELETE /api/v0/services/:serviceName --> github.com/itsubaki/mackerel-api/pkg/infrastructure.Default.func4 (3 handlers)
+[GIN-debug] GET    /api/v0/services/:serviceName/metadata --> github.com/itsubaki/mackerel-api/pkg/infrastructure.Default.func5 (3 handlers)
+[GIN-debug] GET    /api/v0/services/:serviceName/metadata/:namespace --> github.com/itsubaki/mackerel-api/pkg/infrastructure.Default.func6 (3 handlers)
+[GIN-debug] PUT    /api/v0/services/:serviceName/metadata/:namespace --> github.com/itsubaki/mackerel-api/pkg/infrastructure.Default.func7 (3 handlers)
+[GIN-debug] DELETE /api/v0/services/:serviceName/metadata/:namespace --> github.com/itsubaki/mackerel-api/pkg/infrastructure.Default.func8 (3 handlers)
+[GIN-debug] GET    /api/v0/services/:serviceName/roles --> github.com/itsubaki/mackerel-api/pkg/infrastructure.Default.func9 (3 handlers)
+[GIN-debug] POST   /api/v0/services/:serviceName/roles --> github.com/itsubaki/mackerel-api/pkg/infrastructure.Default.func10 (3 handlers)
+[GIN-debug] DELETE /api/v0/services/:serviceName/roles/:roleName --> github.com/itsubaki/mackerel-api/pkg/infrastructure.Default.func11 (3 handlers)
+[GIN-debug] GET    /api/v0/services/:serviceName/roles/:roleName/metadata --> github.com/itsubaki/mackerel-api/pkg/infrastructure.Default.func12 (3 handlers)
+[GIN-debug] GET    /api/v0/services/:serviceName/roles/:roleName/metadata/:namespace --> github.com/itsubaki/mackerel-api/pkg/infrastructure.Default.func13 (3 handlers)
+[GIN-debug] PUT    /api/v0/services/:serviceName/roles/:roleName/metadata/:namespace --> github.com/itsubaki/mackerel-api/pkg/infrastructure.Default.func14 (3 handlers)
+[GIN-debug] DELETE /api/v0/services/:serviceName/roles/:roleName/metadata/:namespace --> github.com/itsubaki/mackerel-api/pkg/infrastructure.Default.func15 (3 handlers)
+[GIN-debug] GET    /api/v0/services/:serviceName/metric-names --> github.com/itsubaki/mackerel-api/pkg/infrastructure.Default.func16 (3 handlers)
+[GIN-debug] GET    /api/v0/services/:serviceName/metrics --> github.com/itsubaki/mackerel-api/pkg/infrastructure.Default.func17 (3 handlers)
+[GIN-debug] POST   /api/v0/services/:serviceName/tsdb --> github.com/itsubaki/mackerel-api/pkg/infrastructure.Default.func18 (3 handlers)
+[GIN-debug] GET    /api/v0/hosts             --> github.com/itsubaki/mackerel-api/pkg/infrastructure.Default.func19 (3 handlers)
+[GIN-debug] POST   /api/v0/hosts             --> github.com/itsubaki/mackerel-api/pkg/infrastructure.Default.func20 (3 handlers)
+[GIN-debug] GET    /api/v0/hosts/:hostId     --> github.com/itsubaki/mackerel-api/pkg/infrastructure.Default.func21 (3 handlers)
+[GIN-debug] PUT    /api/v0/hosts/:hostId     --> github.com/itsubaki/mackerel-api/pkg/infrastructure.Default.func22 (3 handlers)
+[GIN-debug] PUT    /api/v0/hosts/:hostId/role-fullnames --> github.com/itsubaki/mackerel-api/pkg/infrastructure.Default.func23 (3 handlers)
+[GIN-debug] POST   /api/v0/hosts/:hostId/status --> github.com/itsubaki/mackerel-api/pkg/infrastructure.Default.func24 (3 handlers)
+[GIN-debug] POST   /api/v0/hosts/:hostId/retire --> github.com/itsubaki/mackerel-api/pkg/infrastructure.Default.func25 (3 handlers)
+[GIN-debug] GET    /api/v0/hosts/:hostId/metadata --> github.com/itsubaki/mackerel-api/pkg/infrastructure.Default.func26 (3 handlers)
+[GIN-debug] GET    /api/v0/hosts/:hostId/metadata/:namespace --> github.com/itsubaki/mackerel-api/pkg/infrastructure.Default.func27 (3 handlers)
+[GIN-debug] PUT    /api/v0/hosts/:hostId/metadata/:namespace --> github.com/itsubaki/mackerel-api/pkg/infrastructure.Default.func28 (3 handlers)
+[GIN-debug] DELETE /api/v0/hosts/:hostId/metadata/:namespace --> github.com/itsubaki/mackerel-api/pkg/infrastructure.Default.func29 (3 handlers)
+[GIN-debug] GET    /api/v0/hosts/:hostId/metric-names --> github.com/itsubaki/mackerel-api/pkg/infrastructure.Default.func30 (3 handlers)
+[GIN-debug] GET    /api/v0/hosts/:hostId/metrics --> github.com/itsubaki/mackerel-api/pkg/infrastructure.Default.func31 (3 handlers)
+[GIN-debug] GET    /api/v0/tsdb/latest       --> github.com/itsubaki/mackerel-api/pkg/infrastructure.Default.func32 (3 handlers)
+[GIN-debug] POST   /api/v0/tsdb              --> github.com/itsubaki/mackerel-api/pkg/infrastructure.Default.func33 (3 handlers)
+[GIN-debug] POST   /api/v0/graph-defs/create --> github.com/itsubaki/mackerel-api/pkg/infrastructure.Default.func34 (3 handlers)
+[GIN-debug] POST   /api/v0/monitoring/checks/report --> github.com/itsubaki/mackerel-api/pkg/infrastructure.Default.func35 (3 handlers)
+[GIN-debug] GET    /api/v0/alerts            --> github.com/itsubaki/mackerel-api/pkg/infrastructure.Default.func36 (3 handlers)
+[GIN-debug] POST   /api/v0/alerts/:alertId/close --> github.com/itsubaki/mackerel-api/pkg/infrastructure.Default.func37 (3 handlers)
+[GIN-debug] GET    /api/v0/invitations       --> github.com/itsubaki/mackerel-api/pkg/infrastructure.Default.func38 (3 handlers)
+[GIN-debug] POST   /api/v0/invitations       --> github.com/itsubaki/mackerel-api/pkg/infrastructure.Default.func39 (3 handlers)
+[GIN-debug] POST   /api/v0/invitations/revoke --> github.com/itsubaki/mackerel-api/pkg/infrastructure.Default.func40 (3 handlers)
+[GIN-debug] GET    /api/v0/users             --> github.com/itsubaki/mackerel-api/pkg/infrastructure.Default.func41 (3 handlers)
+[GIN-debug] DELETE /api/v0/users/:userId     --> github.com/itsubaki/mackerel-api/pkg/infrastructure.Default.func42 (3 handlers)
+[GIN-debug] GET    /api/v0/org               --> github.com/itsubaki/mackerel-api/pkg/infrastructure.Default.func43 (3 handlers)
+[GIN-debug] Listening and serving HTTP on :8080
+[GIN] 2019/05/16 - 10:35:27 | 200 |    1.239153ms |             ::1 | POST     /api/v0/hosts
+[GIN] 2019/05/16 - 10:35:27 | 200 |     176.587µs |             ::1 | GET      /api/v0/hosts/b9ec43060e8
+[GIN] 2019/05/16 - 10:35:32 | 200 |     210.674µs |             ::1 | PUT      /api/v0/hosts/b9ec43060e8
+[GIN] 2019/05/16 - 10:36:27 | 200 |     558.083µs |             ::1 | POST     /api/v0/tsdb
+[GIN] 2019/05/16 - 10:36:49 | 200 |     129.602µs |             ::1 | POST     /api/v0/hosts/b9ec43060e8/status
+[GIN] 2019/05/16 - 10:36:51 | 200 |     152.242µs |             ::1 | POST     /api/v0/hosts
+[GIN] 2019/05/16 - 10:36:51 | 200 |     158.082µs |             ::1 | GET      /api/v0/org
+[GIN] 2019/05/16 - 10:36:52 | 200 |     562.972µs |             ::1 | POST     /api/v0/services
+[GIN] 2019/05/16 - 10:36:52 | 200 |     148.677µs |             ::1 | PUT      /api/v0/services/ExampleService/metadata/foobar
+[GIN] 2019/05/16 - 10:36:52 | 200 |     121.124µs |             ::1 | GET      /api/v0/services/ExampleService/metadata/foobar
+[GIN] 2019/05/16 - 10:36:52 | 200 |     200.926µs |             ::1 | GET      /api/v0/services/ExampleService/metadata
+[GIN] 2019/05/16 - 10:36:52 | 200 |      75.446µs |             ::1 | DELETE   /api/v0/services/ExampleService/metadata/foobar
+[GIN] 2019/05/16 - 10:36:52 | 200 |      61.226µs |             ::1 | DELETE   /api/v0/services/ExampleService
+[GIN] 2019/05/16 - 10:36:52 | 200 |     128.698µs |             ::1 | GET      /api/v0/services
+[GIN] 2019/05/16 - 10:36:52 | 200 |      537.87µs |             ::1 | POST     /api/v0/services
+[GIN] 2019/05/16 - 10:36:52 | 200 |     116.294µs |             ::1 | POST     /api/v0/services/ExampleService/roles
+[GIN] 2019/05/16 - 10:36:52 | 200 |      101.38µs |             ::1 | GET      /api/v0/services/ExampleService/roles
+[GIN] 2019/05/16 - 10:36:52 | 200 |     101.834µs |             ::1 | PUT      /api/v0/services/ExampleService/roles/ExampleRole/metadata/foobar
+[GIN] 2019/05/16 - 10:36:52 | 200 |      65.456µs |             ::1 | GET      /api/v0/services/ExampleService/roles/ExampleRole/metadata/foobar
+[GIN] 2019/05/16 - 10:36:52 | 200 |     183.414µs |             ::1 | GET      /api/v0/services/ExampleService/roles/ExampleRole/metadata
+[GIN] 2019/05/16 - 10:36:52 | 200 |     105.286µs |             ::1 | DELETE   /api/v0/services/ExampleService/roles/ExampleRole/metadata/foobar
+[GIN] 2019/05/16 - 10:36:52 | 200 |      51.858µs |             ::1 | DELETE   /api/v0/services/ExampleService/roles/ExampleRole
+[GIN] 2019/05/16 - 10:36:52 | 200 |     213.137µs |             ::1 | POST     /api/v0/services/ExampleService/tsdb
+[GIN] 2019/05/16 - 10:36:52 | 200 |     133.446µs |             ::1 | GET      /api/v0/services/ExampleService/metrics?name=hoge&from=1351700000&to=1351700100
+[GIN] 2019/05/16 - 10:36:52 | 200 |     195.577µs |             ::1 | GET      /api/v0/services/ExampleService/metric-names
+[GIN] 2019/05/16 - 10:36:52 | 200 |       239.8µs |             ::1 | DELETE   /api/v0/services/ExampleService
+[GIN] 2019/05/16 - 10:36:52 | 200 |     131.406µs |             ::1 | PUT      /api/v0/hosts/b93cf8d53fc
+[GIN] 2019/05/16 - 10:36:52 | 200 |     141.595µs |             ::1 | POST     /api/v0/hosts/b93cf8d53fc/status
+[GIN] 2019/05/16 - 10:36:52 | 200 |      98.827µs |             ::1 | GET      /api/v0/hosts/b93cf8d53fc
+[GIN] 2019/05/16 - 10:36:52 | 200 |     100.452µs |             ::1 | PUT      /api/v0/hosts/b93cf8d53fc/role-fullnames
+[GIN] 2019/05/16 - 10:36:52 | 200 |      94.374µs |             ::1 | PUT      /api/v0/hosts/b93cf8d53fc/metadata/foobar
+[GIN] 2019/05/16 - 10:36:52 | 200 |      81.347µs |             ::1 | GET      /api/v0/hosts/b93cf8d53fc/metadata/foobar
+[GIN] 2019/05/16 - 10:36:53 | 200 |     166.287µs |             ::1 | GET      /api/v0/hosts/b93cf8d53fc/metadata
+[GIN] 2019/05/16 - 10:36:53 | 200 |     103.835µs |             ::1 | DELETE   /api/v0/hosts/b93cf8d53fc/metadata/foobar
+[GIN] 2019/05/16 - 10:36:53 | 200 |     101.578µs |             ::1 | POST     /api/v0/tsdb
+[GIN] 2019/05/16 - 10:36:53 | 200 |     410.567µs |             ::1 | GET      /api/v0/tsdb/latest?hostId=b93cf8d53fc&name=foobar&name=hoge&name=piyo
+[GIN] 2019/05/16 - 10:36:53 | 200 |      165.86µs |             ::1 | GET      /api/v0/hosts/b93cf8d53fc/metrics?name=hoge&from=1351700000&to=1351700100
+[GIN] 2019/05/16 - 10:36:53 | 200 |     128.783µs |             ::1 | GET      /api/v0/hosts/b93cf8d53fc/metric-names
+[GIN] 2019/05/16 - 10:36:53 | 200 |     311.806µs |             ::1 | GET      /api/v0/hosts
+[GIN] 2019/05/16 - 10:36:53 | 200 |     233.662µs |             ::1 | POST     /api/v0/hosts/b93cf8d53fc/retire
+[GIN] 2019/05/16 - 10:36:53 | 200 |      171.18µs |             ::1 | POST     /api/v0/invitations
+[GIN] 2019/05/16 - 10:36:53 | 200 |      83.982µs |             ::1 | GET      /api/v0/invitations
+[GIN] 2019/05/16 - 10:36:53 | 200 |     146.102µs |             ::1 | POST     /api/v0/invitations/revoke
 ```
 
 ```
