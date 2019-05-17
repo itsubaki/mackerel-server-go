@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"github.com/itsubaki/mackerel-api/pkg/interfaces/database"
+	"github.com/itsubaki/mackerel-api/pkg/interfaces/memory"
 	"github.com/itsubaki/mackerel-api/pkg/usecase"
 )
 
@@ -10,8 +11,16 @@ type UserController struct {
 }
 
 func NewUserController(handler database.SQLHandler) *UserController {
+	var repo usecase.UserRepository
+	repo = memory.NewUserRepository()
+	if handler != nil {
+		repo = database.NewUserRepository(handler)
+	}
+
 	return &UserController{
-		Interactor: &usecase.UserInteractor{},
+		Interactor: &usecase.UserInteractor{
+			UserRepository: repo,
+		},
 	}
 }
 

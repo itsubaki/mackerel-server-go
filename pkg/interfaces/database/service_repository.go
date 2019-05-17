@@ -127,7 +127,7 @@ func (repo *ServiceRepository) MetricNames(serviceName string) (*domain.ServiceM
 }
 
 // select * from service_metrics where service_name=${serviceName} and name=${metricName}  and ${from} < from and to < ${to}
-func (repo *ServiceRepository) MetricValues(serviceName, metricName string, from, to int) (*domain.ServiceMetricValues, error) {
+func (repo *ServiceRepository) MetricValues(serviceName, metricName string, from, to int64) (*domain.ServiceMetricValues, error) {
 	return &domain.ServiceMetricValues{}, nil
 }
 

@@ -62,7 +62,7 @@ func (repo *HostRepository) MetricNames(hostID string) (*domain.MetricNames, err
 }
 
 // select value from host_metric_values where host_id=${hostID} and name=${name} and ${from} < from and to < ${to}
-func (repo *HostRepository) MetricValues(hostID, name string, from, to int) (*domain.MetricValues, error) {
+func (repo *HostRepository) MetricValues(hostID, name string, from, to int64) (*domain.MetricValues, error) {
 	return &domain.MetricValues{}, nil
 }
 

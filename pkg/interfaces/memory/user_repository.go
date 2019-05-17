@@ -16,6 +16,16 @@ func (repo *UserRepository) List() (*domain.Users, error) {
 	return repo.Users, nil
 }
 
+func (repo *UserRepository) Exists(userID string) bool {
+	for i := range repo.Users.Users {
+		if repo.Users.Users[i].ID == userID {
+			return true
+		}
+	}
+
+	return false
+}
+
 func (repo *UserRepository) Delete(userID string) (*domain.User, error) {
 	var user domain.User
 
