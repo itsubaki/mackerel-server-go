@@ -16,7 +16,7 @@ import (
 func main() {
 	var handler database.SQLHandler
 	if os.Getenv("MACKEREL_API_PERSISTENCE") == "database" {
-		handler = infrastructure.NewSQLHandler()
+		handler := infrastructure.NewSQLHandler()
 		c := make(chan os.Signal, 2)
 		signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 
