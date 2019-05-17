@@ -22,6 +22,19 @@ func NewSQLHandler() database.SQLHandler {
 	}
 }
 
+func (h *SQLHandler) Query(query string, args ...interface{}) (database.Rows, error) {
+	rows, err := h.DB.Query(query, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Rows{rows}, nil
+}
+
+func (h *SQLHandler) QueryRow(query string, args ...interface{}) database.Row {
+	return h.DB.QueryRow(query, args...)
+}
+
 func (h *SQLHandler) Transact(txFunc func(tx database.Tx) error) (err error) {
 	tx, err := h.DB.Begin()
 	if err != nil {

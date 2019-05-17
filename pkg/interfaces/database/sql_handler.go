@@ -2,6 +2,8 @@ package database
 
 type SQLHandler interface {
 	Transact(txFunc func(tx Tx) error) (err error)
+	Query(query string, args ...interface{}) (Rows, error)
+	QueryRow(query string, args ...interface{}) Row
 	Close() error
 	Begin() (Tx, error)
 }

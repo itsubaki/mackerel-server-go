@@ -73,6 +73,12 @@ func (repo *UserRepository) List() (*domain.Users, error) {
 }
 
 func (repo *UserRepository) Exists(userID string) bool {
+	row := repo.QueryRow(`select * from users where id=? limit=1`, userID)
+	var id string
+	if err := row.Scan(&id); err != nil {
+		return false
+	}
+
 	return true
 }
 
