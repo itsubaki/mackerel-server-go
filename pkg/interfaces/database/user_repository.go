@@ -12,7 +12,20 @@ type UserRepository struct {
 
 func NewUserRepository(handler SQLHandler) *UserRepository {
 	handler.Transact(func(tx Tx) error {
-		if _, err := tx.Exec("create table if not exists users (id int not null primary key, screen_name varchar(128), email varchar(128), authority varchar(128), is_in_registeration_process boolean, is_mfa_enabled boolean, authentication_methods varchar(128), joined_at bigint)"); err != nil {
+		if _, err := tx.Exec(
+			`
+			create table if not exists users (
+				id int not null primary key,
+				screen_name varchar(128),
+				email varchar(128),
+				authority varchar(128),
+				is_in_registeration_process boolean,
+				is_mfa_enabled boolean,
+				authentication_methods varchar(128),
+				joined_at bigint
+			)
+			`,
+		); err != nil {
 			return err
 		}
 
