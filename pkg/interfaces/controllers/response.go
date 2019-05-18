@@ -7,6 +7,11 @@ import (
 )
 
 func doResponse(c Context, out interface{}, err error) {
+	if err == nil {
+		c.JSON(http.StatusOK, out)
+		return
+	}
+
 	switch err.(type) {
 	case
 		*usecase.ServiceNotFound,
@@ -40,7 +45,7 @@ func doResponse(c Context, out interface{}, err error) {
 		c.Status(http.StatusForbidden)
 		return
 	default:
-		c.JSON(http.StatusOK, out)
+		c.Status(http.StatusNotImplemented)
 		return
 	}
 }

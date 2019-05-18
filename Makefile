@@ -6,7 +6,7 @@ runserver:
 	set -x
 	-rm ${GOPATH}/bin/mackerel-api
 	go install
-	GIN_MODE=debug mackerel-api
+	GIN_MODE=debug MACKEREL_API_PERSISTENCE=database mackerel-api
 
 runclient:
 	set -x

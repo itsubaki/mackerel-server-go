@@ -1,6 +1,7 @@
 package database
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/itsubaki/mackerel-api/pkg/domain"
@@ -11,6 +12,37 @@ type HostRepository struct {
 }
 
 func NewHostRepository(handler SQLHandler) *HostRepository {
+	err := handler.Transact(func(tx Tx) error {
+		if _, err := tx.Exec(
+			`
+			create table if not exists hosts (
+				id varchar(16) not null primary key,
+				name varchar(128),
+				status varchar(16),
+				memo varchar(128),
+				display_name varchar(128),
+				custom_identifier varchar(128),
+				created_at bigint,
+				retired_at bigint,
+				is_retired boolean,
+				roles text,
+				role_fullnames text,
+				interfaces text,
+				checks text,
+				meta text
+			)
+			`,
+		); err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		panic(err)
+	}
+
 	return &HostRepository{
 		SQLHandler: handler,
 	}
@@ -18,22 +50,184 @@ func NewHostRepository(handler SQLHandler) *HostRepository {
 
 // select * from hosts
 func (repo *HostRepository) List() (*domain.Hosts, error) {
-	return nil, nil
+	var hosts []domain.Host
+
+	err := repo.Transact(func(tx Tx) error {
+		rows, err := tx.Query("select * from hosts")
+		if err != nil {
+			return err
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			var host domain.Host
+			var roles, roleFullnames, interfaces, checks, meta string
+			if err := rows.Scan(
+				&host.ID,
+				&host.Name,
+				&host.Status,
+				&host.Memo,
+				&host.DisplayName,
+				&host.CustomIdentifier,
+				&host.CreatedAt,
+				&host.RetiredAt,
+				&host.IsRetired,
+				&roles,
+				&roleFullnames,
+				&interfaces,
+				&checks,
+				&meta,
+			); err != nil {
+				return err
+			}
+
+			if err := json.Unmarshal([]byte(roles), &host.Roles); err != nil {
+				return err
+			}
+
+			if err := json.Unmarshal([]byte(roleFullnames), &host.RoleFullNames); err != nil {
+				return err
+			}
+
+			if err := json.Unmarshal([]byte(interfaces), &host.Interfaces); err != nil {
+				return err
+			}
+
+			if err := json.Unmarshal([]byte(checks), &host.Checks); err != nil {
+				return err
+			}
+
+			if err := json.Unmarshal([]byte(meta), &host.Meta); err != nil {
+				return err
+			}
+
+			hosts = append(hosts, host)
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &domain.Hosts{Hosts: hosts}, nil
 }
 
 // insert into hosts values(${name}, ${meta}, ${interfaces}, ${checks}, ${display_name}, ${custom_identifier}, ${created_at}, ${id}, ${status}, ${memo}, ${roles}, ${is_retired}, ${retired_at} )
 func (repo *HostRepository) Save(host *domain.Host) (*domain.HostID, error) {
-	return &domain.HostID{}, nil
+	err := repo.Transact(func(tx Tx) error {
+		roles, err := json.Marshal(host.Roles)
+		if err != nil {
+			return err
+		}
+
+		roleFullnames, err := json.Marshal(host.RoleFullNames)
+		if err != nil {
+			return err
+		}
+
+		interfaces, err := json.Marshal(host.Interfaces)
+		if err != nil {
+			return err
+		}
+
+		checks, err := json.Marshal(host.Checks)
+		if err != nil {
+			return err
+		}
+
+		meta, err := json.Marshal(host.Meta)
+		if err != nil {
+			return err
+		}
+
+		if _, err := tx.Exec(
+			"insert into hosts values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+			host.ID,
+			host.Name,
+			host.Status,
+			host.Memo,
+			host.DisplayName,
+			host.CustomIdentifier,
+			host.CreatedAt,
+			host.RetiredAt,
+			host.IsRetired,
+			string(roles),
+			string(roleFullnames),
+			string(interfaces),
+			string(checks),
+			string(meta),
+		); err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &domain.HostID{ID: host.ID}, nil
 }
 
 // select * from hosts where id=${hostID}
 func (repo *HostRepository) Host(hostID string) (*domain.Host, error) {
-	return nil, fmt.Errorf("host not found")
+	var host domain.Host
+
+	err := repo.Transact(func(tx Tx) error {
+		row := tx.QueryRow("select * from hosts where id=?", hostID)
+		var roles, roleFullnames, interfaces, checks, meta string
+		if err := row.Scan(
+			&host.ID,
+			&host.Name,
+			&host.Status,
+			&host.Memo,
+			&host.DisplayName,
+			&host.CustomIdentifier,
+			&host.CreatedAt,
+			&host.RetiredAt,
+			&host.IsRetired,
+			&roles,
+			&roleFullnames,
+			&interfaces,
+			&checks,
+			&meta,
+		); err != nil {
+			return err
+		}
+
+		if err := json.Unmarshal([]byte(roles), &host.Roles); err != nil {
+			return err
+		}
+
+		if err := json.Unmarshal([]byte(roleFullnames), &host.RoleFullNames); err != nil {
+			return err
+		}
+
+		if err := json.Unmarshal([]byte(interfaces), &host.Interfaces); err != nil {
+			return err
+		}
+
+		if err := json.Unmarshal([]byte(checks), &host.Checks); err != nil {
+			return err
+		}
+
+		if err := json.Unmarshal([]byte(meta), &host.Meta); err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &host, nil
 }
 
 // select * from hosts where id=${hostID} limit=1
 func (repo *HostRepository) Exists(hostID string) bool {
-	return false
+	return true
 }
 
 // update hosts set status=${status} where id=${hostID}

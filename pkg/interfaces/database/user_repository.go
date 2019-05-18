@@ -94,7 +94,7 @@ func (repo *UserRepository) Exists(userID string) bool {
 func (repo *UserRepository) Save(user *domain.User) error {
 	return repo.Transact(func(tx Tx) error {
 		if _, err := tx.Exec(
-			"insert into users values(?, ?, ?, ?, ?, ?, ?, ?)",
+			"insert into users values (?, ?, ?, ?, ?, ?, ?, ?)",
 			user.ID,
 			user.ScreenName,
 			user.Email,

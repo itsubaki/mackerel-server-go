@@ -25,6 +25,8 @@ func (s *HostInteractor) Save(host *domain.Host) (*domain.HostID, error) {
 
 	host.ID = hash[:11]
 	host.CreatedAt = time.Now().Unix()
+	host.RetiredAt = 0
+	host.IsRetired = false
 	host.Roles = make(map[string][]string)
 	host.Checks = []domain.Check{}
 	if len(host.Status) == 0 {

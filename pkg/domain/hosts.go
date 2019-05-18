@@ -69,24 +69,25 @@ type Meta struct {
 	AgentName     string                 `json:"agent-name"`
 	AgentRevision string                 `json:"agent-revision"`
 	AgentVersion  string                 `json:"agent-version"`
-	BlockDevice   map[string]interface{} `json:"block_device"`
-	CPU           []interface{}          `json:"cpu"`
-	FileSystem    map[string]interface{} `json:"filesystem"`
-	Kernel        map[string]string      `json:"kernel"`
-	Memory        map[string]string      `json:"memory"`
+	BlockDevice   map[string]interface{} `json:"block_device,omitempty"`
+	CPU           []interface{}          `json:"cpu,omitempty"`
+	FileSystem    map[string]interface{} `json:"filesystem,omitempty"`
+	Kernel        map[string]string      `json:"kernel,omitempty"`
+	Memory        map[string]string      `json:"memory,omitempty"`
 }
 
 type Interface struct {
-	Name          string   `json:"name"`
-	IpAdress      string   `json:"ipAddress"`
-	MacAddress    string   `json:"macAddress"`
-	IpV4Addresses []string `json:"ipv4Addresses"`
-	IpV6Addresses []string `json:"ipv6Addresses"`
+	Name           string   `json:"name"`
+	IpAdress       string   `json:"ipAddress"`
+	MacAddress     string   `json:"macAddress"`
+	IpV4Addresses  []string `json:"ipv4Addresses"`
+	IpV6Addresses  []string `json:"ipv6Addresses"`
+	DefaultGateway string   `json:"defaultGateway"`
 }
 
 type Check struct {
 	Name string `json:"name"`
-	Nemo string `json:"memo,omitempty"`
+	Memo string `json:"memo,omitempty"`
 }
 
 type MetricValues struct {
