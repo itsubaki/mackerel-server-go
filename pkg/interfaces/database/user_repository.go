@@ -11,11 +11,11 @@ type UserRepository struct {
 }
 
 func NewUserRepository(handler SQLHandler) *UserRepository {
-	handler.Transact(func(tx Tx) error {
+	err := handler.Transact(func(tx Tx) error {
 		if _, err := tx.Exec(
 			`
 			create table if not exists users (
-				id int not null primary key,
+				id varchar(128) not null primary key,
 				screen_name varchar(128),
 				email varchar(128),
 				authority varchar(128),
@@ -32,6 +32,10 @@ func NewUserRepository(handler SQLHandler) *UserRepository {
 		return nil
 	})
 
+	if err != nil {
+		panic(err)
+	}
+
 	return &UserRepository{
 		SQLHandler: handler,
 	}
@@ -45,6 +49,7 @@ func (repo *UserRepository) List() (*domain.Users, error) {
 		if err != nil {
 			return err
 		}
+		defer rows.Close()
 
 		for rows.Next() {
 			var user domain.User
@@ -56,7 +61,7 @@ func (repo *UserRepository) List() (*domain.Users, error) {
 				&user.Authority,
 				&user.IsInRegisterationProcess,
 				&user.IsMFAEnabled,
-				method,
+				&method,
 				&user.JoinedAt,
 			); err != nil {
 				return err
@@ -73,45 +78,69 @@ func (repo *UserRepository) List() (*domain.Users, error) {
 }
 
 func (repo *UserRepository) Exists(userID string) bool {
-	row := repo.QueryRow(`select * from users where id=? limit=1`, userID)
-	var id string
-	if err := row.Scan(&id); err != nil {
-		return false
+	rows, err := repo.Query(`select * from users where id=?`, userID)
+	if err != nil {
+		panic(err)
+	}
+	defer rows.Close()
+
+	if rows.Next() {
+		return true
 	}
 
-	return true
+	return false
+}
+
+func (repo *UserRepository) Save(user *domain.User) error {
+	return repo.Transact(func(tx Tx) error {
+		if _, err := tx.Exec(
+			"insert into users values(?, ?, ?, ?, ?, ?, ?, ?)",
+			user.ID,
+			user.ScreenName,
+			user.Email,
+			user.Authority,
+			user.IsInRegisterationProcess,
+			user.IsMFAEnabled,
+			strings.Join(user.AuthenticationMethods, ","),
+			user.JoinedAt,
+		); err != nil {
+			return err
+		}
+
+		return nil
+	})
 }
 
 func (repo *UserRepository) Delete(userID string) (*domain.User, error) {
 	var user domain.User
 
-	repo.Transact(func(tx Tx) error {
-		rows, err := tx.Query("select * from uses where id=?", userID)
-		if err != nil {
-			return err
-		}
-
-		if _, err := tx.Exec("delete from users where id=?", userID); err != nil {
-			return err
-		}
-
+	err := repo.Transact(func(tx Tx) error {
+		row := tx.QueryRow("select * from users where id=?", userID)
 		var method string
-		if err := rows.Scan(
+		if err := row.Scan(
 			&user.ID,
 			&user.ScreenName,
 			&user.Email,
 			&user.Authority,
 			&user.IsInRegisterationProcess,
 			&user.IsMFAEnabled,
-			method,
+			&method,
 			&user.JoinedAt,
 		); err != nil {
 			return err
 		}
 		user.AuthenticationMethods = strings.Split(method, ",")
 
+		if _, err := tx.Exec("delete from users where id=?", userID); err != nil {
+			return err
+		}
+
 		return nil
 	})
+
+	if err != nil {
+		return nil, err
+	}
 
 	return &user, nil
 }
