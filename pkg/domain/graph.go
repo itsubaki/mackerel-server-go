@@ -7,6 +7,12 @@ type GraphDef struct {
 	Metrics     []Metric `json:"metrics"`
 }
 
+type Metric struct {
+	Name        string `json:"name"`
+	DisplayName string `json:"displayName,omitempty"`
+	IsStacked   bool   `json:"isStacked"`
+}
+
 type GraphAnnotations struct {
 	GraphAnnotations []GraphAnnotation `json:"graphAnnotations"`
 }

@@ -100,14 +100,3 @@ type MetricValue struct {
 	Time   int64   `json:"time"`
 	Value  float64 `json:"value"`
 }
-
-type Metrics struct {
-	Metrics []Metric `json:"metrics"`
-}
-
-type Metric struct {
-	HostID      string `json:"hostId,omitempty"`
-	Name        string `json:"name"`
-	DisplayName string `json:"displayName,omitempty"`
-	IsStacked   bool   `json:"isStacked"`
-}

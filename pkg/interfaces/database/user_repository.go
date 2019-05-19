@@ -11,7 +11,7 @@ type UserRepository struct {
 }
 
 func NewUserRepository(handler SQLHandler) *UserRepository {
-	err := handler.Transact(func(tx Tx) error {
+	if err := handler.Transact(func(tx Tx) error {
 		if _, err := tx.Exec(
 			`
 			create table if not exists users (
@@ -30,9 +30,7 @@ func NewUserRepository(handler SQLHandler) *UserRepository {
 		}
 
 		return nil
-	})
-
-	if err != nil {
+	}); err != nil {
 		panic(err)
 	}
 
@@ -44,7 +42,7 @@ func NewUserRepository(handler SQLHandler) *UserRepository {
 func (repo *UserRepository) List() (*domain.Users, error) {
 	var users []domain.User
 
-	repo.Transact(func(tx Tx) error {
+	if err := repo.Transact(func(tx Tx) error {
 		rows, err := tx.Query("select * from users")
 		if err != nil {
 			return err
@@ -72,13 +70,15 @@ func (repo *UserRepository) List() (*domain.Users, error) {
 		}
 
 		return nil
-	})
+	}); err != nil {
+		return nil, err
+	}
 
 	return &domain.Users{Users: users}, nil
 }
 
 func (repo *UserRepository) Exists(userID string) bool {
-	rows, err := repo.Query("select * from users where id=? limit=1", userID)
+	rows, err := repo.Query("select * from users where id=? limit 1", userID)
 	if err != nil {
 		panic(err)
 	}
@@ -114,7 +114,7 @@ func (repo *UserRepository) Save(user *domain.User) error {
 func (repo *UserRepository) Delete(userID string) (*domain.User, error) {
 	var user domain.User
 
-	err := repo.Transact(func(tx Tx) error {
+	if err := repo.Transact(func(tx Tx) error {
 		row := tx.QueryRow("select * from users where id=?", userID)
 		var method string
 		if err := row.Scan(
@@ -136,9 +136,7 @@ func (repo *UserRepository) Delete(userID string) (*domain.User, error) {
 		}
 
 		return nil
-	})
-
-	if err != nil {
+	}); err != nil {
 		return nil, err
 	}
 
