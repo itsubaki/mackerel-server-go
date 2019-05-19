@@ -63,7 +63,13 @@ func NewHostRepository(handler SQLHandler) *HostRepository {
 	}
 }
 
-// select * from hosts
+// mysql> explain select * from hosts;
+// +----+-------------+-------+------------+------+---------------+------+---------+------+------+----------+-------+
+// | id | select_type | table | partitions | type | possible_keys | key  | key_len | ref  | rows | filtered | Extra |
+// +----+-------------+-------+------------+------+---------------+------+---------+------+------+----------+-------+
+// |  1 | SIMPLE      | hosts | NULL       | ALL  | NULL          | NULL | NULL    | NULL |    4 |   100.00 | NULL  |
+// +----+-------------+-------+------------+------+---------------+------+---------+------+------+----------+-------+
+// 1 row in set, 1 warning (0.01 sec)
 func (repo *HostRepository) List() (*domain.Hosts, error) {
 	var hosts []domain.Host
 
@@ -213,7 +219,13 @@ func (repo *HostRepository) Save(host *domain.Host) (*domain.HostID, error) {
 	return &domain.HostID{ID: host.ID}, nil
 }
 
-// select * from hosts where id=${hostID}
+// mysql> explain select * from hosts where id='de3d16e34dc';
+// +----+-------------+-------+------------+-------+---------------+---------+---------+-------+------+----------+-------+
+// | id | select_type | table | partitions | type  | possible_keys | key     | key_len | ref   | rows | filtered | Extra |
+// +----+-------------+-------+------------+-------+---------------+---------+---------+-------+------+----------+-------+
+// |  1 | SIMPLE      | hosts | NULL       | const | PRIMARY       | PRIMARY | 66      | const |    1 |   100.00 | NULL  |
+// +----+-------------+-------+------------+-------+---------------+---------+---------+-------+------+----------+-------+
+// 1 row in set, 1 warning (0.01 sec)
 func (repo *HostRepository) Host(hostID string) (*domain.Host, error) {
 	var host domain.Host
 
@@ -268,9 +280,15 @@ func (repo *HostRepository) Host(hostID string) (*domain.Host, error) {
 	return &host, nil
 }
 
-// select * from hosts where id=${hostID} limit=1
+// mysql> explain select * from hosts where id='de3d16e34dc' limit 1;
+// +----+-------------+-------+------------+-------+---------------+---------+---------+-------+------+----------+-------+
+// | id | select_type | table | partitions | type  | possible_keys | key     | key_len | ref   | rows | filtered | Extra |
+// +----+-------------+-------+------------+-------+---------------+---------+---------+-------+------+----------+-------+
+// |  1 | SIMPLE      | hosts | NULL       | const | PRIMARY       | PRIMARY | 66      | const |    1 |   100.00 | NULL  |
+// +----+-------------+-------+------------+-------+---------------+---------+---------+-------+------+----------+-------+
+// 1 row in set, 1 warning (0.00 sec)
 func (repo *HostRepository) Exists(hostID string) bool {
-	rows, err := repo.Query("select * from hosts where id=?", hostID)
+	rows, err := repo.Query("select * from hosts where id=? limit 1", hostID)
 	if err != nil {
 		panic(err)
 	}
@@ -352,12 +370,12 @@ func (repo *HostRepository) Retire(hostID string, retire *domain.HostRetire) (*d
 	return &domain.Success{Success: true}, nil
 }
 
-// select * from host_metrics where host_id=${hostID} and name=${name} limit=1
+// select * from host_metric_values where host_id=${hostID} and name=${name} limit=1
 func (repo *HostRepository) ExistsMetric(hostID, name string) bool {
 	return false
 }
 
-// select distinct name from host_metrics where host_id=${hostID}
+// select distinct name from host_metric_values where host_id=${hostID}
 func (repo *HostRepository) MetricNames(hostID string) (*domain.MetricNames, error) {
 	return &domain.MetricNames{}, nil
 }
