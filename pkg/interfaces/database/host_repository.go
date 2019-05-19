@@ -2,7 +2,8 @@ package database
 
 import (
 	"encoding/json"
-	"fmt"
+	"strings"
+	"time"
 
 	"github.com/itsubaki/mackerel-api/pkg/domain"
 )
@@ -30,6 +31,20 @@ func NewHostRepository(handler SQLHandler) *HostRepository {
 				interfaces text,
 				checks text,
 				meta text
+			)
+			`,
+		); err != nil {
+			return err
+		}
+
+		if _, err := tx.Exec(
+			`
+			create table if not exists host_metric_values (
+				host_id varchar(16) not null,
+				name varchar(128) not null,
+				time bigint not null,
+				value double not null,
+				primary key(host_id,name,time)
 			)
 			`,
 		); err != nil {
@@ -255,21 +270,85 @@ func (repo *HostRepository) Host(hostID string) (*domain.Host, error) {
 
 // select * from hosts where id=${hostID} limit=1
 func (repo *HostRepository) Exists(hostID string) bool {
-	return true
+	rows, err := repo.Query("select * from hosts where id=?", hostID)
+	if err != nil {
+		panic(err)
+	}
+	defer rows.Close()
+
+	if rows.Next() {
+		return true
+	}
+
+	return false
 }
 
 // update hosts set status=${status} where id=${hostID}
 func (repo *HostRepository) Status(hostID, status string) (*domain.Success, error) {
-	return &domain.Success{Success: false}, fmt.Errorf("host not found")
+	if err := repo.Transact(func(tx Tx) error {
+		if _, err := tx.Exec("update hosts set status=? where id=?", status, hostID); err != nil {
+			return err
+		}
+
+		return nil
+	}); err != nil {
+		return &domain.Success{Success: false}, err
+	}
+
+	return &domain.Success{Success: true}, nil
 }
 
 // update hosts set roles=${roles} where id=${hostID}
 func (repo *HostRepository) SaveRoleFullNames(hostID string, names *domain.RoleFullNames) (*domain.Success, error) {
-	return nil, fmt.Errorf("host not found")
+	roleFullnames, err := json.Marshal(names.Names)
+	if err != nil {
+		return &domain.Success{Success: false}, err
+	}
+
+	roles := make(map[string][]string)
+	for i := range names.Names {
+		svc := strings.Split(names.Names[i], ":")
+		if _, ok := roles[svc[0]]; !ok {
+			roles[svc[0]] = []string{}
+		}
+		roles[svc[0]] = append(roles[svc[0]], svc[1])
+	}
+
+	broles, err := json.Marshal(roles)
+	if err != nil {
+		return &domain.Success{Success: false}, err
+	}
+
+	if err := repo.Transact(func(tx Tx) error {
+		if _, err := tx.Exec(
+			"update hosts set role_fullnames=?, roles=? where id=?",
+			string(roleFullnames),
+			string(broles),
+			hostID,
+		); err != nil {
+			return err
+		}
+
+		return nil
+	}); err != nil {
+		return &domain.Success{Success: false}, err
+	}
+
+	return &domain.Success{Success: true}, nil
 }
 
 // update hosts set is_retired=true, retired_at=time.Now().Unix() where id=${hostID}
 func (repo *HostRepository) Retire(hostID string, retire *domain.HostRetire) (*domain.Success, error) {
+	if err := repo.Transact(func(tx Tx) error {
+		if _, err := tx.Exec("update hosts set is_retired=?, retired_at=? where id=?", true, time.Now().Unix(), hostID); err != nil {
+			return err
+		}
+
+		return nil
+	}); err != nil {
+		return &domain.Success{Success: false}, err
+	}
+
 	return &domain.Success{Success: true}, nil
 }
 
@@ -295,7 +374,25 @@ func (repo *HostRepository) MetricValuesLatest(hostID, name []string) (*domain.T
 
 // insert into host_metric_values values(${host_id}, ${name}, ${time}, ${value})
 func (repo *HostRepository) SaveMetricValues(values []domain.MetricValue) (*domain.Success, error) {
-	return nil, nil
+	if err := repo.Transact(func(tx Tx) error {
+		for i := range values {
+			if _, err := tx.Exec(
+				"insert into host_metric_values values(?, ?, ?, ?)",
+				values[i].HostID,
+				values[i].Name,
+				values[i].Time,
+				values[i].Value,
+			); err != nil {
+				return err
+			}
+		}
+
+		return nil
+	}); err != nil {
+		return &domain.Success{Success: false}, err
+	}
+
+	return &domain.Success{Success: true}, nil
 }
 
 // select * from host_metadata where host_id=${hostID} and namespace=${namespace} limit=1

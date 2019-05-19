@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/itsubaki/mackerel-api/pkg/usecase"
@@ -11,6 +12,8 @@ func doResponse(c Context, out interface{}, err error) {
 		c.JSON(http.StatusOK, out)
 		return
 	}
+
+	log.Println(err)
 
 	switch err.(type) {
 	case
