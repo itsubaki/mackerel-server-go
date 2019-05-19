@@ -142,7 +142,35 @@ func (repo *HostRepository) Save(host *domain.Host) (*domain.HostID, error) {
 		}
 
 		if _, err := tx.Exec(
-			"insert into hosts values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+			`
+			insert into hosts (
+				id,
+				name,
+				status,
+				memo,
+				display_name,
+				custom_identifier,
+				created_at,
+				retired_at,
+				is_retired,
+				roles,
+				role_fullnames,
+				interfaces,
+				checks,
+				meta
+			)
+			values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+			on duplicate key update
+				name = values(name),
+				memo = values(memo),
+				display_name = values(display_name),
+				custom_identifier = values(custom_identifier),
+				roles = values(roles),
+				role_fullnames = values(role_fullnames),
+				interfaces = values(interfaces),
+				checks = values(checks),
+				meta = values(meta)
+			`,
 			host.ID,
 			host.Name,
 			host.Status,
