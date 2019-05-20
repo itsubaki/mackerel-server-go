@@ -18,8 +18,8 @@ func NewHostRepository(handler SQLHandler) *HostRepository {
 			`
 			create table if not exists hosts (
 				id varchar(16) not null primary key,
-				name varchar(128),
-				status varchar(16),
+				name varchar(128) not null,
+				status varchar(16) not null,
 				memo varchar(128),
 				display_name varchar(128),
 				custom_identifier varchar(128),
@@ -146,6 +146,15 @@ func (repo *HostRepository) List() (*domain.Hosts, error) {
 
 // insert into hosts values(${name}, ${meta}, ${interfaces}, ${checks}, ${display_name}, ${custom_identifier}, ${created_at}, ${id}, ${status}, ${memo}, ${roles}, ${is_retired}, ${retired_at} )
 func (repo *HostRepository) Save(host *domain.Host) (*domain.HostID, error) {
+	host.Roles = make(map[string][]string)
+	for i := range host.RoleFullNames {
+		svc := strings.Split(host.RoleFullNames[i], ":")
+		if _, ok := host.Roles[svc[0]]; !ok {
+			host.Roles[svc[0]] = make([]string, 0)
+		}
+		host.Roles[svc[0]] = append(host.Roles[svc[0]], svc[1])
+	}
+
 	if err := repo.Transact(func(tx Tx) error {
 		roles, err := json.Marshal(host.Roles)
 		if err != nil {
