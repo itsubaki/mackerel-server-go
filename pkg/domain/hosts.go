@@ -78,7 +78,7 @@ type Meta struct {
 
 type Interface struct {
 	Name           string   `json:"name"`
-	IpAdress       string   `json:"ipAddress"`
+	IpAddress      string   `json:"ipAddress"`
 	MacAddress     string   `json:"macAddress"`
 	IpV4Addresses  []string `json:"ipv4Addresses"`
 	IpV6Addresses  []string `json:"ipv6Addresses"`

@@ -10,7 +10,6 @@ import (
 type HostRepository struct {
 	Hosts                  *domain.Hosts
 	HostMetadata           []domain.HostMetadata
-	HostMetrics            *domain.Metrics
 	HostMetricValues       *domain.MetricValues
 	HostMetricValuesLatest map[string]map[string]float64
 }
@@ -19,7 +18,6 @@ func NewHostRepository() *HostRepository {
 	return &HostRepository{
 		Hosts:                  &domain.Hosts{Hosts: []domain.Host{}},
 		HostMetadata:           []domain.HostMetadata{},
-		HostMetrics:            &domain.Metrics{},
 		HostMetricValues:       &domain.MetricValues{},
 		HostMetricValuesLatest: make(map[string]map[string]float64),
 	}
@@ -105,8 +103,8 @@ func (repo *HostRepository) Retire(hostID string, retire *domain.HostRetire) (*d
 }
 
 func (repo *HostRepository) ExistsMetric(hostID, name string) bool {
-	for i := range repo.HostMetrics.Metrics {
-		metric := repo.HostMetrics.Metrics[i]
+	for i := range repo.HostMetricValues.Metrics {
+		metric := repo.HostMetricValues.Metrics[i]
 		if metric.HostID == hostID && metric.Name == name {
 			return true
 		}
@@ -116,11 +114,17 @@ func (repo *HostRepository) ExistsMetric(hostID, name string) bool {
 }
 
 func (repo *HostRepository) MetricNames(hostID string) (*domain.MetricNames, error) {
-	names := []string{}
-	for i := range repo.HostMetrics.Metrics {
-		if repo.HostMetrics.Metrics[i].HostID == hostID {
-			names = append(names, repo.HostMetrics.Metrics[i].Name)
+	nmap := make(map[string]bool)
+	for i := range repo.HostMetricValues.Metrics {
+		metric := repo.HostMetricValues.Metrics[i]
+		if metric.HostID == hostID {
+			nmap[metric.Name] = true
 		}
+	}
+
+	names := []string{}
+	for k := range nmap {
+		names = append(names, k)
 	}
 
 	return &domain.MetricNames{Names: names}, nil
@@ -174,13 +178,6 @@ func (repo *HostRepository) MetricValuesLatest(hostID, name []string) (*domain.T
 
 func (repo *HostRepository) SaveMetricValues(values []domain.MetricValue) (*domain.Success, error) {
 	repo.HostMetricValues.Metrics = append(repo.HostMetricValues.Metrics, values...)
-
-	for i := range values {
-		repo.HostMetrics.Metrics = append(repo.HostMetrics.Metrics, domain.Metric{
-			HostID: values[i].HostID,
-			Name:   values[i].Name,
-		})
-	}
 
 	for i := range values {
 		if _, ok := repo.HostMetricValuesLatest[values[i].HostID]; !ok {
