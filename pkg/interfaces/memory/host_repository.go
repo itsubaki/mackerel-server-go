@@ -90,7 +90,7 @@ func (repo *HostRepository) SaveRoleFullNames(hostID string, names *domain.RoleF
 }
 
 func (repo *HostRepository) Retire(hostID string, retire *domain.HostRetire) (*domain.Success, error) {
-	hosts := []domain.Host{}
+	hosts := make([]domain.Host, 0)
 	for i := range repo.Hosts.Hosts {
 		if repo.Hosts.Hosts[i].ID == hostID {
 			continue
@@ -131,7 +131,7 @@ func (repo *HostRepository) MetricNames(hostID string) (*domain.MetricNames, err
 }
 
 func (repo *HostRepository) MetricValues(hostID, name string, from, to int64) (*domain.MetricValues, error) {
-	metrics := []domain.MetricValue{}
+	metrics := make([]domain.MetricValue, 0)
 
 	for i := range repo.HostMetricValues.Metrics {
 		if repo.HostMetricValues.Metrics[i].HostID != hostID {
@@ -201,7 +201,7 @@ func (repo *HostRepository) ExistsMetadata(hostID, namespace string) bool {
 }
 
 func (repo *HostRepository) MetadataList(hostID string) (*domain.HostMetadataList, error) {
-	names := []domain.Namespace{}
+	names := make([]domain.Namespace, 0)
 	for i := range repo.HostMetadata {
 		names = append(names, domain.Namespace{Namespace: repo.HostMetadata[i].Namespace})
 	}
@@ -238,7 +238,7 @@ func (repo *HostRepository) SaveMetadata(hostID, namespace string, metadata inte
 }
 
 func (repo *HostRepository) DeleteMetadata(hostID, namespace string) (*domain.Success, error) {
-	list := []domain.HostMetadata{}
+	list := make([]domain.HostMetadata, 0)
 	for i := range repo.HostMetadata {
 		if repo.HostMetadata[i].HostID == hostID && repo.HostMetadata[i].Namespace == namespace {
 			continue

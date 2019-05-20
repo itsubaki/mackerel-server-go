@@ -47,7 +47,7 @@ func NewUserRepository(handler SQLHandler) *UserRepository {
 // +----+-------------+-------+------------+------+---------------+------+---------+------+------+----------+-------+
 // 1 row in set, 1 warning (0.01 sec)
 func (repo *UserRepository) List() (*domain.Users, error) {
-	var users []domain.User
+	users := make([]domain.User, 0)
 
 	if err := repo.Transact(func(tx Tx) error {
 		rows, err := tx.Query("select * from users")

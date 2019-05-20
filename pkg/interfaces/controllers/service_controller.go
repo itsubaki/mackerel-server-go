@@ -24,8 +24,8 @@ func NewServiceController(handler database.SQLHandler) *ServiceController {
 
 	return &ServiceController{
 		Interactor: &usecase.ServiceInteractor{
-			NameRule:          regexp.MustCompile(`^[a-zA-Z0-9]{1,1}[a-zA-Z0-9_-]{1,62}`),
-			RoleNameRule:      regexp.MustCompile(`^[a-zA-Z0-9]{1,1}[a-zA-Z0-9_-]{1,62}`),
+			NameRule:          regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9_-]{1,62}`),
+			RoleNameRule:      regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9_-]{1,62}`),
 			ServiceRepository: repo,
 		},
 	}

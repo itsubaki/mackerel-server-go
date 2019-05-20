@@ -27,9 +27,9 @@ func (repo *UserRepository) Exists(userID string) bool {
 }
 
 func (repo *UserRepository) Delete(userID string) (*domain.User, error) {
-	var user domain.User
+	users := make([]domain.User, 0)
 
-	users := []domain.User{}
+	var user domain.User
 	for i := range repo.Users.Users {
 		if repo.Users.Users[i].ID == userID {
 			user = repo.Users.Users[i]

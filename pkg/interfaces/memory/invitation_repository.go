@@ -39,7 +39,7 @@ func (repo *InvitationRepository) Save(inv *domain.Invitation) (*domain.Invitati
 }
 
 func (repo *InvitationRepository) Revoke(email string) (*domain.Success, error) {
-	list := []domain.Invitation{}
+	list := make([]domain.Invitation, 0)
 	for i := range repo.Invitations.Invitations {
 		if repo.Invitations.Invitations[i].EMail == email {
 			continue

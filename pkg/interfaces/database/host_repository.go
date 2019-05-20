@@ -82,7 +82,7 @@ func NewHostRepository(handler SQLHandler) *HostRepository {
 // +----+-------------+-------+------------+------+---------------+------+---------+------+------+----------+-------+
 // 1 row in set, 1 warning (0.01 sec)
 func (repo *HostRepository) List() (*domain.Hosts, error) {
-	var hosts []domain.Host
+	hosts := make([]domain.Host, 0)
 
 	if err := repo.Transact(func(tx Tx) error {
 		rows, err := tx.Query("select * from hosts")
@@ -407,7 +407,7 @@ func (repo *HostRepository) ExistsMetric(hostID, name string) bool {
 // +----+-------------+--------------------+------------+------+---------------+---------+---------+-------+------+----------+-------------+
 // 1 row in set, 1 warning (0.01 sec)
 func (repo *HostRepository) MetricNames(hostID string) (*domain.MetricNames, error) {
-	names := []string{}
+	names := make([]string, 0)
 	if err := repo.Transact(func(tx Tx) error {
 		rows, err := tx.Query("select distinct name from host_metric_values where host_id=?", hostID)
 		if err != nil {
@@ -438,7 +438,7 @@ func (repo *HostRepository) MetricNames(hostID string) (*domain.MetricNames, err
 // +----+-------------+--------------------+------------+-------+---------------+---------+---------+------+------+----------+-------------+
 // 1 row in set, 1 warning (0.01 sec)
 func (repo *HostRepository) MetricValues(hostID, name string, from, to int64) (*domain.MetricValues, error) {
-	values := []domain.MetricValue{}
+	values := make([]domain.MetricValue, 0)
 	if err := repo.Transact(func(tx Tx) error {
 		rows, err := tx.Query("select time, value from host_metric_values where host_id=? and name=? and ? < time and time < ?", hostID, name, from, to)
 		if err != nil {

@@ -61,7 +61,7 @@ func (repo *ServiceRepository) Save(s *domain.Service) error {
 }
 
 func (repo *ServiceRepository) Delete(serviceName string) error {
-	services := []domain.Service{}
+	services := make([]domain.Service, 0)
 	for i := range repo.Services.Services {
 		if repo.Services.Services[i].Name != serviceName {
 			services = append(services, repo.Services.Services[i])
@@ -69,7 +69,7 @@ func (repo *ServiceRepository) Delete(serviceName string) error {
 	}
 	repo.Services.Services = services
 
-	roles := []domain.Role{}
+	roles := make([]domain.Role, 0)
 	for i := range repo.Roles.Roles {
 		if repo.Roles.Roles[i].ServiceName != serviceName {
 			roles = append(roles, repo.Roles.Roles[i])
@@ -91,7 +91,7 @@ func (repo *ServiceRepository) ExistsMetadata(serviceName, namespace string) boo
 }
 
 func (repo *ServiceRepository) MetadataList(serviceName string) (*domain.ServiceMetadataList, error) {
-	list := []domain.ServiceMetadata{}
+	list := make([]domain.ServiceMetadata, 0)
 	for i := range repo.ServiceMetadata.Metadata {
 		if repo.ServiceMetadata.Metadata[i].ServiceName == serviceName {
 			list = append(list, repo.ServiceMetadata.Metadata[i])
@@ -131,7 +131,7 @@ func (repo *ServiceRepository) SaveMetadata(serviceName, namespace string, metad
 }
 
 func (repo *ServiceRepository) DeleteMetadata(serviceName, namespace string) (*domain.Success, error) {
-	list := []domain.ServiceMetadata{}
+	list := make([]domain.ServiceMetadata, 0)
 	for i := range repo.ServiceMetadata.Metadata {
 		if repo.ServiceMetadata.Metadata[i].ServiceName == serviceName && repo.ServiceMetadata.Metadata[i].Namespace == namespace {
 			continue
@@ -208,7 +208,7 @@ func (repo *ServiceRepository) ExistsRoleMetadata(serviceName, roleName, namespa
 }
 
 func (repo *ServiceRepository) RoleMetadataList(serviceName, roleName string) (*domain.RoleMetadataList, error) {
-	list := []domain.RoleMetadata{}
+	list := make([]domain.RoleMetadata, 0)
 	for i := range repo.RoleMetadataL.Metadata {
 		if repo.RoleMetadataL.Metadata[i].ServiceName == serviceName && repo.RoleMetadataL.Metadata[i].RoleName == roleName {
 			list = append(list, repo.RoleMetadataL.Metadata[i])
@@ -253,7 +253,7 @@ func (repo *ServiceRepository) SaveRoleMetadata(serviceName, roleName, namespace
 }
 
 func (repo *ServiceRepository) DeleteRoleMetadata(serviceName, roleName, namespace string) (*domain.Success, error) {
-	list := []domain.RoleMetadata{}
+	list := make([]domain.RoleMetadata, 0)
 	for i := range repo.RoleMetadataL.Metadata {
 		if repo.RoleMetadataL.Metadata[i].ServiceName == serviceName &&
 			repo.RoleMetadataL.Metadata[i].RoleName == roleName &&
@@ -284,7 +284,7 @@ func (repo *ServiceRepository) MetricNames(serviceName string) (*domain.ServiceM
 }
 
 func (repo *ServiceRepository) MetricValues(serviceName, metricName string, from, to int64) (*domain.ServiceMetricValues, error) {
-	metrics := []domain.ServiceMetricValue{}
+	metrics := make([]domain.ServiceMetricValue, 0)
 
 	for i := range repo.ServiceMetricValues.Metrics {
 		if repo.ServiceMetricValues.Metrics[i].ServiceName != serviceName {
