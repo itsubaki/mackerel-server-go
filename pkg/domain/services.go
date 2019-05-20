@@ -25,7 +25,7 @@ type Roles struct {
 }
 
 func (r Roles) Array() []string {
-	roles := []string{}
+	roles := make([]string, 0)
 	for i := range r.Roles {
 		roles = append(roles, r.Roles[i].Name)
 	}
@@ -71,7 +71,7 @@ func (v ServiceMetricValues) MetricNames() *ServiceMetricValueNames {
 		nmap[v.Metrics[i].Name] = true
 	}
 
-	names := []string{}
+	names := make([]string, 0)
 	for k := range nmap {
 		names = append(names, k)
 	}
