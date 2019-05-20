@@ -475,11 +475,29 @@ func (repo *HostRepository) MetricValues(hostID, name string, from, to int64) (*
 // |  1 | SIMPLE      | host_metric_values_latest | NULL       | range | PRIMARY       | PRIMARY | 580     | NULL |    2 |   100.00 | Using where |
 // +----+-------------+---------------------------+------------+-------+---------------+---------+---------+------+------+----------+-------------+
 // 1 row in set, 1 warning (0.01 sec)
+// mysql> explain select * from host_metric_values where host_id='84a14dbbdc7' and (name='loadavg5' or name='loadavg15') and time in (select max(time) from host_metric_values group by host_id, name);
+// +----+-------------+--------------------+------------+-------+---------------+---------+---------+------+------+----------+--------------------------+
+// | id | select_type | table              | partitions | type  | possible_keys | key     | key_len | ref  | rows | filtered | Extra                    |
+// +----+-------------+--------------------+------------+-------+---------------+---------+---------+------+------+----------+--------------------------+
+// |  1 | PRIMARY     | host_metric_values | NULL       | range | PRIMARY       | PRIMARY | 580     | NULL |   62 |   100.00 | Using where              |
+// |  2 | SUBQUERY    | host_metric_values | NULL       | range | PRIMARY       | PRIMARY | 580     | NULL |  122 |   100.00 | Using index for group-by |
+// +----+-------------+--------------------+------------+-------+---------------+---------+---------+------+------+----------+--------------------------+
+// 2 rows in set, 1 warning (0.01 sec)
+//
+// mysql> explain select host_id, name, value from host_metric_values where time in (select max(time) from host_metric_values group by host_id, name);
+// +----+-------------+--------------------+------------+-------+---------------+---------+---------+------+------+----------+--------------------------+
+// | id | select_type | table              | partitions | type  | possible_keys | key     | key_len | ref  | rows | filtered | Extra                    |
+// +----+-------------+--------------------+------------+-------+---------------+---------+---------+------+------+----------+--------------------------+
+// |  1 | PRIMARY     | host_metric_values | NULL       | ALL   | NULL          | NULL    | NULL    | NULL | 3078 |   100.00 | Using where              |
+// |  2 | SUBQUERY    | host_metric_values | NULL       | range | PRIMARY       | PRIMARY | 580     | NULL |  116 |   100.00 | Using index for group-by |
+// +----+-------------+--------------------+------------+-------+---------------+---------+---------+------+------+----------+--------------------------+
+// 2 rows in set, 1 warning (0.00 sec)
 func (repo *HostRepository) MetricValuesLatest(hostID, name []string) (*domain.TSDBLatest, error) {
 	latest := make(map[string]map[string]float64)
 	if err := repo.Transact(func(tx Tx) error {
+		rows, err := tx.Query("select * from host_metric_values_latest")
 		// TODO multiple ?
-		rows, err := tx.Query("select * from host_metric_values_latest where host_id in(?) and name in(?)", hostID[0], name[0])
+		//	rows, err := tx.Query("select * from host_metric_values_latest where host_id in(?) and name in(?)", hostID[0], name[0])
 		if err != nil {
 			return err
 		}
