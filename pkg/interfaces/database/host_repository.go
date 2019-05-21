@@ -44,7 +44,7 @@ func NewHostRepository(handler SQLHandler) *HostRepository {
 				name varchar(128) not null,
 				time bigint not null,
 				value double not null,
-				primary key(host_id,name,time)
+				primary key(host_id, name, time)
 			)
 			`,
 		); err != nil {
@@ -57,7 +57,7 @@ func NewHostRepository(handler SQLHandler) *HostRepository {
 				host_id varchar(16) not null,
 				name varchar(128) not null,
 				value double not null,
-				primary key(host_id,name)
+				primary key(host_id, name)
 			)
 			`,
 		); err != nil {
@@ -220,6 +220,46 @@ func (repo *HostRepository) Save(host *domain.Host) (*domain.HostID, error) {
 			return err
 		}
 
+		for svc, role := range host.Roles {
+			if _, err := tx.Exec(
+				`
+				insert into services (
+					name
+				)
+				select ?
+				where not exists (
+					select 1 from services where name=?
+				)
+				`,
+				svc,
+				svc,
+			); err != nil {
+				return err
+			}
+
+			for i := range role {
+				if _, err := tx.Exec(
+					`
+					insert into roles (
+						service_name,
+						name
+					)
+					select ?, ?
+					where not exists (
+						select 1 from roles where service_name=? and name=?
+					)
+					`,
+					svc,
+					role[i],
+					svc,
+					role[i],
+				); err != nil {
+					return err
+				}
+
+			}
+		}
+
 		return nil
 	}); err != nil {
 		return nil, err
@@ -326,11 +366,6 @@ func (repo *HostRepository) Status(hostID, status string) (*domain.Success, erro
 
 // update hosts set roles=${roles} where id=${hostID}
 func (repo *HostRepository) SaveRoleFullNames(hostID string, names *domain.RoleFullNames) (*domain.Success, error) {
-	roleFullnames, err := json.Marshal(names.Names)
-	if err != nil {
-		return &domain.Success{Success: false}, err
-	}
-
 	roles := make(map[string][]string)
 	for i := range names.Names {
 		svc := strings.Split(names.Names[i], ":")
@@ -345,6 +380,11 @@ func (repo *HostRepository) SaveRoleFullNames(hostID string, names *domain.RoleF
 		return &domain.Success{Success: false}, err
 	}
 
+	roleFullnames, err := json.Marshal(names.Names)
+	if err != nil {
+		return &domain.Success{Success: false}, err
+	}
+
 	if err := repo.Transact(func(tx Tx) error {
 		if _, err := tx.Exec(
 			"update hosts set role_fullnames=?, roles=? where id=?",
@@ -353,6 +393,46 @@ func (repo *HostRepository) SaveRoleFullNames(hostID string, names *domain.RoleF
 			hostID,
 		); err != nil {
 			return err
+		}
+
+		for svc, role := range roles {
+			if _, err := tx.Exec(
+				`
+				insert into services (
+					name
+				)
+				select ?
+				where not exists (
+					select 1 from services where name=?
+				)
+				`,
+				svc,
+				svc,
+			); err != nil {
+				return err
+			}
+
+			for i := range role {
+				if _, err := tx.Exec(
+					`
+					insert into roles (
+						service_name,
+						name
+					)
+					select ?, ?
+					where not exists (
+						select 1 from roles where service_name=? and name=?
+					)
+					`,
+					svc,
+					role[i],
+					svc,
+					role[i],
+				); err != nil {
+					return err
+				}
+
+			}
 		}
 
 		return nil
@@ -413,6 +493,7 @@ func (repo *HostRepository) MetricNames(hostID string) (*domain.MetricNames, err
 		if err != nil {
 			return err
 		}
+		defer rows.Close()
 
 		for rows.Next() {
 			var name string
@@ -444,6 +525,7 @@ func (repo *HostRepository) MetricValues(hostID, name string, from, to int64) (*
 		if err != nil {
 			return err
 		}
+		defer rows.Close()
 
 		for rows.Next() {
 			var time int64
@@ -501,6 +583,7 @@ func (repo *HostRepository) MetricValuesLatest(hostID, name []string) (*domain.T
 		if err != nil {
 			return err
 		}
+		defer rows.Close()
 
 		for rows.Next() {
 			var hostID, name string

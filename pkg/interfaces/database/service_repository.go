@@ -1,7 +1,6 @@
 package database
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"github.com/itsubaki/mackerel-api/pkg/domain"
@@ -17,8 +16,34 @@ func NewServiceRepository(handler SQLHandler) *ServiceRepository {
 			`
 			create table if not exists services (
 				name varchar(128) not null primary key,
-				memo varchar(128),
-				roles text
+				memo varchar(128) not null default ''
+			)
+			`,
+		); err != nil {
+			return err
+		}
+
+		if _, err := tx.Exec(
+			`
+			create table if not exists roles (
+				service_name varchar(128) not null,
+				name varchar(128) not null,
+				memo varchar(128) not null default '',
+				primary key(service_name, name)
+			)
+			`,
+		); err != nil {
+			return err
+		}
+
+		if _, err := tx.Exec(
+			`
+			create table if not exists service_metric_values (
+				service_name varchar(16) not null,
+				name varchar(128) not null,
+				time bigint not null,
+				value double not null,
+				primary key(service_name, name, time)
 			)
 			`,
 		); err != nil {
@@ -40,24 +65,39 @@ func (repo *ServiceRepository) List() (*domain.Services, error) {
 	services := make([]domain.Service, 0)
 
 	if err := repo.Transact(func(tx Tx) error {
-		rows, err := tx.Query("select * from services")
+		rows, err := tx.Query("select service_name, name from roles")
 		if err != nil {
 			return err
 		}
 		defer rows.Close()
 
+		roles := make(map[string][]string)
 		for rows.Next() {
-			var service domain.Service
-			var roles string
+			var service, role string
 			if err := rows.Scan(
-				&service.Name,
-				&service.Memo,
-				&roles,
+				&service,
+				&role,
 			); err != nil {
 				return err
 			}
 
-			if err := json.Unmarshal([]byte(roles), &service.Roles); err != nil {
+			if _, ok := roles[service]; !ok {
+				roles[service] = make([]string, 0)
+			}
+
+			roles[service] = append(roles[service], role)
+		}
+
+		for svc := range roles {
+			service := domain.Service{
+				Name:  svc,
+				Roles: roles[svc],
+			}
+
+			row := tx.QueryRow("select memo from services where name=?", svc)
+			if err := row.Scan(
+				&service.Memo,
+			); err != nil {
 				return err
 			}
 
@@ -74,19 +114,42 @@ func (repo *ServiceRepository) List() (*domain.Services, error) {
 
 // insert into services values()
 func (repo *ServiceRepository) Save(s *domain.Service) error {
-	roles, err := json.Marshal(s.Roles)
-	if err != nil {
-		return err
-	}
-
 	return repo.Transact(func(tx Tx) error {
 		if _, err := tx.Exec(
-			"insert into services values (?, ?, ?)",
+			`
+			insert into services (
+				name,
+				memo
+			)
+			values (?, ?)
+			on duplicate key update
+				name = values(memo)
+			`,
 			s.Name,
 			s.Memo,
-			roles,
 		); err != nil {
 			return err
+		}
+
+		for i := range s.Roles {
+			if _, err := tx.Exec(
+				`
+				insert into roles (
+					service_name,
+					name
+				)
+				select ? ,?
+				where not exists (
+					select 1 from roles where service_name=? and name=?
+				)
+				`,
+				s.Name,
+				s.Roles[i],
+				s.Name,
+				s.Roles[i],
+			); err != nil {
+				return err
+			}
 		}
 
 		return nil
@@ -95,21 +158,31 @@ func (repo *ServiceRepository) Save(s *domain.Service) error {
 
 // select * from services where service_name=${serviceName}
 func (repo *ServiceRepository) Service(serviceName string) (*domain.Service, error) {
-	var service domain.Service
+	service := domain.Service{
+		Roles: []string{},
+	}
 
 	if err := repo.Transact(func(tx Tx) error {
 		row := tx.QueryRow("select * from services where name=?", serviceName)
-		var roles string
 		if err := row.Scan(
 			&service.Name,
 			&service.Memo,
-			&roles,
 		); err != nil {
 			return err
 		}
 
-		if err := json.Unmarshal([]byte(roles), &service.Roles); err != nil {
+		rows, err := tx.Query("select name from roles where service_name=?", serviceName)
+		if err != nil {
 			return err
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			var name string
+			if err := rows.Scan(&name); err != nil {
+				return err
+			}
+			service.Roles = append(service.Roles, name)
 		}
 
 		return nil
