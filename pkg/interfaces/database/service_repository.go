@@ -230,26 +230,108 @@ func (repo *ServiceRepository) Delete(serviceName string) error {
 
 // select * from service_roles where service_name=${serviceName}
 func (repo *ServiceRepository) RoleList(serviceName string) (*domain.Roles, error) {
-	return nil, nil
+	var roles []domain.Role
+	if err := repo.Transact(func(tx Tx) error {
+		rows, err := tx.Query("select name, memo from roles where service_name=?", serviceName)
+		if err != nil {
+			return fmt.Errorf("select name, memo from roles: %v", err)
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			var role domain.Role
+			if err := rows.Scan(
+				&role.Name,
+				&role.Memo,
+			); err != nil {
+				return fmt.Errorf("scan: %v", err)
+			}
+
+			roles = append(roles, role)
+		}
+
+		return nil
+	}); err != nil {
+		return nil, fmt.Errorf("transaction: %v", err)
+	}
+
+	return &domain.Roles{Roles: roles}, nil
 }
 
 // insert into service_roles values(${serviceName}, ${roleName}, ${Memo})
 func (repo *ServiceRepository) SaveRole(serviceName string, r *domain.Role) error {
+	if err := repo.Transact(func(tx Tx) error {
+		if _, err := tx.Exec(
+			`
+			insert into roles (
+				service_name,
+				name,
+				memo
+			)
+			values (?, ?, ?)
+			on duplicate key update
+				service_name = values(service_name),
+				name = values(name),
+				memo = values(memo
+			`,
+			serviceName,
+			r.Name,
+			r.Memo,
+		); err != nil {
+			return fmt.Errorf("insert into roles: %v", err)
+		}
+
+		return nil
+	}); err != nil {
+		return fmt.Errorf("transaction: %v", err)
+	}
+
 	return nil
 }
 
 // select * from service_roles where service_name=${serviceName} and role_name=${roleName}
 func (repo *ServiceRepository) ExistsRole(serviceName, roleName string) bool {
+	rows, err := repo.Query("select * from roles where service_name=? and name=? limit 1", serviceName, roleName)
+	if err != nil {
+		panic(err)
+	}
+	defer rows.Close()
+
+	if rows.Next() {
+		return true
+	}
+
 	return false
 }
 
 // select * from service_roles where service_name=${serviceName} and role_name=${roleName}
 func (repo *ServiceRepository) Role(serviceName, roleName string) (*domain.Role, error) {
-	return nil, fmt.Errorf("role not found")
+	role := domain.Role{
+		ServiceName: serviceName,
+		Name:        roleName,
+	}
+
+	row := repo.QueryRow("select memo from roles where service_name=? and name=?", serviceName, roleName)
+	if err := row.Scan(
+		&role.Memo,
+	); err != nil {
+		return nil, fmt.Errorf("scan: %v", err)
+	}
+
+	return &role, nil
 }
 
 // delete from service_roles where service_name=${serviceName} and role_name=${roleName}
 func (repo *ServiceRepository) DeleteRole(serviceName, roleName string) error {
+	if err := repo.Transact(func(tx Tx) error {
+		if _, err := tx.Exec("delete from roles where service_name=? and name=?", serviceName, roleName); err != nil {
+			return fmt.Errorf("delete from roles: %v", err)
+		}
+		return nil
+	}); err != nil {
+		return fmt.Errorf("transaction: %v", err)
+	}
+
 	return nil
 }
 

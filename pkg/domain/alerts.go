@@ -6,7 +6,7 @@ type Reason struct {
 
 type Alerts struct {
 	Alerts []Alert `json:"alerts"`
-	NextID string  `json:"nextId"`
+	NextID string  `json:"nextId,omitempty"`
 }
 
 type Alert struct {

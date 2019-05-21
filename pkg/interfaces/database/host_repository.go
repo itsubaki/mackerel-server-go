@@ -20,7 +20,7 @@ func NewHostRepository(handler SQLHandler) *HostRepository {
 				id varchar(16) not null primary key,
 				name varchar(128) not null,
 				status varchar(16) not null,
-				memo varchar(128),
+				memo varchar(128) not null default '',
 				display_name varchar(128),
 				custom_identifier varchar(128),
 				created_at bigint,

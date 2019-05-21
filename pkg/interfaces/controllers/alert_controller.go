@@ -15,20 +15,28 @@ type AlertController struct {
 }
 
 func NewAlertController(handler database.SQLHandler) *AlertController {
+	var repo usecase.AlertRepository
+	repo = memory.NewAlertRepository()
+	if handler != nil {
+		repo = database.NewAlertRepository(handler)
+	}
+
 	return &AlertController{
 		Interactor: &usecase.AlertInteractor{
-			AlertRepository: memory.NewAlertRepository(),
+			AlertRepository: repo,
 		},
 	}
 }
 
 func (s *AlertController) List(c Context) {
+	// TODO default value
 	withClosed, err := strconv.ParseBool(c.Query("withClosed"))
 	if err != nil {
 		c.Status(http.StatusBadRequest)
 		return
 	}
 
+	// TODO default value
 	limit, err := strconv.Atoi(c.Query("limit"))
 	if err != nil {
 		c.Status(http.StatusBadRequest)
