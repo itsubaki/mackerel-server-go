@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -20,24 +21,34 @@ func (s *HostInteractor) List() (*domain.Hosts, error) {
 }
 
 func (s *HostInteractor) Save(host *domain.Host) (*domain.HostID, error) {
-	sha := sha256.Sum256([]byte(uuid.Must(uuid.NewRandom()).String()))
-	hash := hex.EncodeToString(sha[:])
-
-	host.ID = hash[:11]
-	host.CreatedAt = time.Now().Unix()
-	host.RetiredAt = 0
-	host.IsRetired = false
-	host.Checks = []domain.Check{}
-	if len(host.Status) == 0 {
-		host.Status = "working"
+	// Update
+	if len(host.ID) > 0 && !s.HostRepository.Exists(host.ID) {
+		return nil, &HostNotFound{Err{errors.New("the host that corresponds to the <hostId> can’t be located")}}
 	}
 
-	return s.HostRepository.Save(host)
-}
+	// Create
+	if len(host.ID) < 1 {
+		sha := sha256.Sum256([]byte(uuid.Must(uuid.NewRandom()).String()))
+		hash := hex.EncodeToString(sha[:])
 
-func (s *HostInteractor) Update(host *domain.Host) (*domain.HostID, error) {
-	if !s.HostRepository.Exists(host.ID) {
-		return nil, &HostNotFound{Err{errors.New("the host that corresponds to the <hostId> can’t be located")}}
+		host.ID = hash[:11]
+		host.CreatedAt = time.Now().Unix()
+		host.RetiredAt = 0
+		host.IsRetired = false
+		host.Checks = []domain.Check{}
+		if len(host.Status) == 0 {
+			host.Status = "working"
+		}
+	}
+
+	host.Roles = make(map[string][]string)
+	for i := range host.RoleFullNames {
+		svc := strings.Split(host.RoleFullNames[i], ":")
+		if _, ok := host.Roles[svc[0]]; !ok {
+			host.Roles[svc[0]] = make([]string, 0)
+		}
+
+		host.Roles[svc[0]] = append(host.Roles[svc[0]], svc[1])
 	}
 
 	return s.HostRepository.Save(host)

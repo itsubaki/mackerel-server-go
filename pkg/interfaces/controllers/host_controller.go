@@ -52,7 +52,7 @@ func (s *HostController) Update(c Context) {
 	}
 	in.ID = c.Param("hostId")
 
-	out, err := s.Interactor.Update(&in)
+	out, err := s.Interactor.Save(&in)
 	doResponse(c, out, err)
 }
 
