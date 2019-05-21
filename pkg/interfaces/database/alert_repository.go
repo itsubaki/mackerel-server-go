@@ -25,8 +25,7 @@ func NewAlertRepository(handler SQLHandler) *AlertRepository {
 				message text,
 				reason text,
 				opened_at bigint,
-				closed_at bigint,
-				seq bigint auto_increment, index(seq)
+				closed_at bigint
 			)
 			`,
 		); err != nil {
@@ -59,24 +58,7 @@ func (repo *AlertRepository) Exists(alertID string) bool {
 
 func (repo *AlertRepository) List(withClosed bool, nextID string, limit int) (*domain.Alerts, error) {
 	// TODO withClosed, nextID
-	rows, err := repo.Query(
-		`
-			select 
-				id, 
-				status, 
-				monitor_id, 
-				type, 
-				host_id, 
-				value, 
-				message, 
-				reason, 
-				opened_at, 
-				closed_at
-			from alerts
-			limit ?
-			`,
-		limit,
-	)
+	rows, err := repo.Query("select * from alerts limit ?", limit)
 	if err != nil {
 		return nil, fmt.Errorf("select * from alerts: %v", err)
 	}
@@ -120,24 +102,7 @@ func (repo *AlertRepository) Close(alertID, reason string) (*domain.Alert, error
 			return fmt.Errorf("update alerts: %v", err)
 		}
 
-		row := tx.QueryRow(
-			`
-			select 
-				id, 
-				status, 
-				monitor_id, 
-				type, 
-				host_id, 
-				value, 
-				message, 
-				reason, 
-				opened_at, 
-				closed_at
-			from alerts
-				where id=?
-			for update`,
-			alertID,
-		)
+		row := tx.QueryRow("select * from alerts where id=? for update", alertID)
 		if err := row.Scan(
 			&alert.ID,
 			&alert.Status,
