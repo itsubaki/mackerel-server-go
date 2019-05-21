@@ -2,6 +2,7 @@ package database
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 	"time"
 
@@ -34,7 +35,7 @@ func NewHostRepository(handler SQLHandler) *HostRepository {
 			)
 			`,
 		); err != nil {
-			return err
+			return fmt.Errorf("create table hosts: %v", err)
 		}
 
 		if _, err := tx.Exec(
@@ -48,7 +49,7 @@ func NewHostRepository(handler SQLHandler) *HostRepository {
 			)
 			`,
 		); err != nil {
-			return err
+			return fmt.Errorf("create table host_metric_values: %v", err)
 		}
 
 		if _, err := tx.Exec(
@@ -61,12 +62,12 @@ func NewHostRepository(handler SQLHandler) *HostRepository {
 			)
 			`,
 		); err != nil {
-			return err
+			return fmt.Errorf("create table host_metric_values_latest: %v", err)
 		}
 
 		return nil
 	}); err != nil {
-		panic(err)
+		panic(fmt.Errorf("transaction: %v", err))
 	}
 
 	return &HostRepository{
@@ -87,7 +88,7 @@ func (repo *HostRepository) List() (*domain.Hosts, error) {
 	if err := repo.Transact(func(tx Tx) error {
 		rows, err := tx.Query("select * from hosts")
 		if err != nil {
-			return err
+			return fmt.Errorf("select * from hosts: %v", err)
 		}
 		defer rows.Close()
 
@@ -110,27 +111,27 @@ func (repo *HostRepository) List() (*domain.Hosts, error) {
 				&checks,
 				&meta,
 			); err != nil {
-				return err
+				return fmt.Errorf("scan: %v", err)
 			}
 
 			if err := json.Unmarshal([]byte(roles), &host.Roles); err != nil {
-				return err
+				return fmt.Errorf("unmarshal host.Roles: %v", err)
 			}
 
 			if err := json.Unmarshal([]byte(roleFullnames), &host.RoleFullNames); err != nil {
-				return err
+				return fmt.Errorf("unmarshal host.RoleFullNames: %v", err)
 			}
 
 			if err := json.Unmarshal([]byte(interfaces), &host.Interfaces); err != nil {
-				return err
+				return fmt.Errorf("unmarshal host.Interfaces: %v", err)
 			}
 
 			if err := json.Unmarshal([]byte(checks), &host.Checks); err != nil {
-				return err
+				return fmt.Errorf("unmarshal host.Checks: %v", err)
 			}
 
 			if err := json.Unmarshal([]byte(meta), &host.Meta); err != nil {
-				return err
+				return fmt.Errorf("unmarshal host.Meta: %v", err)
 			}
 
 			hosts = append(hosts, host)
@@ -138,7 +139,7 @@ func (repo *HostRepository) List() (*domain.Hosts, error) {
 
 		return nil
 	}); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("transaction: %v", err)
 	}
 
 	return &domain.Hosts{Hosts: hosts}, nil
@@ -149,27 +150,27 @@ func (repo *HostRepository) Save(host *domain.Host) (*domain.HostID, error) {
 	if err := repo.Transact(func(tx Tx) error {
 		roles, err := json.Marshal(host.Roles)
 		if err != nil {
-			return err
+			return fmt.Errorf("marshal host.Roles: %v", err)
 		}
 
 		roleFullnames, err := json.Marshal(host.RoleFullNames)
 		if err != nil {
-			return err
+			return fmt.Errorf("marshal host.RoleFullNames: %v", err)
 		}
 
 		interfaces, err := json.Marshal(host.Interfaces)
 		if err != nil {
-			return err
+			return fmt.Errorf("marshal host.Interfaces: %v", err)
 		}
 
 		checks, err := json.Marshal(host.Checks)
 		if err != nil {
-			return err
+			return fmt.Errorf("marshal host.Checks: %v", err)
 		}
 
 		meta, err := json.Marshal(host.Meta)
 		if err != nil {
-			return err
+			return fmt.Errorf("marshal host.Meta: %v", err)
 		}
 
 		if _, err := tx.Exec(
@@ -217,7 +218,7 @@ func (repo *HostRepository) Save(host *domain.Host) (*domain.HostID, error) {
 			string(checks),
 			string(meta),
 		); err != nil {
-			return err
+			return fmt.Errorf("insert into hosts: %v", err)
 		}
 
 		for svc, role := range host.Roles {
@@ -234,7 +235,7 @@ func (repo *HostRepository) Save(host *domain.Host) (*domain.HostID, error) {
 				svc,
 				svc,
 			); err != nil {
-				return err
+				return fmt.Errorf("insert into services: %v", err)
 			}
 
 			for i := range role {
@@ -254,7 +255,7 @@ func (repo *HostRepository) Save(host *domain.Host) (*domain.HostID, error) {
 					svc,
 					role[i],
 				); err != nil {
-					return err
+					return fmt.Errorf("insert into roles: %v", err)
 				}
 
 			}
@@ -262,7 +263,7 @@ func (repo *HostRepository) Save(host *domain.Host) (*domain.HostID, error) {
 
 		return nil
 	}); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("transaction: %v", err)
 	}
 
 	return &domain.HostID{ID: host.ID}, nil
@@ -297,32 +298,32 @@ func (repo *HostRepository) Host(hostID string) (*domain.Host, error) {
 			&checks,
 			&meta,
 		); err != nil {
-			return err
+			return fmt.Errorf("select * from hosts: %v", err)
 		}
 
 		if err := json.Unmarshal([]byte(roles), &host.Roles); err != nil {
-			return err
+			return fmt.Errorf("unmarshal host.Roles: %v", err)
 		}
 
 		if err := json.Unmarshal([]byte(roleFullnames), &host.RoleFullNames); err != nil {
-			return err
+			return fmt.Errorf("unmarshal host.RoleFullNames: %v", err)
 		}
 
 		if err := json.Unmarshal([]byte(interfaces), &host.Interfaces); err != nil {
-			return err
+			return fmt.Errorf("unmarshal host.Interfaces: %v", err)
 		}
 
 		if err := json.Unmarshal([]byte(checks), &host.Checks); err != nil {
-			return err
+			return fmt.Errorf("unmarshal host.Checks: %v", err)
 		}
 
 		if err := json.Unmarshal([]byte(meta), &host.Meta); err != nil {
-			return err
+			return fmt.Errorf("unmarshal host.Meta: %v", err)
 		}
 
 		return nil
 	}); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("transaction: %v", err)
 	}
 
 	return &host, nil
@@ -353,12 +354,12 @@ func (repo *HostRepository) Exists(hostID string) bool {
 func (repo *HostRepository) Status(hostID, status string) (*domain.Success, error) {
 	if err := repo.Transact(func(tx Tx) error {
 		if _, err := tx.Exec("update hosts set status=? where id=?", status, hostID); err != nil {
-			return err
+			return fmt.Errorf("update hosts: %v", err)
 		}
 
 		return nil
 	}); err != nil {
-		return &domain.Success{Success: false}, err
+		return &domain.Success{Success: false}, nil
 	}
 
 	return &domain.Success{Success: true}, nil
@@ -377,12 +378,12 @@ func (repo *HostRepository) SaveRoleFullNames(hostID string, names *domain.RoleF
 
 	broles, err := json.Marshal(roles)
 	if err != nil {
-		return &domain.Success{Success: false}, err
+		return &domain.Success{Success: false}, nil
 	}
 
 	roleFullnames, err := json.Marshal(names.Names)
 	if err != nil {
-		return &domain.Success{Success: false}, err
+		return &domain.Success{Success: false}, nil
 	}
 
 	if err := repo.Transact(func(tx Tx) error {
@@ -392,7 +393,7 @@ func (repo *HostRepository) SaveRoleFullNames(hostID string, names *domain.RoleF
 			string(broles),
 			hostID,
 		); err != nil {
-			return err
+			return fmt.Errorf("update hosts: %v", err)
 		}
 
 		for svc, role := range roles {
@@ -409,7 +410,7 @@ func (repo *HostRepository) SaveRoleFullNames(hostID string, names *domain.RoleF
 				svc,
 				svc,
 			); err != nil {
-				return err
+				return fmt.Errorf("insert into services: %v", err)
 			}
 
 			for i := range role {
@@ -429,7 +430,7 @@ func (repo *HostRepository) SaveRoleFullNames(hostID string, names *domain.RoleF
 					svc,
 					role[i],
 				); err != nil {
-					return err
+					return fmt.Errorf("insert into roles: %v", err)
 				}
 
 			}
@@ -437,7 +438,7 @@ func (repo *HostRepository) SaveRoleFullNames(hostID string, names *domain.RoleF
 
 		return nil
 	}); err != nil {
-		return &domain.Success{Success: false}, err
+		return &domain.Success{Success: false}, nil
 	}
 
 	return &domain.Success{Success: true}, nil
@@ -447,12 +448,12 @@ func (repo *HostRepository) SaveRoleFullNames(hostID string, names *domain.RoleF
 func (repo *HostRepository) Retire(hostID string, retire *domain.HostRetire) (*domain.Success, error) {
 	if err := repo.Transact(func(tx Tx) error {
 		if _, err := tx.Exec("update hosts set is_retired=?, retired_at=? where id=?", true, time.Now().Unix(), hostID); err != nil {
-			return err
+			return fmt.Errorf("update hosts: %v", err)
 		}
 
 		return nil
 	}); err != nil {
-		return &domain.Success{Success: false}, err
+		return &domain.Success{Success: false}, nil
 	}
 
 	return &domain.Success{Success: true}, nil
@@ -491,21 +492,21 @@ func (repo *HostRepository) MetricNames(hostID string) (*domain.MetricNames, err
 	if err := repo.Transact(func(tx Tx) error {
 		rows, err := tx.Query("select distinct name from host_metric_values where host_id=?", hostID)
 		if err != nil {
-			return err
+			return fmt.Errorf("select distinct name from host_metric_values: %v", err)
 		}
 		defer rows.Close()
 
 		for rows.Next() {
 			var name string
 			if err := rows.Scan(&name); err != nil {
-				return err
+				return fmt.Errorf("scan: %v", err)
 			}
 			names = append(names, name)
 		}
 
 		return nil
 	}); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("transaction: %v", err)
 	}
 
 	return &domain.MetricNames{Names: names}, nil
@@ -523,7 +524,7 @@ func (repo *HostRepository) MetricValues(hostID, name string, from, to int64) (*
 	if err := repo.Transact(func(tx Tx) error {
 		rows, err := tx.Query("select time, value from host_metric_values where host_id=? and name=? and ? < time and time < ?", hostID, name, from, to)
 		if err != nil {
-			return err
+			return fmt.Errorf("select time, value from host_metric_values: %v", err)
 		}
 		defer rows.Close()
 
@@ -531,7 +532,7 @@ func (repo *HostRepository) MetricValues(hostID, name string, from, to int64) (*
 			var time int64
 			var value float64
 			if err := rows.Scan(&time, &value); err != nil {
-				return err
+				return fmt.Errorf("scan: %v", err)
 			}
 
 			values = append(values, domain.MetricValue{
@@ -544,7 +545,7 @@ func (repo *HostRepository) MetricValues(hostID, name string, from, to int64) (*
 
 		return nil
 	}); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("transaction: %v", err)
 	}
 
 	return &domain.MetricValues{Metrics: values}, nil
@@ -581,7 +582,7 @@ func (repo *HostRepository) MetricValuesLatest(hostID, name []string) (*domain.T
 		// TODO multiple ?
 		//	rows, err := tx.Query("select * from host_metric_values_latest where host_id in(?) and name in(?)", hostID[0], name[0])
 		if err != nil {
-			return err
+			return fmt.Errorf("select * from host_metric_value_latest: %v", err)
 		}
 		defer rows.Close()
 
@@ -589,7 +590,7 @@ func (repo *HostRepository) MetricValuesLatest(hostID, name []string) (*domain.T
 			var hostID, name string
 			var value float64
 			if err := rows.Scan(&hostID, &name, &value); err != nil {
-				return err
+				return fmt.Errorf("scan: %v", err)
 			}
 
 			if _, ok := latest[hostID]; !ok {
@@ -601,7 +602,7 @@ func (repo *HostRepository) MetricValuesLatest(hostID, name []string) (*domain.T
 
 		return nil
 	}); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("transaction: %v", err)
 	}
 
 	return &domain.TSDBLatest{TSDBLatest: latest}, nil
@@ -618,7 +619,7 @@ func (repo *HostRepository) SaveMetricValues(values []domain.MetricValue) (*doma
 				values[i].Time,
 				values[i].Value,
 			); err != nil {
-				return err
+				return fmt.Errorf("insert into host_metric_values: %v", err)
 			}
 
 			if _, err := tx.Exec(
@@ -636,13 +637,13 @@ func (repo *HostRepository) SaveMetricValues(values []domain.MetricValue) (*doma
 				values[i].Name,
 				values[i].Value,
 			); err != nil {
-				return err
+				return fmt.Errorf("insert into host_metric_values_latest: %v", err)
 			}
 		}
 
 		return nil
 	}); err != nil {
-		return &domain.Success{Success: false}, err
+		return &domain.Success{Success: false}, nil
 	}
 
 	return &domain.Success{Success: true}, nil

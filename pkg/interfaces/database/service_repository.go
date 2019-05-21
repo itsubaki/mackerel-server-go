@@ -20,7 +20,7 @@ func NewServiceRepository(handler SQLHandler) *ServiceRepository {
 			)
 			`,
 		); err != nil {
-			return err
+			return fmt.Errorf("create table services: %v", err)
 		}
 
 		if _, err := tx.Exec(
@@ -33,7 +33,7 @@ func NewServiceRepository(handler SQLHandler) *ServiceRepository {
 			)
 			`,
 		); err != nil {
-			return err
+			return fmt.Errorf("create table roles: %v", err)
 		}
 
 		if _, err := tx.Exec(
@@ -47,12 +47,12 @@ func NewServiceRepository(handler SQLHandler) *ServiceRepository {
 			)
 			`,
 		); err != nil {
-			return err
+			return fmt.Errorf("create table service_metric_values: %v", err)
 		}
 
 		return nil
 	}); err != nil {
-		panic(err)
+		panic(fmt.Errorf("transaction: %v", err))
 	}
 
 	return &ServiceRepository{
@@ -67,7 +67,7 @@ func (repo *ServiceRepository) List() (*domain.Services, error) {
 	if err := repo.Transact(func(tx Tx) error {
 		rows, err := tx.Query("select service_name, name from roles")
 		if err != nil {
-			return err
+			return fmt.Errorf("select service_name, name from roles: %v", err)
 		}
 		defer rows.Close()
 
@@ -78,7 +78,7 @@ func (repo *ServiceRepository) List() (*domain.Services, error) {
 				&service,
 				&role,
 			); err != nil {
-				return err
+				return fmt.Errorf("scan roles: %v", err)
 			}
 
 			if _, ok := roles[service]; !ok {
@@ -98,7 +98,7 @@ func (repo *ServiceRepository) List() (*domain.Services, error) {
 			if err := row.Scan(
 				&service.Memo,
 			); err != nil {
-				return err
+				return fmt.Errorf("scan services: %v", err)
 			}
 
 			services = append(services, service)
@@ -106,7 +106,7 @@ func (repo *ServiceRepository) List() (*domain.Services, error) {
 
 		return nil
 	}); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("transaction: %v", err)
 	}
 
 	return &domain.Services{Services: services}, nil
@@ -114,7 +114,7 @@ func (repo *ServiceRepository) List() (*domain.Services, error) {
 
 // insert into services values()
 func (repo *ServiceRepository) Save(s *domain.Service) error {
-	return repo.Transact(func(tx Tx) error {
+	if err := repo.Transact(func(tx Tx) error {
 		if _, err := tx.Exec(
 			`
 			insert into services (
@@ -128,7 +128,7 @@ func (repo *ServiceRepository) Save(s *domain.Service) error {
 			s.Name,
 			s.Memo,
 		); err != nil {
-			return err
+			return fmt.Errorf("insert into services: %v", err)
 		}
 
 		for i := range s.Roles {
@@ -148,12 +148,16 @@ func (repo *ServiceRepository) Save(s *domain.Service) error {
 				s.Name,
 				s.Roles[i],
 			); err != nil {
-				return err
+				return fmt.Errorf("insert into roles: %v", err)
 			}
 		}
 
 		return nil
-	})
+	}); err != nil {
+		return fmt.Errorf("transaction: %v", err)
+	}
+
+	return nil
 }
 
 // select * from services where service_name=${serviceName}
@@ -168,26 +172,26 @@ func (repo *ServiceRepository) Service(serviceName string) (*domain.Service, err
 			&service.Name,
 			&service.Memo,
 		); err != nil {
-			return err
+			return fmt.Errorf("scan: %v", err)
 		}
 
 		rows, err := tx.Query("select name from roles where service_name=?", serviceName)
 		if err != nil {
-			return err
+			return fmt.Errorf("select name from roles: %v", err)
 		}
 		defer rows.Close()
 
 		for rows.Next() {
 			var name string
 			if err := rows.Scan(&name); err != nil {
-				return err
+				return fmt.Errorf("scan: %v", err)
 			}
 			service.Roles = append(service.Roles, name)
 		}
 
 		return nil
 	}); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("transaction: %v", err)
 	}
 
 	return &service, nil
@@ -212,12 +216,12 @@ func (repo *ServiceRepository) Exists(serviceName string) bool {
 func (repo *ServiceRepository) Delete(serviceName string) error {
 	if err := repo.Transact(func(tx Tx) error {
 		if _, err := tx.Exec("delete from services where name=?", serviceName); err != nil {
-			return err
+			return fmt.Errorf("delete from services: %v", err)
 		}
 
 		return nil
 	}); err != nil {
-		return err
+		return fmt.Errorf("transaction: %v", err)
 	}
 
 	return nil

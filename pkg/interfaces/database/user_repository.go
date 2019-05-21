@@ -1,6 +1,7 @@
 package database
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/itsubaki/mackerel-api/pkg/domain"
@@ -26,12 +27,12 @@ func NewUserRepository(handler SQLHandler) *UserRepository {
 			)
 			`,
 		); err != nil {
-			return err
+			return fmt.Errorf("create table users: %v", err)
 		}
 
 		return nil
 	}); err != nil {
-		panic(err)
+		panic(fmt.Errorf("transaction: %v", err))
 	}
 
 	return &UserRepository{
@@ -52,7 +53,7 @@ func (repo *UserRepository) List() (*domain.Users, error) {
 	if err := repo.Transact(func(tx Tx) error {
 		rows, err := tx.Query("select * from users")
 		if err != nil {
-			return err
+			return fmt.Errorf("select * from users: %v", err)
 		}
 		defer rows.Close()
 
@@ -69,7 +70,7 @@ func (repo *UserRepository) List() (*domain.Users, error) {
 				&method,
 				&user.JoinedAt,
 			); err != nil {
-				return err
+				return fmt.Errorf("scan: %v", err)
 			}
 			user.AuthenticationMethods = strings.Split(method, ",")
 
@@ -78,7 +79,7 @@ func (repo *UserRepository) List() (*domain.Users, error) {
 
 		return nil
 	}); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("transaction: %v", err)
 	}
 
 	return &domain.Users{Users: users}, nil
@@ -99,7 +100,7 @@ func (repo *UserRepository) Exists(userID string) bool {
 }
 
 func (repo *UserRepository) Save(user *domain.User) error {
-	return repo.Transact(func(tx Tx) error {
+	if err := repo.Transact(func(tx Tx) error {
 		if _, err := tx.Exec(
 			"insert into users values (?, ?, ?, ?, ?, ?, ?, ?)",
 			user.ID,
@@ -111,11 +112,15 @@ func (repo *UserRepository) Save(user *domain.User) error {
 			strings.Join(user.AuthenticationMethods, ","),
 			user.JoinedAt,
 		); err != nil {
-			return err
+			return fmt.Errorf("transaction: %v", err)
 		}
 
 		return nil
-	})
+	}); err != nil {
+		return fmt.Errorf("transaction: %v", err)
+	}
+
+	return nil
 }
 
 func (repo *UserRepository) Delete(userID string) (*domain.User, error) {
@@ -134,17 +139,18 @@ func (repo *UserRepository) Delete(userID string) (*domain.User, error) {
 			&method,
 			&user.JoinedAt,
 		); err != nil {
-			return err
+			return fmt.Errorf("scan: %v", err)
 		}
+
 		user.AuthenticationMethods = strings.Split(method, ",")
 
 		if _, err := tx.Exec("delete from users where id=?", userID); err != nil {
-			return err
+			return fmt.Errorf("delete from users: %v", err)
 		}
 
 		return nil
 	}); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("transaction: %v", err)
 	}
 
 	return &user, nil
