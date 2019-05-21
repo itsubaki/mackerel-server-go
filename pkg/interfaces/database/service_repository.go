@@ -336,11 +336,17 @@ func (repo *ServiceRepository) Role(serviceName, roleName string) (*domain.Role,
 		Name:        roleName,
 	}
 
-	row := repo.QueryRow("select memo from roles where service_name=? and name=?", serviceName, roleName)
-	if err := row.Scan(
-		&role.Memo,
-	); err != nil {
-		return nil, fmt.Errorf("scan: %v", err)
+	if err := repo.Transact(func(tx Tx) error {
+		row := repo.QueryRow("select memo from roles where service_name=? and name=?", serviceName, roleName)
+		if err := row.Scan(
+			&role.Memo,
+		); err != nil {
+			return fmt.Errorf("scan: %v", err)
+		}
+
+		return nil
+	}); err != nil {
+		return nil, fmt.Errorf("transaction: %v", err)
 	}
 
 	return &role, nil
@@ -378,20 +384,26 @@ func (repo *ServiceRepository) ExistsMetric(serviceName, metricName string) bool
 
 // select distinct name from service_metrics where service_name=${serviceName}
 func (repo *ServiceRepository) MetricNames(serviceName string) (*domain.ServiceMetricValueNames, error) {
-	rows, err := repo.Query("select distinct name from service_metric_values where service_name=?", serviceName)
-	if err != nil {
-		return nil, fmt.Errorf("select distinct name from service_metric_values: %v", err)
-	}
-	defer rows.Close()
-
 	names := make([]string, 0)
-	for rows.Next() {
-		var name string
-		if err := rows.Scan(&name); err != nil {
-			return nil, fmt.Errorf("scan: %v", err)
+	if err := repo.Transact(func(tx Tx) error {
+		rows, err := repo.Query("select distinct name from service_metric_values where service_name=?", serviceName)
+		if err != nil {
+			return fmt.Errorf("select distinct name from service_metric_values: %v", err)
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			var name string
+			if err := rows.Scan(&name); err != nil {
+				return fmt.Errorf("scan: %v", err)
+			}
+
+			names = append(names, name)
 		}
 
-		names = append(names, name)
+		return nil
+	}); err != nil {
+		return nil, fmt.Errorf("transaction: %v", err)
 	}
 
 	return &domain.ServiceMetricValueNames{Names: names}, nil
