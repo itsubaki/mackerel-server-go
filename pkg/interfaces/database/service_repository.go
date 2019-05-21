@@ -61,7 +61,20 @@ func NewServiceRepository(handler SQLHandler) *ServiceRepository {
 	}
 }
 
-// select * from services
+// mysql> explain select service_name, name from roles;
+// +----+-------------+-------+------------+-------+---------------+---------+---------+------+------+----------+-------------+
+// | id | select_type | table | partitions | type  | possible_keys | key     | key_len | ref  | rows | filtered | Extra       |
+// +----+-------------+-------+------------+-------+---------------+---------+---------+------+------+----------+-------------+
+// |  1 | SIMPLE      | roles | NULL       | index | NULL          | PRIMARY | 1028    | NULL |    4 |   100.00 | Using index |
+// +----+-------------+-------+------------+-------+---------------+---------+---------+------+------+----------+-------------+
+// 1 row in set, 1 warning (0.00 sec)
+// mysql> explain select memo from services where name='My-Service';
+// +----+-------------+----------+------------+-------+---------------+---------+---------+-------+------+----------+-------+
+// | id | select_type | table    | partitions | type  | possible_keys | key     | key_len | ref   | rows | filtered | Extra |
+// +----+-------------+----------+------------+-------+---------------+---------+---------+-------+------+----------+-------+
+// |  1 | SIMPLE      | services | NULL       | const | PRIMARY       | PRIMARY | 514     | const |    1 |   100.00 | NULL  |
+// +----+-------------+----------+------------+-------+---------------+---------+---------+-------+------+----------+-------+
+// 1 row in set, 1 warning (0.01 sec)
 func (repo *ServiceRepository) List() (*domain.Services, error) {
 	services := make([]domain.Service, 0)
 
@@ -161,7 +174,13 @@ func (repo *ServiceRepository) Save(s *domain.Service) error {
 	return nil
 }
 
-// select * from services where service_name=${serviceName}
+// mysql> explain select name from roles where service_name='My-Service';
+// +----+-------------+-------+------------+------+---------------+---------+---------+-------+------+----------+-------------+
+// | id | select_type | table | partitions | type | possible_keys | key     | key_len | ref   | rows | filtered | Extra       |
+// +----+-------------+-------+------------+------+---------------+---------+---------+-------+------+----------+-------------+
+// |  1 | SIMPLE      | roles | NULL       | ref  | PRIMARY       | PRIMARY | 514     | const |    2 |   100.00 | Using index |
+// +----+-------------+-------+------------+------+---------------+---------+---------+-------+------+----------+-------------+
+// 1 row in set, 1 warning (0.00 sec)
 func (repo *ServiceRepository) Service(serviceName string) (*domain.Service, error) {
 	service := domain.Service{
 		Roles: []string{},
@@ -198,7 +217,13 @@ func (repo *ServiceRepository) Service(serviceName string) (*domain.Service, err
 	return &service, nil
 }
 
-// select * from services where service_name=${serviceName} limit=1
+// mysql> explain select * from services where name='My-Service' limit 1;
+// +----+-------------+----------+------------+-------+---------------+---------+---------+-------+------+----------+-------+
+// | id | select_type | table    | partitions | type  | possible_keys | key     | key_len | ref   | rows | filtered | Extra |
+// +----+-------------+----------+------------+-------+---------------+---------+---------+-------+------+----------+-------+
+// |  1 | SIMPLE      | services | NULL       | const | PRIMARY       | PRIMARY | 514     | const |    1 |   100.00 | NULL  |
+// +----+-------------+----------+------------+-------+---------------+---------+---------+-------+------+----------+-------+
+// 1 row in set, 1 warning (0.00 sec)
 func (repo *ServiceRepository) Exists(serviceName string) bool {
 	rows, err := repo.Query("select * from services where name=? limit 1", serviceName)
 	if err != nil {
@@ -327,6 +352,7 @@ func (repo *ServiceRepository) DeleteRole(serviceName, roleName string) error {
 		if _, err := tx.Exec("delete from roles where service_name=? and name=?", serviceName, roleName); err != nil {
 			return fmt.Errorf("delete from roles: %v", err)
 		}
+
 		return nil
 	}); err != nil {
 		return fmt.Errorf("transaction: %v", err)
@@ -337,12 +363,38 @@ func (repo *ServiceRepository) DeleteRole(serviceName, roleName string) error {
 
 // select * from service_metrics where service_name=${serviceName} and name=${metricName}
 func (repo *ServiceRepository) ExistsMetric(serviceName, metricName string) bool {
-	return true
+	rows, err := repo.Query("select * from service_metric_values where service_name=? and name=? limit 1", serviceName, metricName)
+	if err != nil {
+		panic(err)
+	}
+	defer rows.Close()
+
+	if rows.Next() {
+		return true
+	}
+
+	return false
 }
 
 // select distinct name from service_metrics where service_name=${serviceName}
 func (repo *ServiceRepository) MetricNames(serviceName string) (*domain.ServiceMetricValueNames, error) {
-	return &domain.ServiceMetricValueNames{}, nil
+	rows, err := repo.Query("select distinct name from service_metric_values where service_name=?", serviceName)
+	if err != nil {
+		return nil, fmt.Errorf("select distinct name from service_metric_values: %v", err)
+	}
+	defer rows.Close()
+
+	names := make([]string, 0)
+	for rows.Next() {
+		var name string
+		if err := rows.Scan(&name); err != nil {
+			return nil, fmt.Errorf("scan: %v", err)
+		}
+
+		names = append(names, name)
+	}
+
+	return &domain.ServiceMetricValueNames{Names: names}, nil
 }
 
 // select * from service_metrics where service_name=${serviceName} and name=${metricName}  and ${from} < from and to < ${to}
