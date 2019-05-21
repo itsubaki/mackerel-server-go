@@ -29,7 +29,8 @@ func NewServiceRepository(handler SQLHandler) *ServiceRepository {
 				service_name varchar(128) not null,
 				name varchar(128) not null,
 				memo varchar(128) not null default '',
-				primary key(service_name, name)
+				primary key(service_name, name),
+				foreign key fk_service_name (service_name) references services(name) on delete cascade on update cascade
 			)
 			`,
 		); err != nil {

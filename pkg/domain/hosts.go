@@ -1,5 +1,14 @@
 package domain
 
+import (
+	"crypto/sha256"
+	"encoding/hex"
+	"strings"
+	"time"
+
+	"github.com/google/uuid"
+)
+
 type TSDBLatest struct {
 	TSDBLatest TSDBLatestValue `json:"tsdbLatest"`
 }
@@ -30,6 +39,19 @@ type HostRetire struct {
 
 type RoleFullNames struct {
 	Names []string `json:"roleFullnames"`
+}
+
+func (r *RoleFullNames) Roles() map[string][]string {
+	roles := make(map[string][]string)
+	for i := range r.Names {
+		svc := strings.Split(r.Names[i], ":")
+		if _, ok := roles[svc[0]]; !ok {
+			roles[svc[0]] = []string{}
+		}
+		roles[svc[0]] = append(roles[svc[0]], svc[1])
+	}
+
+	return roles
 }
 
 type HostID struct {
@@ -63,6 +85,34 @@ type Host struct {
 	Interfaces       []Interface         `json:"interfaces,omitempty"`
 	Checks           []Check             `json:"checks,omitempty"`
 	Meta             Meta                `json:"meta"`
+}
+
+func (h *Host) Init() {
+	h.Roles = make(map[string][]string)
+	for i := range h.RoleFullNames {
+		svc := strings.Split(h.RoleFullNames[i], ":")
+		if _, ok := h.Roles[svc[0]]; !ok {
+			h.Roles[svc[0]] = make([]string, 0)
+		}
+
+		h.Roles[svc[0]] = append(h.Roles[svc[0]], svc[1])
+	}
+
+	if len(h.ID) > 0 {
+		return
+	}
+
+	sha := sha256.Sum256([]byte(uuid.Must(uuid.NewRandom()).String()))
+	hash := hex.EncodeToString(sha[:])
+
+	h.ID = hash[:11]
+	h.CreatedAt = time.Now().Unix()
+	h.RetiredAt = 0
+	h.IsRetired = false
+	h.Checks = []Check{}
+	if len(h.Status) < 1 {
+		h.Status = "working"
+	}
 }
 
 type Meta struct {

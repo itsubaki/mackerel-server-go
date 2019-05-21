@@ -3,7 +3,6 @@ package database
 import (
 	"encoding/json"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/itsubaki/mackerel-api/pkg/domain"
@@ -367,16 +366,9 @@ func (repo *HostRepository) Status(hostID, status string) (*domain.Success, erro
 
 // update hosts set roles=${roles} where id=${hostID}
 func (repo *HostRepository) SaveRoleFullNames(hostID string, names *domain.RoleFullNames) (*domain.Success, error) {
-	roles := make(map[string][]string)
-	for i := range names.Names {
-		svc := strings.Split(names.Names[i], ":")
-		if _, ok := roles[svc[0]]; !ok {
-			roles[svc[0]] = []string{}
-		}
-		roles[svc[0]] = append(roles[svc[0]], svc[1])
-	}
+	roles := names.Roles()
 
-	broles, err := json.Marshal(roles)
+	mroles, err := json.Marshal(roles)
 	if err != nil {
 		return &domain.Success{Success: false}, nil
 	}
@@ -390,7 +382,7 @@ func (repo *HostRepository) SaveRoleFullNames(hostID string, names *domain.RoleF
 		if _, err := tx.Exec(
 			"update hosts set role_fullnames=?, roles=? where id=?",
 			string(roleFullnames),
-			string(broles),
+			string(mroles),
 			hostID,
 		); err != nil {
 			return fmt.Errorf("update hosts: %v", err)
