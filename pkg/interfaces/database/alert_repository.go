@@ -57,7 +57,7 @@ func (repo *AlertRepository) Exists(alertID string) bool {
 }
 
 func (repo *AlertRepository) List(withClosed bool, nextID string, limit int) (*domain.Alerts, error) {
-	status := "CRITICAL"
+	status := "UNKNOWN"
 	if withClosed {
 		status = "OK"
 	}
@@ -65,7 +65,7 @@ func (repo *AlertRepository) List(withClosed bool, nextID string, limit int) (*d
 	rows, err := repo.Query(
 		`
 		select * from alerts
-		where status='CRITICAL' or status='WARNING' or status='UNKNOWN' or status=?
+		where status in ('CRITICAL', 'WARNING', 'UNKNOWN', ?)
 		order by opened_at limit ?
 		`,
 		status,
