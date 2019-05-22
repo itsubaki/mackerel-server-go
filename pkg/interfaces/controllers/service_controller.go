@@ -55,48 +55,6 @@ func (s *ServiceController) Delete(c Context) {
 	doResponse(c, out, err)
 }
 
-func (s *ServiceController) MetadataList(c Context) {
-	out, err := s.Interactor.MetadataList(
-		c.Param("serviceName"),
-	)
-
-	doResponse(c, out, err)
-}
-
-func (s *ServiceController) Metadata(c Context) {
-	out, err := s.Interactor.Metadata(
-		c.Param("serviceName"),
-		c.Param("namespace"),
-	)
-
-	doResponse(c, out, err)
-}
-
-func (s *ServiceController) SaveMetadata(c Context) {
-	var in interface{}
-	if err := c.BindJSON(&in); err != nil {
-		c.Status(http.StatusBadRequest)
-		return
-	}
-
-	out, err := s.Interactor.SaveMetadata(
-		c.Param("serviceName"),
-		c.Param("namespace"),
-		in,
-	)
-
-	doResponse(c, out, err)
-}
-
-func (s *ServiceController) DeleteMetadata(c Context) {
-	out, err := s.Interactor.DeleteMetadata(
-		c.Param("serviceName"),
-		c.Param("namespace"),
-	)
-
-	doResponse(c, out, err)
-}
-
 func (s *ServiceController) RoleList(c Context) {
 	out, err := s.Interactor.RoleList(
 		c.Param("serviceName"),
@@ -120,52 +78,6 @@ func (s *ServiceController) DeleteRole(c Context) {
 	out, err := s.Interactor.DeleteRole(
 		c.Param("serviceName"),
 		c.Param("roleName"),
-	)
-
-	doResponse(c, out, err)
-}
-
-func (s *ServiceController) RoleMetadata(c Context) {
-	out, err := s.Interactor.RoleMetadata(
-		c.Param("serviceName"),
-		c.Param("roleName"),
-		c.Param("namespace"),
-	)
-
-	doResponse(c, out, err)
-}
-
-func (s *ServiceController) RoleMetadataList(c Context) {
-	out, err := s.Interactor.RoleMetadataList(
-		c.Param("serviceName"),
-		c.Param("roleName"),
-	)
-
-	doResponse(c, out, err)
-}
-
-func (s *ServiceController) SaveRoleMetadata(c Context) {
-	var in interface{}
-	if err := c.BindJSON(&in); err != nil {
-		c.Status(http.StatusBadRequest)
-		return
-	}
-
-	out, err := s.Interactor.SaveRoleMetadata(
-		c.Param("serviceName"),
-		c.Param("roleName"),
-		c.Param("namespace"),
-		in,
-	)
-
-	doResponse(c, out, err)
-}
-
-func (s *ServiceController) DeleteRoleMetadata(c Context) {
-	out, err := s.Interactor.DeleteRoleMetadata(
-		c.Param("serviceName"),
-		c.Param("roleName"),
-		c.Param("namespace"),
 	)
 
 	doResponse(c, out, err)
@@ -212,6 +124,94 @@ func (s *ServiceController) SaveMetricValues(c Context) {
 	out, err := s.Interactor.SaveMetricValues(
 		c.Param("serviceName"),
 		v,
+	)
+
+	doResponse(c, out, err)
+}
+
+func (s *ServiceController) MetadataList(c Context) {
+	out, err := s.Interactor.MetadataList(
+		c.Param("serviceName"),
+	)
+
+	doResponse(c, out, err)
+}
+
+func (s *ServiceController) Metadata(c Context) {
+	out, err := s.Interactor.Metadata(
+		c.Param("serviceName"),
+		c.Param("namespace"),
+	)
+
+	doResponse(c, out, err)
+}
+
+func (s *ServiceController) SaveMetadata(c Context) {
+	var in interface{}
+	if err := c.BindJSON(&in); err != nil {
+		c.Status(http.StatusBadRequest)
+		return
+	}
+
+	out, err := s.Interactor.SaveMetadata(
+		c.Param("serviceName"),
+		c.Param("namespace"),
+		in,
+	)
+
+	doResponse(c, out, err)
+}
+
+func (s *ServiceController) DeleteMetadata(c Context) {
+	out, err := s.Interactor.DeleteMetadata(
+		c.Param("serviceName"),
+		c.Param("namespace"),
+	)
+
+	doResponse(c, out, err)
+}
+
+func (s *ServiceController) RoleMetadata(c Context) {
+	out, err := s.Interactor.RoleMetadata(
+		c.Param("serviceName"),
+		c.Param("roleName"),
+		c.Param("namespace"),
+	)
+
+	doResponse(c, out, err)
+}
+
+func (s *ServiceController) RoleMetadataList(c Context) {
+	out, err := s.Interactor.RoleMetadataList(
+		c.Param("serviceName"),
+		c.Param("roleName"),
+	)
+
+	doResponse(c, out, err)
+}
+
+func (s *ServiceController) SaveRoleMetadata(c Context) {
+	var in interface{}
+	if err := c.BindJSON(&in); err != nil {
+		c.Status(http.StatusBadRequest)
+		return
+	}
+
+	out, err := s.Interactor.SaveRoleMetadata(
+		c.Param("serviceName"),
+		c.Param("roleName"),
+		c.Param("namespace"),
+		in,
+	)
+
+	doResponse(c, out, err)
+}
+
+func (s *ServiceController) DeleteRoleMetadata(c Context) {
+	out, err := s.Interactor.DeleteRoleMetadata(
+		c.Param("serviceName"),
+		c.Param("roleName"),
+		c.Param("namespace"),
 	)
 
 	doResponse(c, out, err)
