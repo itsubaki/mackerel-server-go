@@ -14,9 +14,15 @@ type CheckReportController struct {
 }
 
 func NewCheckReportController(handler database.SQLHandler) *CheckReportController {
+	var repo usecase.CheckReportRepository
+	repo = memory.NewCheckReportRepository()
+	if handler != nil {
+		repo = database.NewCheckReportRepository(handler)
+	}
+
 	return &CheckReportController{
 		Interactor: &usecase.CheckReportInteractor{
-			CheckReportRepository: memory.NewCheckReportRepository(),
+			CheckReportRepository: repo,
 		},
 	}
 }
