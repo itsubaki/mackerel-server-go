@@ -66,7 +66,7 @@ func (repo *CheckReportRepository) Save(reports *domain.CheckReports) (*domain.S
 				reports.Reports[i].Source.Type,
 				reports.Reports[i].Name,
 				reports.Reports[i].Status,
-				reports.Reports[i].Message[:len(reports.Reports[i].Message)-1],
+				reports.Reports[i].Message[:len(reports.Reports[i].Message)-1], // remove \n
 				reports.Reports[i].OccurredAt,
 				reports.Reports[i].NotificationInterval,
 				reports.Reports[i].MaxCheckAttempts,
