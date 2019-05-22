@@ -86,7 +86,7 @@ func (repo *UserRepository) List() (*domain.Users, error) {
 }
 
 func (repo *UserRepository) Exists(userID string) bool {
-	rows, err := repo.Query("select * from users where id=? limit 1", userID)
+	rows, err := repo.Query("select 1 from users where id=? limit 1", userID)
 	if err != nil {
 		panic(err)
 	}

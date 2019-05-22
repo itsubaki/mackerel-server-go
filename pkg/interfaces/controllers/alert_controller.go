@@ -29,15 +29,13 @@ func NewAlertController(handler database.SQLHandler) *AlertController {
 }
 
 func (s *AlertController) List(c Context) {
-	// TODO default value
-	withClosed, err := strconv.ParseBool(c.Query("withClosed"))
+	withClosed, err := strconv.ParseBool(c.DefaultQuery("withClosed", "false"))
 	if err != nil {
 		c.Status(http.StatusBadRequest)
 		return
 	}
 
-	// TODO default value
-	limit, err := strconv.Atoi(c.Query("limit"))
+	limit, err := strconv.Atoi(c.DefaultQuery("limit", "100"))
 	if err != nil {
 		c.Status(http.StatusBadRequest)
 		return

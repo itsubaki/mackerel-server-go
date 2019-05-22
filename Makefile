@@ -10,8 +10,9 @@ runserver:
 
 runclient:
 	set -x
-	GO111MODULE=off go get github.com/mackerelio/go-check-plugins
+	GO111MODULE=off go get -d github.com/mackerelio/go-check-plugins
 	cd $(shell go env GOPATH)/src/github.com/mackerelio/go-check-plugins/check-tcp; go install
+	cp mackerel-agent.conf /usr/local/etc/mackerel-agent.conf
 	-rm ~/Library/mackerel-agent/id
 	mackerel-agent -conf /usr/local/etc/mackerel-agent.conf -apibase=http://localhost:8080
 

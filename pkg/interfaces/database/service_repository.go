@@ -152,10 +152,7 @@ func (repo *ServiceRepository) Save(s *domain.Service) error {
 					service_name,
 					name
 				)
-				select ? ,?
-				where not exists (
-					select 1 from roles where service_name=? and name=?
-				)
+				select ? ,? where not exists (select 1 from roles where service_name=? and name=?)
 				`,
 				s.Name,
 				s.Roles[i],
@@ -225,7 +222,7 @@ func (repo *ServiceRepository) Service(serviceName string) (*domain.Service, err
 // +----+-------------+----------+------------+-------+---------------+---------+---------+-------+------+----------+-------+
 // 1 row in set, 1 warning (0.00 sec)
 func (repo *ServiceRepository) Exists(serviceName string) bool {
-	rows, err := repo.Query("select * from services where name=? limit 1", serviceName)
+	rows, err := repo.Query("select 1 from services where name=? limit 1", serviceName)
 	if err != nil {
 		panic(err)
 	}
@@ -316,7 +313,7 @@ func (repo *ServiceRepository) SaveRole(serviceName string, r *domain.Role) erro
 
 // select * from service_roles where service_name=${serviceName} and role_name=${roleName}
 func (repo *ServiceRepository) ExistsRole(serviceName, roleName string) bool {
-	rows, err := repo.Query("select * from roles where service_name=? and name=? limit 1", serviceName, roleName)
+	rows, err := repo.Query("select 1 from roles where service_name=? and name=? limit 1", serviceName, roleName)
 	if err != nil {
 		panic(err)
 	}
@@ -369,7 +366,7 @@ func (repo *ServiceRepository) DeleteRole(serviceName, roleName string) error {
 
 // select * from service_metrics where service_name=${serviceName} and name=${metricName}
 func (repo *ServiceRepository) ExistsMetric(serviceName, metricName string) bool {
-	rows, err := repo.Query("select * from service_metric_values where service_name=? and name=? limit 1", serviceName, metricName)
+	rows, err := repo.Query("select 1 from service_metric_values where service_name=? and name=? limit 1", serviceName, metricName)
 	if err != nil {
 		panic(err)
 	}

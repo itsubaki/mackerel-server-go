@@ -10,5 +10,5 @@ import (
 
 // GoogleAppEngine endpoint
 func init() {
-	http.Handle("/", infrastructure.Router(nil))
+	http.Handle("/", infrastructure.Default())
 }

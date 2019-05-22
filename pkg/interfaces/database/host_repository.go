@@ -226,10 +226,7 @@ func (repo *HostRepository) Save(host *domain.Host) (*domain.HostID, error) {
 				insert into services (
 					name
 				)
-				select ?
-				where not exists (
-					select 1 from services where name=?
-				)
+				select ? where not exists (select 1 from services where name=?)
 				`,
 				svc,
 				svc,
@@ -244,10 +241,7 @@ func (repo *HostRepository) Save(host *domain.Host) (*domain.HostID, error) {
 						service_name,
 						name
 					)
-					select ?, ?
-					where not exists (
-						select 1 from roles where service_name=? and name=?
-					)
+					select ?, ? where not exists (select 1 from roles where service_name=? and name=?)
 					`,
 					svc,
 					role[i],
@@ -336,7 +330,7 @@ func (repo *HostRepository) Host(hostID string) (*domain.Host, error) {
 // +----+-------------+-------+------------+-------+---------------+---------+---------+-------+------+----------+-------+
 // 1 row in set, 1 warning (0.00 sec)
 func (repo *HostRepository) Exists(hostID string) bool {
-	rows, err := repo.Query("select * from hosts where id=? limit 1", hostID)
+	rows, err := repo.Query("select 1 from hosts where id=? limit 1", hostID)
 	if err != nil {
 		panic(err)
 	}
@@ -394,10 +388,7 @@ func (repo *HostRepository) SaveRoleFullNames(hostID string, names *domain.RoleF
 				insert into services (
 					name
 				)
-				select ?
-				where not exists (
-					select 1 from services where name=?
-				)
+				select ? where not exists (select 1 from services where name=?)
 				`,
 				svc,
 				svc,
@@ -412,10 +403,7 @@ func (repo *HostRepository) SaveRoleFullNames(hostID string, names *domain.RoleF
 						service_name,
 						name
 					)
-					select ?, ?
-					where not exists (
-						select 1 from roles where service_name=? and name=?
-					)
+					select ?, ? where not exists (select 1 from roles where service_name=? and name=?)
 					`,
 					svc,
 					role[i],
@@ -459,7 +447,7 @@ func (repo *HostRepository) Retire(hostID string, retire *domain.HostRetire) (*d
 // +----+-------------+--------------------+------------+------+---------------+---------+---------+-------------+------+----------+-------+
 // 1 row in set, 1 warning (0.00 sec)
 func (repo *HostRepository) ExistsMetric(hostID, name string) bool {
-	rows, err := repo.Query("select * from host_metric_values where host_id=? and name=? limit 1", hostID, name)
+	rows, err := repo.Query("select 1 from host_metric_values where host_id=? and name=? limit 1", hostID, name)
 	if err != nil {
 		panic(err)
 	}

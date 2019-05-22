@@ -57,8 +57,20 @@ func (repo *AlertRepository) Exists(alertID string) bool {
 }
 
 func (repo *AlertRepository) List(withClosed bool, nextID string, limit int) (*domain.Alerts, error) {
-	// TODO withClosed, nextID
-	rows, err := repo.Query("select * from alerts limit ?", limit)
+	status := "CRITICAL"
+	if withClosed {
+		status = "OK"
+	}
+
+	rows, err := repo.Query(
+		`
+		select * from alerts
+		where status='CRITICAL' or status='WARNING' or status='UNKNOWN' or status=?
+		order by opened_at limit ?
+		`,
+		status,
+		limit+1,
+	)
 	if err != nil {
 		return nil, fmt.Errorf("select * from alerts: %v", err)
 	}
@@ -83,6 +95,13 @@ func (repo *AlertRepository) List(withClosed bool, nextID string, limit int) (*d
 		}
 
 		alerts = append(alerts, alert)
+	}
+
+	if len(alerts) > limit {
+		return &domain.Alerts{
+			Alerts: alerts[:len(alerts)-1],
+			NextID: alerts[len(alerts)-1].ID,
+		}, nil
 	}
 
 	return &domain.Alerts{Alerts: alerts}, nil
