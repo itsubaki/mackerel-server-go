@@ -12,12 +12,16 @@ func NewOrgRepository() *OrgRepository {
 	return &OrgRepository{
 		Orgs: []domain.Org{
 			{
-				Name: "mackerel-api",
+				Name: "default",
 			},
 		},
 	}
 }
 
-func (repo *OrgRepository) Org() (*domain.Org, error) {
+func (repo *OrgRepository) Org(org string) (*domain.Org, error) {
 	return &repo.Orgs[0], nil
+}
+
+func (repo *OrgRepository) XAPIKey(xapikey string) (*domain.XAPIKey, error) {
+	return &domain.XAPIKey{}, nil
 }

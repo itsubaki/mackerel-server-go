@@ -14,7 +14,7 @@ func NewOrgRepository(handler SQLHandler) *OrgRepository {
 	if err := handler.Transact(func(tx Tx) error {
 		if _, err := tx.Exec(
 			`
-			create table if not exists xapikey (
+			create table if not exists orgs (
 				x_api_key varchar(45)  not null primary key,
 				name      varchar(16)  not null,
 				xread     boolean not  null default 1,
@@ -28,7 +28,7 @@ func NewOrgRepository(handler SQLHandler) *OrgRepository {
 
 		if _, err := tx.Exec(
 			`
-			insert into xapikey (
+			insert into orgs (
 				x_api_key,
 				name,
 				xread,
@@ -47,7 +47,7 @@ func NewOrgRepository(handler SQLHandler) *OrgRepository {
 			1,
 			"default",
 		); err != nil {
-			return fmt.Errorf("insert into xapikey: %v", err)
+			return fmt.Errorf("insert into orgs: %v", err)
 		}
 
 		return nil
@@ -60,12 +60,24 @@ func NewOrgRepository(handler SQLHandler) *OrgRepository {
 	}
 }
 
-func (repo *OrgRepository) Org() (*domain.Org, error) {
-	var name string
+// mysql> explain select * from orgs where x_api_key='2684d06cfedbee8499f326037bb6fb7e8c22e73b16bb';
+// +----+-------------+---------+------------+-------+---------------+---------+---------+-------+------+----------+-------+
+// | id | select_type | table   | partitions | type  | possible_keys | key     | key_len | ref   | rows | filtered | Extra |
+// +----+-------------+---------+------------+-------+---------------+---------+---------+-------+------+----------+-------+
+// |  1 | SIMPLE      | xapikey | NULL       | const | PRIMARY       | PRIMARY | 182     | const |    1 |   100.00 | NULL  |
+// +----+-------------+---------+------------+-------+---------------+---------+---------+-------+------+----------+-------+
+// 1 row in set, 1 warning (0.00 sec)
+func (repo *OrgRepository) XAPIKey(xapikey string) (*domain.XAPIKey, error) {
+	var key domain.XAPIKey
 	if err := repo.Transact(func(tx Tx) error {
-		row := tx.QueryRow("select * from orgs")
+		row := tx.QueryRow(`select * from orgs where x_api_key=?`, xapikey)
+
 		if err := row.Scan(
-			&name,
+			&key.XAPIKey,
+			&key.Name,
+			&key.Read,
+			&key.Write,
+			&key.Org,
 		); err != nil {
 			return fmt.Errorf("select * from orgs: %v", err)
 		}
@@ -75,5 +87,9 @@ func (repo *OrgRepository) Org() (*domain.Org, error) {
 		return nil, fmt.Errorf("transaction: %v", err)
 	}
 
-	return &domain.Org{Name: name}, nil
+	return &key, nil
+}
+
+func (repo *OrgRepository) Org(org string) (*domain.Org, error) {
+	return &domain.Org{Name: org}, nil
 }

@@ -27,9 +27,9 @@ runmysql:
 
 test:
 	set -x
-	curl -s localhost:8080/api/v0/org -H "X-Api-Key: secret" | jq .
-	curl -s localhost:8080/api/v0/services -X POST -H "Content-Type: application/json" -d '{"name": "ExampleService", "memo": "This is an example."}' | jq .
-	curl -s localhost:8080/api/v0/services/ExampleService/metadata/foobar -X PUT -H "Content-Type: application/json" -d '{"message": "this is service metadata"}' | jq .
+	curl -s localhost:8080/api/v0/org -H "X-Api-Key: 2684d06cfedbee8499f326037bb6fb7e8c22e73b16bb" | jq .
+	curl -s localhost:8080/api/v0/services -X POST -d '{"name": "ExampleService", "memo": "This is an example."}' -H "Content-Type: application/json" -H "X-Api-Key: 2684d06cfedbee8499f326037bb6fb7e8c22e73b16bb" | jq .
+	curl -s localhost:8080/api/v0/services/ExampleService/metadata/foobar -X PUT -H "Content-Type: application/json" -d '{"message": "this is service metadata"}' -H "X-Api-Key: 2684d06cfedbee8499f326037bb6fb7e8c22e73b16bb" | jq .
 	curl -s localhost:8080/api/v0/services/ExampleService/metadata/foobar | jq .
 	curl -s localhost:8080/api/v0/services/ExampleService/metadata | jq .
 	curl -s localhost:8080/api/v0/services/ExampleService/metadata/foobar -X DELETE | jq .
@@ -63,5 +63,5 @@ test:
 	curl -s localhost:8080/api/v0/hosts | jq .
 	curl -s localhost:8080/api/v0/hosts/${HOSTID}/retire -X POST -H "Content-Type: application/json" -d '{}' | jq .
 	curl -s localhost:8080/api/v0/invitations -X POST -H "Content-Type: application/json" -d '{"email": "example@example.com","authority": "viewer"}' | jq .
-	curl -s localhost:8080/api/v0/invitations
+	curl -s localhost:8080/api/v0/invitations | jq .
 	curl -s localhost:8080/api/v0/invitations/revoke -X POST -H "Content-Type: application/json" -d '{"email": "example@example.com"}' | jq .
