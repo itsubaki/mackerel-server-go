@@ -11,14 +11,20 @@ type OrgController struct {
 }
 
 func NewOrgController(handler database.SQLHandler) *OrgController {
+	var repo usecase.OrgRepository
+	repo = memory.NewOrgRepository()
+	if handler != nil {
+		repo = database.NewOrgRepository(handler)
+	}
+
 	return &OrgController{
 		Interactor: &usecase.OrgInteractor{
-			OrgRepository: memory.NewOrgRepository(),
+			OrgRepository: repo,
 		},
 	}
 }
 
 func (s *OrgController) Org(c Context) {
-	out, err := s.Interactor.Org(c.GetHeader("X-Api-Key"))
+	out, err := s.Interactor.Org()
 	doResponse(c, out, err)
 }

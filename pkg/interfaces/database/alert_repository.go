@@ -16,16 +16,16 @@ func NewAlertRepository(handler SQLHandler) *AlertRepository {
 		if _, err := tx.Exec(
 			`
 			create table if not exists alerts (
-				id varchar(16) not null primary key,
-				status varchar(16) not null,
+				id         varchar(16) not null primary key,
+				status     varchar(16) not null,
 				monitor_id varchar(16) not null,
-				type varchar(16) not null,
-				host_id varchar(16),
-				value double not null,
-				message text,
-				reason text,
-				opened_at bigint,
-				closed_at bigint
+				type       varchar(16) not null,
+				host_id    varchar(16),
+				value      double not null,
+				message    text,
+				reason     text,
+				opened_at  bigint,
+				closed_at  bigint
 			)
 			`,
 		); err != nil {

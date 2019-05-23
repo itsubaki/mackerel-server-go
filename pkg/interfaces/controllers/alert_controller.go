@@ -61,5 +61,6 @@ func (s *AlertController) Close(c Context) {
 		c.Param("alertId"),
 		in.Reason,
 	)
+
 	doResponse(c, out, err)
 }

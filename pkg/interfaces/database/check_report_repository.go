@@ -15,14 +15,14 @@ func NewCheckReportRepository(handler SQLHandler) *CheckReportRepository {
 		if _, err := tx.Exec(
 			`
 			create table if not exists check_reports (
-				host_id varchar(16) not null,
-				type varchar(16) not null,
-				name varchar(128) not null,
-				status varchar(16) not null,
-				message text,
-				occurred_at bigint,
+				host_id               varchar(16)  not null,
+				type                  varchar(16)  not null,
+				name                  varchar(128) not null,
+				status                varchar(16)  not null,
+				message               text,
+				occurred_at           bigint,
 				notification_interval bigint,
-				max_check_attempts bigint,
+				max_check_attempts    bigint,
 				primary key(host_id, type, name)
 			)
 			`,

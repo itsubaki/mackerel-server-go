@@ -27,8 +27,8 @@ func NewServiceRepository(handler SQLHandler) *ServiceRepository {
 			`
 			create table if not exists roles (
 				service_name varchar(128) not null,
-				name varchar(128) not null,
-				memo varchar(128) not null default '',
+				name         varchar(128) not null,
+				memo         varchar(128) not null default '',
 				primary key(service_name, name),
 				foreign key fk_service_name (service_name) references services(name) on delete cascade on update cascade
 			)
@@ -40,10 +40,10 @@ func NewServiceRepository(handler SQLHandler) *ServiceRepository {
 		if _, err := tx.Exec(
 			`
 			create table if not exists service_metric_values (
-				service_name varchar(16) not null,
-				name varchar(128) not null,
-				time bigint not null,
-				value double not null,
+				service_name varchar(16)  not null,
+				name         varchar(128) not null,
+				time         bigint not null,
+				value        double not null,
 				primary key(service_name, name, time)
 			)
 			`,

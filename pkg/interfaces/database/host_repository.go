@@ -17,20 +17,20 @@ func NewHostRepository(handler SQLHandler) *HostRepository {
 		if _, err := tx.Exec(
 			`
 			create table if not exists hosts (
-				id varchar(16) not null primary key,
-				name varchar(128) not null,
-				status varchar(16) not null,
-				memo varchar(128) not null default '',
-				display_name varchar(128),
+				id                varchar(16)  not null primary key,
+				name              varchar(128) not null,
+				status            varchar(16)  not null,
+				memo              varchar(128) not null default '',
+				display_name      varchar(128),
 				custom_identifier varchar(128),
-				created_at bigint,
-				retired_at bigint,
-				is_retired boolean,
-				roles text,
-				role_fullnames text,
-				interfaces text,
-				checks text,
-				meta text
+				created_at        bigint,
+				retired_at        bigint,
+				is_retired        boolean,
+				roles             text,
+				role_fullnames    text,
+				interfaces        text,
+				checks            text,
+				meta              text
 			)
 			`,
 		); err != nil {
@@ -40,10 +40,10 @@ func NewHostRepository(handler SQLHandler) *HostRepository {
 		if _, err := tx.Exec(
 			`
 			create table if not exists host_metric_values (
-				host_id varchar(16) not null,
-				name varchar(128) not null,
-				time bigint not null,
-				value double not null,
+				host_id varchar(16)  not null,
+				name    varchar(128) not null,
+				time    bigint not null,
+				value   double not null,
 				primary key(host_id, name, time)
 			)
 			`,
@@ -54,9 +54,9 @@ func NewHostRepository(handler SQLHandler) *HostRepository {
 		if _, err := tx.Exec(
 			`
 			create table if not exists host_metric_values_latest (
-				host_id varchar(16) not null,
-				name varchar(128) not null,
-				value double not null,
+				host_id varchar(16)  not null,
+				name    varchar(128) not null,
+				value   double       not null,
 				primary key(host_id, name)
 			)
 			`,
