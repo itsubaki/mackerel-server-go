@@ -2,7 +2,6 @@ package database
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/itsubaki/mackerel-api/pkg/domain"
 )
@@ -27,19 +26,29 @@ func NewOrgRepository(handler SQLHandler) *OrgRepository {
 			return fmt.Errorf("create table orgs: %v", err)
 		}
 
-		key := domain.NewXAPIKey("default", "default", true)
-		if _, err := tx.Exec(`
-			insert into xapikey values (?, ?, ?, ?, ?) 
-		`,
-			key.XAPIKey,
-			key.Name,
-			key.Read,
-			key.Write,
-			key.Org,
+		if _, err := tx.Exec(
+			`
+			insert into xapikey (
+				x_api_key,
+				name,
+				xread,
+				xwrite,
+				org
+			) values (?, ?, ?, ?, ?)
+			on duplicate key update
+				name   = values(name),
+				xread  = values(xread),
+				xwrite = values(xwrite),
+				org    = values(org)
+			`,
+			"2684d06cfedbee8499f326037bb6fb7e8c22e73b16bb",
+			"default",
+			1,
+			1,
+			"default",
 		); err != nil {
 			return fmt.Errorf("insert into xapikey: %v", err)
 		}
-		log.Printf("%#v\n", key)
 
 		return nil
 	}); err != nil {

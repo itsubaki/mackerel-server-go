@@ -1,6 +1,7 @@
 package infrastructure
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -12,8 +13,51 @@ func Default() *gin.Engine {
 	return Router(nil)
 }
 
+// mysql> explain select * from xapikey where xwrite='1' and x_api_key='2684d06cfedbee8499f326037bb6fb7e8c22e73b16bb';
+// +----+-------------+---------+------------+-------+---------------+---------+---------+-------+------+----------+-------+
+// | id | select_type | table   | partitions | type  | possible_keys | key     | key_len | ref   | rows | filtered | Extra |
+// +----+-------------+---------+------------+-------+---------------+---------+---------+-------+------+----------+-------+
+// |  1 | SIMPLE      | xapikey | NULL       | const | PRIMARY       | PRIMARY | 182     | const |    1 |   100.00 | NULL  |
+// +----+-------------+---------+------------+-------+---------------+---------+---------+-------+------+----------+-------+
+// 1 row in set, 1 warning (0.00 sec)
+func auth(handler database.SQLHandler) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var org string
+		write := false
+		if err := handler.Transact(func(tx database.Tx) error {
+			row := tx.QueryRow(
+				`
+				select org, xwrite from xapikey where x_api_key=?
+				`,
+				c.GetHeader("X-Api-Key"),
+			)
+
+			if err := row.Scan(
+				&org,
+				&write,
+			); err != nil {
+				return fmt.Errorf("select * from xapikey: %v", err)
+			}
+
+			return nil
+		}); err != nil {
+			c.Status(http.StatusInternalServerError)
+			c.Abort()
+		}
+
+		if c.Request.Method != http.MethodGet && !write {
+			c.Status(http.StatusForbidden)
+			c.Abort()
+		}
+
+		c.Next()
+	}
+}
+
 func Router(handler database.SQLHandler) *gin.Engine {
 	g := gin.Default()
+	g.Use(auth(handler))
+
 	{
 		g.GET("/", func(c *gin.Context) {
 			c.Status(http.StatusOK)
