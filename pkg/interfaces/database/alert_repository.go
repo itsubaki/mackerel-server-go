@@ -121,7 +121,7 @@ func (repo *AlertRepository) Close(alertID, reason string) (*domain.Alert, error
 			return fmt.Errorf("update alerts: %v", err)
 		}
 
-		row := tx.QueryRow("select * from alerts where id=? for update", alertID)
+		row := tx.QueryRow("select * from alerts where id=?", alertID)
 		if err := row.Scan(
 			&alert.ID,
 			&alert.Status,
