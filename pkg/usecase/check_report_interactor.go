@@ -7,5 +7,5 @@ type CheckReportInteractor struct {
 }
 
 func (s *CheckReportInteractor) Save(org string, reports *domain.CheckReports) (*domain.Success, error) {
-	return s.CheckReportRepository.Save(reports)
+	return s.CheckReportRepository.Save(org, reports)
 }

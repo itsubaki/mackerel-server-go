@@ -7,5 +7,5 @@ type GraphInteractor struct {
 }
 
 func (s *GraphInteractor) Save(org string, g []domain.GraphDef) (*domain.Success, error) {
-	return s.GraphRepository.Save(g)
+	return s.GraphRepository.Save(org, g)
 }
