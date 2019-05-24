@@ -15,23 +15,16 @@ func Default() *gin.Engine {
 func Router(handler database.SQLHandler) *gin.Engine {
 	g := gin.Default()
 
-	//org := controllers.NewOrgController(handler)
-	//g.Use(func(c *gin.Context) {
-	//	c.Set("Method", c.Request.Method)
-	//	org.AuthRequired(c)
-	//})
+	auth := controllers.NewAuthController(handler)
+	g.Use(func(c *gin.Context) {
+		c.Set("Method", c.Request.Method)
+		auth.Required(c)
+	})
 
 	{
 		g.GET("/", func(c *gin.Context) {
 			c.Status(http.StatusOK)
 		})
-	}
-
-	v0 := g.Group("/api").Group("/v0")
-	{
-		org := controllers.NewOrgController(handler)
-		o := v0.Group("/org")
-		o.GET("", func(c *gin.Context) { org.Org(c) })
 	}
 
 	{
@@ -123,6 +116,13 @@ func Router(handler database.SQLHandler) *gin.Engine {
 		u := v0.Group("/users")
 		u.GET("", func(c *gin.Context) { users.List(c) })
 		u.DELETE("/:userId", func(c *gin.Context) { users.Delete(c) })
+	}
+
+	v0 := g.Group("/api").Group("/v0")
+	{
+		org := controllers.NewOrgController(handler)
+		o := v0.Group("/org")
+		o.GET("", func(c *gin.Context) { org.Org(c) })
 	}
 
 	return g
