@@ -6,7 +6,7 @@ CONTENTTYPE := application/json
 
 runserver:
 	set -x
-	-rm ${GOPATH}/bin/mackerel-api
+	-rm $(shell go env GOPATH)/bin/mackerel-api
 	go install
 	GIN_MODE=release mackerel-api
 

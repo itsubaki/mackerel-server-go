@@ -58,7 +58,7 @@ docker run --name mysqld -e MYSQL_ROOT_PASSWORD=secret -p 3307:3306 -d mysql
 ```
 $ make
 set -x
-rm /Users/tsubaki/go/bin/mackerel-api
+rm  ${GOPATH}/bin/mackerel-api
 go install
 GIN_MODE=release mackerel-api
 ```
@@ -67,7 +67,7 @@ GIN_MODE=release mackerel-api
 $ make runclient
 set -x
 GO111MODULE=off go get -d github.com/mackerelio/go-check-plugins
-cd /Users/tsubaki/go/src/github.com/mackerelio/go-check-plugins/check-tcp; go install
+cd  ${GOPATH}/src/github.com/mackerelio/go-check-plugins/check-tcp; go install
 cp mackerel-agent.conf /usr/local/etc/mackerel-agent.conf
 rm ~/Library/mackerel-agent/id
 mackerel-agent -conf /usr/local/etc/mackerel-agent.conf -apibase=http://localhost:8080
