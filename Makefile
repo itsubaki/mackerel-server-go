@@ -8,7 +8,7 @@ runserver:
 	set -x
 	-rm ${GOPATH}/bin/mackerel-api
 	go install
-	GIN_MODE=release MACKEREL_API_AUTH=false mackerel-api
+	GIN_MODE=release MACKEREL_API_AUTH=true mackerel-api
 
 runclient:
 	set -x
