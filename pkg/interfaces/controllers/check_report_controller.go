@@ -27,6 +27,10 @@ func (s *CheckReportController) Save(c Context) {
 		return
 	}
 
-	out, err := s.Interactor.Save(&in)
+	out, err := s.Interactor.Save(
+		c.GetString("org"),
+		&in,
+	)
+
 	doResponse(c, out, err)
 }

@@ -2,7 +2,6 @@ package infrastructure
 
 import (
 	"net/http"
-	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/itsubaki/mackerel-api/pkg/interfaces/controllers"
@@ -16,13 +15,11 @@ func Default() *gin.Engine {
 func Router(handler database.SQLHandler) *gin.Engine {
 	g := gin.Default()
 
-	if os.Getenv("MACKEREL_API_AUTH") == "true" {
-		auth := controllers.NewAuthController(handler)
-		g.Use(func(c *gin.Context) {
-			c.Set("Method", c.Request.Method)
-			auth.Required(c)
-		})
-	}
+	auth := controllers.NewAuthController(handler)
+	g.Use(func(c *gin.Context) {
+		c.Set("Method", c.Request.Method)
+		auth.Required(c)
+	})
 
 	{
 		g.GET("/", func(c *gin.Context) {

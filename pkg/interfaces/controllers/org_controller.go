@@ -18,6 +18,9 @@ func NewOrgController(handler database.SQLHandler) *OrgController {
 }
 
 func (s *OrgController) Org(c Context) {
-	out, err := s.Interactor.Org(c.GetString("org"))
+	out, err := s.Interactor.Org(
+		c.GetString("org"),
+	)
+
 	doResponse(c, out, err)
 }

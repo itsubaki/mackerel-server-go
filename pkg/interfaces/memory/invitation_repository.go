@@ -18,11 +18,11 @@ func NewInvitationRepository() *InvitationRepository {
 	}
 }
 
-func (repo *InvitationRepository) List() (*domain.Invitations, error) {
+func (repo *InvitationRepository) List(org string) (*domain.Invitations, error) {
 	return repo.Invitations, nil
 }
 
-func (repo *InvitationRepository) Exists(email string) bool {
+func (repo *InvitationRepository) Exists(org, email string) bool {
 	for i := range repo.Invitations.Invitations {
 		if repo.Invitations.Invitations[i].EMail == email {
 			return true
@@ -32,13 +32,13 @@ func (repo *InvitationRepository) Exists(email string) bool {
 	return false
 }
 
-func (repo *InvitationRepository) Save(inv *domain.Invitation) (*domain.Invitation, error) {
+func (repo *InvitationRepository) Save(org string, inv *domain.Invitation) (*domain.Invitation, error) {
 	inv.ExpiresAt = time.Now().Unix() + 604800
 	repo.Invitations.Invitations = append(repo.Invitations.Invitations, *inv)
 	return inv, nil
 }
 
-func (repo *InvitationRepository) Revoke(email string) (*domain.Success, error) {
+func (repo *InvitationRepository) Revoke(org, email string) (*domain.Success, error) {
 	list := make([]domain.Invitation, 0)
 	for i := range repo.Invitations.Invitations {
 		if repo.Invitations.Invitations[i].EMail == email {

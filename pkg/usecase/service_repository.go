@@ -3,32 +3,32 @@ package usecase
 import "github.com/itsubaki/mackerel-api/pkg/domain"
 
 type ServiceRepository interface {
-	List() (*domain.Services, error)
-	Exists(serviceName string) bool
-	Service(serviceName string) (*domain.Service, error)
-	Save(service *domain.Service) error
-	Delete(serviceName string) error
+	List(org string) (*domain.Services, error)
+	Exists(org, serviceName string) bool
+	Service(org, serviceName string) (*domain.Service, error)
+	Save(org string, service *domain.Service) error
+	Delete(org, serviceName string) error
 
-	ExistsMetadata(serviceName, namespace string) bool
-	MetadataList(serviceName string) (*domain.ServiceMetadataList, error)
-	Metadata(serviceName, namespace string) (interface{}, error)
-	SaveMetadata(serviceName, namespace string, metadata interface{}) (*domain.Success, error)
-	DeleteMetadata(serviceName, namespace string) (*domain.Success, error)
+	ExistsMetadata(org, serviceName, namespace string) bool
+	MetadataList(org, serviceName string) (*domain.ServiceMetadataList, error)
+	Metadata(org, serviceName, namespace string) (interface{}, error)
+	SaveMetadata(org, serviceName, namespace string, metadata interface{}) (*domain.Success, error)
+	DeleteMetadata(org, serviceName, namespace string) (*domain.Success, error)
 
-	ExistsRole(serviceName, roleName string) bool
-	RoleList(serviceName string) (*domain.Roles, error)
-	Role(serviceName, roleName string) (*domain.Role, error)
-	SaveRole(serviceName string, role *domain.Role) error
-	DeleteRole(serviceName, roleName string) error
+	ExistsRole(org, serviceName, roleName string) bool
+	RoleList(org, serviceName string) (*domain.Roles, error)
+	Role(org, serviceName, roleName string) (*domain.Role, error)
+	SaveRole(org, serviceName string, role *domain.Role) error
+	DeleteRole(org, serviceName, roleName string) error
 
-	ExistsRoleMetadata(serviceName, roleName, namespace string) bool
-	RoleMetadataList(serviceName, roleName string) (*domain.RoleMetadataList, error)
-	RoleMetadata(serviceName, roleName, namespace string) (interface{}, error)
-	SaveRoleMetadata(serviceName, roleName, namespace string, metadata interface{}) (*domain.Success, error)
-	DeleteRoleMetadata(serviceName, roleName, namespace string) (*domain.Success, error)
+	ExistsRoleMetadata(org, serviceName, roleName, namespace string) bool
+	RoleMetadataList(org, serviceName, roleName string) (*domain.RoleMetadataList, error)
+	RoleMetadata(org, serviceName, roleName, namespace string) (interface{}, error)
+	SaveRoleMetadata(org, serviceName, roleName, namespace string, metadata interface{}) (*domain.Success, error)
+	DeleteRoleMetadata(org, serviceName, roleName, namespace string) (*domain.Success, error)
 
-	ExistsMetric(serviceName, metricName string) bool
-	MetricNames(serviceName string) (*domain.ServiceMetricValueNames, error)
-	MetricValues(serviceName, metricName string, from, to int64) (*domain.ServiceMetricValues, error)
-	SaveMetricValues(serviceName string, values []domain.ServiceMetricValue) (*domain.Success, error)
+	ExistsMetric(org, serviceName, metricName string) bool
+	MetricNames(org, serviceName string) (*domain.ServiceMetricValueNames, error)
+	MetricValues(org, serviceName, metricName string, from, to int64) (*domain.ServiceMetricValues, error)
+	SaveMetricValues(org, serviceName string, values []domain.ServiceMetricValue) (*domain.Success, error)
 }

@@ -15,6 +15,7 @@ func NewCheckReportRepository(handler SQLHandler) *CheckReportRepository {
 		if _, err := tx.Exec(
 			`
 			create table if not exists check_reports (
+				org                   varchar(64)  not null,
 				host_id               varchar(16)  not null,
 				type                  varchar(16)  not null,
 				name                  varchar(128) not null,
@@ -40,12 +41,13 @@ func NewCheckReportRepository(handler SQLHandler) *CheckReportRepository {
 	}
 }
 
-func (repo *CheckReportRepository) Save(reports *domain.CheckReports) (*domain.Success, error) {
+func (repo *CheckReportRepository) Save(org string, reports *domain.CheckReports) (*domain.Success, error) {
 	if err := repo.Transact(func(tx Tx) error {
 		for i := range reports.Reports {
 			if _, err := tx.Exec(
 				`
 				insert into check_reports (
+					org,
 					host_id,
 					type,
 					name,
@@ -55,13 +57,14 @@ func (repo *CheckReportRepository) Save(reports *domain.CheckReports) (*domain.S
 					notification_interval,
 					max_check_attempts
 				)
-				values (?, ?, ?, ?, ?, ?, ?, ?)
+				values (?, ?, ?, ?, ?, ?, ?, ?, ?)
 				on duplicate key update
 					status = values(status),
 					message = values(message),
 					notification_interval = values(notification_interval),
 					max_check_attempts = values(max_check_attempts)
 				`,
+				org,
 				reports.Reports[i].Source.HostID,
 				reports.Reports[i].Source.Type,
 				reports.Reports[i].Name,

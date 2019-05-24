@@ -16,8 +16,10 @@ func NewServiceRepository(handler SQLHandler) *ServiceRepository {
 		if _, err := tx.Exec(
 			`
 			create table if not exists services (
-				name varchar(128) not null primary key,
-				memo varchar(128) not null default ''
+				org  varchar(64)  not null,
+				name varchar(128) not null,
+				memo varchar(128) not null default '',
+				primary key(org, name)
 			)
 			`,
 		); err != nil {
@@ -27,11 +29,12 @@ func NewServiceRepository(handler SQLHandler) *ServiceRepository {
 		if _, err := tx.Exec(
 			`
 			create table if not exists roles (
+				org          varchar(64)  not null,
 				service_name varchar(128) not null,
 				name         varchar(128) not null,
 				memo         varchar(128) not null default '',
-				primary key(service_name, name),
-				foreign key fk_service_name (service_name) references services(name) on delete cascade on update cascade
+				primary key(org, service_name, name),
+				foreign key fk_service_name (org, service_name) references services(org, name) on delete cascade on update cascade
 			)
 			`,
 		); err != nil {
@@ -41,11 +44,12 @@ func NewServiceRepository(handler SQLHandler) *ServiceRepository {
 		if _, err := tx.Exec(
 			`
 			create table if not exists service_metric_values (
+				org          varchar(64)  not null,
 				service_name varchar(16)  not null,
 				name         varchar(128) not null,
 				time         bigint not null,
 				value        double not null,
-				primary key(service_name, name, time)
+				primary key(org, service_name, name, time)
 			)
 			`,
 		); err != nil {
@@ -55,10 +59,11 @@ func NewServiceRepository(handler SQLHandler) *ServiceRepository {
 		if _, err := tx.Exec(
 			`
 			create table if not exists service_meta (
+				org          varchar(64)  not null,
 				service_name varchar(16)  not null,
 				namespace    varchar(128) not null,
 				meta         text,
-				primary key(service_name, namespace)
+				primary key(org, service_name, namespace)
 			)
 			`,
 		); err != nil {
@@ -68,11 +73,12 @@ func NewServiceRepository(handler SQLHandler) *ServiceRepository {
 		if _, err := tx.Exec(
 			`
 			create table if not exists role_meta (
+				org          varchar(64)  not null,
 				service_name varchar(16)  not null,
 				role_name    varchar(16)  not null,
 				namespace    varchar(128) not null,
 				meta         text,
-				primary key(role_name, namespace)
+				primary key(org, role_name, namespace)
 			)
 			`,
 		); err != nil {
@@ -103,11 +109,11 @@ func NewServiceRepository(handler SQLHandler) *ServiceRepository {
 // |  1 | SIMPLE      | services | NULL       | const | PRIMARY       | PRIMARY | 514     | const |    1 |   100.00 | NULL  |
 // +----+-------------+----------+------------+-------+---------------+---------+---------+-------+------+----------+-------+
 // 1 row in set, 1 warning (0.01 sec)
-func (repo *ServiceRepository) List() (*domain.Services, error) {
+func (repo *ServiceRepository) List(org string) (*domain.Services, error) {
 	services := make([]domain.Service, 0)
 
 	if err := repo.Transact(func(tx Tx) error {
-		rows, err := tx.Query("select service_name, name from roles")
+		rows, err := tx.Query("select service_name, name from roles where org=?", org)
 		if err != nil {
 			return fmt.Errorf("select service_name, name from roles: %v", err)
 		}
@@ -136,7 +142,7 @@ func (repo *ServiceRepository) List() (*domain.Services, error) {
 				Roles: roles[svc],
 			}
 
-			row := tx.QueryRow("select memo from services where name=?", svc)
+			row := tx.QueryRow("select memo from services where org=? and name=?", org, svc)
 			if err := row.Scan(
 				&service.Memo,
 			); err != nil {
@@ -155,18 +161,20 @@ func (repo *ServiceRepository) List() (*domain.Services, error) {
 }
 
 // insert into services values()
-func (repo *ServiceRepository) Save(s *domain.Service) error {
+func (repo *ServiceRepository) Save(org string, s *domain.Service) error {
 	if err := repo.Transact(func(tx Tx) error {
 		if _, err := tx.Exec(
 			`
 			insert into services (
+				org,
 				name,
 				memo
 			)
-			values (?, ?)
+			values (?, ?, ?)
 			on duplicate key update
 				name = values(memo)
 			`,
+			org,
 			s.Name,
 			s.Memo,
 		); err != nil {
@@ -177,13 +185,16 @@ func (repo *ServiceRepository) Save(s *domain.Service) error {
 			if _, err := tx.Exec(
 				`
 				insert into roles (
+					org,
 					service_name,
 					name
 				)
-				select ? ,? where not exists (select 1 from roles where service_name=? and name=?)
+				select ?, ?, ? where not exists (select 1 from roles where org=? and service_name=? and name=?)
 				`,
+				org,
 				s.Name,
 				s.Roles[i],
+				org,
 				s.Name,
 				s.Roles[i],
 			); err != nil {
@@ -206,13 +217,13 @@ func (repo *ServiceRepository) Save(s *domain.Service) error {
 // |  1 | SIMPLE      | roles | NULL       | ref  | PRIMARY       | PRIMARY | 514     | const |    2 |   100.00 | Using index |
 // +----+-------------+-------+------------+------+---------------+---------+---------+-------+------+----------+-------------+
 // 1 row in set, 1 warning (0.00 sec)
-func (repo *ServiceRepository) Service(serviceName string) (*domain.Service, error) {
+func (repo *ServiceRepository) Service(org, serviceName string) (*domain.Service, error) {
 	service := domain.Service{
 		Roles: []string{},
 	}
 
 	if err := repo.Transact(func(tx Tx) error {
-		row := tx.QueryRow("select * from services where name=?", serviceName)
+		row := tx.QueryRow("select name, memo from services where org=? and name=?", org, serviceName)
 		if err := row.Scan(
 			&service.Name,
 			&service.Memo,
@@ -220,7 +231,7 @@ func (repo *ServiceRepository) Service(serviceName string) (*domain.Service, err
 			return fmt.Errorf("scan: %v", err)
 		}
 
-		rows, err := tx.Query("select name from roles where service_name=?", serviceName)
+		rows, err := tx.Query("select name from roles where org=? and service_name=?", org, serviceName)
 		if err != nil {
 			return fmt.Errorf("select name from roles: %v", err)
 		}
@@ -249,8 +260,8 @@ func (repo *ServiceRepository) Service(serviceName string) (*domain.Service, err
 // |  1 | SIMPLE      | services | NULL       | const | PRIMARY       | PRIMARY | 514     | const |    1 |   100.00 | NULL  |
 // +----+-------------+----------+------------+-------+---------------+---------+---------+-------+------+----------+-------+
 // 1 row in set, 1 warning (0.00 sec)
-func (repo *ServiceRepository) Exists(serviceName string) bool {
-	rows, err := repo.Query("select 1 from services where name=? limit 1", serviceName)
+func (repo *ServiceRepository) Exists(org, serviceName string) bool {
+	rows, err := repo.Query("select 1 from services where org=? and name=? limit 1", org, serviceName)
 	if err != nil {
 		panic(err)
 	}
@@ -264,9 +275,9 @@ func (repo *ServiceRepository) Exists(serviceName string) bool {
 }
 
 // delete from services where service_name=${serviceName}
-func (repo *ServiceRepository) Delete(serviceName string) error {
+func (repo *ServiceRepository) Delete(org, serviceName string) error {
 	if err := repo.Transact(func(tx Tx) error {
-		if _, err := tx.Exec("delete from services where name=?", serviceName); err != nil {
+		if _, err := tx.Exec("delete from services where org=? and name=?", org, serviceName); err != nil {
 			return fmt.Errorf("delete from services: %v", err)
 		}
 
@@ -279,10 +290,10 @@ func (repo *ServiceRepository) Delete(serviceName string) error {
 }
 
 // select * from service_roles where service_name=${serviceName}
-func (repo *ServiceRepository) RoleList(serviceName string) (*domain.Roles, error) {
+func (repo *ServiceRepository) RoleList(org, serviceName string) (*domain.Roles, error) {
 	var roles []domain.Role
 	if err := repo.Transact(func(tx Tx) error {
-		rows, err := tx.Query("select name, memo from roles where service_name=?", serviceName)
+		rows, err := tx.Query("select name, memo from roles where org=? and service_name=?", org, serviceName)
 		if err != nil {
 			return fmt.Errorf("select name, memo from roles: %v", err)
 		}
@@ -309,21 +320,23 @@ func (repo *ServiceRepository) RoleList(serviceName string) (*domain.Roles, erro
 }
 
 // insert into service_roles values(${serviceName}, ${roleName}, ${Memo})
-func (repo *ServiceRepository) SaveRole(serviceName string, r *domain.Role) error {
+func (repo *ServiceRepository) SaveRole(org, serviceName string, r *domain.Role) error {
 	if err := repo.Transact(func(tx Tx) error {
 		if _, err := tx.Exec(
 			`
 			insert into roles (
+				org,
 				service_name,
 				name,
 				memo
 			)
-			values (?, ?, ?)
+			values (?, ?, ?, ?)
 			on duplicate key update
 				service_name = values(service_name),
 				name = values(name),
 				memo = values(memo)
 			`,
+			org,
 			serviceName,
 			r.Name,
 			r.Memo,
@@ -340,8 +353,8 @@ func (repo *ServiceRepository) SaveRole(serviceName string, r *domain.Role) erro
 }
 
 // select * from service_roles where service_name=${serviceName} and role_name=${roleName}
-func (repo *ServiceRepository) ExistsRole(serviceName, roleName string) bool {
-	rows, err := repo.Query("select 1 from roles where service_name=? and name=? limit 1", serviceName, roleName)
+func (repo *ServiceRepository) ExistsRole(org, serviceName, roleName string) bool {
+	rows, err := repo.Query("select 1 from roles where org=? and service_name=? and name=? limit 1", org, serviceName, roleName)
 	if err != nil {
 		panic(err)
 	}
@@ -355,14 +368,14 @@ func (repo *ServiceRepository) ExistsRole(serviceName, roleName string) bool {
 }
 
 // select * from service_roles where service_name=${serviceName} and role_name=${roleName}
-func (repo *ServiceRepository) Role(serviceName, roleName string) (*domain.Role, error) {
+func (repo *ServiceRepository) Role(org, serviceName, roleName string) (*domain.Role, error) {
 	role := domain.Role{
 		ServiceName: serviceName,
 		Name:        roleName,
 	}
 
 	if err := repo.Transact(func(tx Tx) error {
-		row := repo.QueryRow("select memo from roles where service_name=? and name=?", serviceName, roleName)
+		row := repo.QueryRow("select memo from roles where org=? and service_name=? and name=?", org, serviceName, roleName)
 		if err := row.Scan(
 			&role.Memo,
 		); err != nil {
@@ -378,9 +391,9 @@ func (repo *ServiceRepository) Role(serviceName, roleName string) (*domain.Role,
 }
 
 // delete from service_roles where service_name=${serviceName} and role_name=${roleName}
-func (repo *ServiceRepository) DeleteRole(serviceName, roleName string) error {
+func (repo *ServiceRepository) DeleteRole(org, serviceName, roleName string) error {
 	if err := repo.Transact(func(tx Tx) error {
-		if _, err := tx.Exec("delete from roles where service_name=? and name=?", serviceName, roleName); err != nil {
+		if _, err := tx.Exec("delete from roles where org=? and service_name=? and name=?", org, serviceName, roleName); err != nil {
 			return fmt.Errorf("delete from roles: %v", err)
 		}
 
@@ -393,8 +406,8 @@ func (repo *ServiceRepository) DeleteRole(serviceName, roleName string) error {
 }
 
 // select * from service_metrics where service_name=${serviceName} and name=${metricName}
-func (repo *ServiceRepository) ExistsMetric(serviceName, metricName string) bool {
-	rows, err := repo.Query("select 1 from service_metric_values where service_name=? and name=? limit 1", serviceName, metricName)
+func (repo *ServiceRepository) ExistsMetric(org, serviceName, metricName string) bool {
+	rows, err := repo.Query("select 1 from service_metric_values where org=? and service_name=? and name=? limit 1", org, serviceName, metricName)
 	if err != nil {
 		panic(err)
 	}
@@ -408,10 +421,10 @@ func (repo *ServiceRepository) ExistsMetric(serviceName, metricName string) bool
 }
 
 // select distinct name from service_metrics where service_name=${serviceName}
-func (repo *ServiceRepository) MetricNames(serviceName string) (*domain.ServiceMetricValueNames, error) {
+func (repo *ServiceRepository) MetricNames(org, serviceName string) (*domain.ServiceMetricValueNames, error) {
 	names := make([]string, 0)
 	if err := repo.Transact(func(tx Tx) error {
-		rows, err := repo.Query("select distinct name from service_metric_values where service_name=?", serviceName)
+		rows, err := repo.Query("select distinct name from service_metric_values where org=? and service_name=?", org, serviceName)
 		if err != nil {
 			return fmt.Errorf("select distinct name from service_metric_values: %v", err)
 		}
@@ -435,10 +448,10 @@ func (repo *ServiceRepository) MetricNames(serviceName string) (*domain.ServiceM
 }
 
 // select * from service_metrics where service_name=${serviceName} and name=${metricName}  and ${from} < from and to < ${to}
-func (repo *ServiceRepository) MetricValues(serviceName, metricName string, from, to int64) (*domain.ServiceMetricValues, error) {
+func (repo *ServiceRepository) MetricValues(org, serviceName, metricName string, from, to int64) (*domain.ServiceMetricValues, error) {
 	values := make([]domain.ServiceMetricValue, 0)
 	if err := repo.Transact(func(tx Tx) error {
-		rows, err := tx.Query("select time, value from service_metric_values where service_name=? and name=? and ? < time and time < ?", serviceName, metricName, from, to)
+		rows, err := tx.Query("select time, value from service_metric_values where org=? and service_name=? and name=? and ? < time and time < ?", org, serviceName, metricName, from, to)
 		if err != nil {
 			return fmt.Errorf("select time, value from service_metric_values: %v", err)
 		}
@@ -468,11 +481,12 @@ func (repo *ServiceRepository) MetricValues(serviceName, metricName string, from
 }
 
 // insert into service_metrics values(${serviceName}, ${name}, ${time}, ${value})
-func (repo *ServiceRepository) SaveMetricValues(serviceName string, values []domain.ServiceMetricValue) (*domain.Success, error) {
+func (repo *ServiceRepository) SaveMetricValues(org, serviceName string, values []domain.ServiceMetricValue) (*domain.Success, error) {
 	if err := repo.Transact(func(tx Tx) error {
 		for i := range values {
 			if _, err := tx.Exec(
-				"insert into service_metric_values values(?, ?, ?, ?)",
+				"insert into service_metric_values values(?, ?, ?, ?, ?)",
+				org,
 				serviceName,
 				values[i].Name,
 				values[i].Time,
@@ -491,8 +505,8 @@ func (repo *ServiceRepository) SaveMetricValues(serviceName string, values []dom
 }
 
 // select * from service_metadata where service_name=${serviceName} and namespace=${namespace} limit=1
-func (repo *ServiceRepository) ExistsMetadata(serviceName, namespace string) bool {
-	rows, err := repo.Query("select 1 from service_meta where service_name=? and namespace=?", serviceName, namespace)
+func (repo *ServiceRepository) ExistsMetadata(org, serviceName, namespace string) bool {
+	rows, err := repo.Query("select 1 from service_meta where org=? and service_name=? and namespace=?", org, serviceName, namespace)
 	if err != nil {
 		panic(err)
 	}
@@ -506,10 +520,10 @@ func (repo *ServiceRepository) ExistsMetadata(serviceName, namespace string) boo
 }
 
 // select namespacee from service_metadata where service_name=${serviceName}
-func (repo *ServiceRepository) MetadataList(serviceName string) (*domain.ServiceMetadataList, error) {
+func (repo *ServiceRepository) MetadataList(org, serviceName string) (*domain.ServiceMetadataList, error) {
 	values := make([]domain.ServiceMetadata, 0)
 	if err := repo.Transact(func(tx Tx) error {
-		rows, err := tx.Query("select namespace from service_meta where service_name=?", serviceName)
+		rows, err := tx.Query("select namespace from service_meta where org=? and service_name=?", org, serviceName)
 		if err != nil {
 			return fmt.Errorf("select namespace from service_meta: %v", err)
 		}
@@ -535,10 +549,10 @@ func (repo *ServiceRepository) MetadataList(serviceName string) (*domain.Service
 }
 
 // select * from service_metadata where service_name=${serviceName} and namespace=${namespace}
-func (repo *ServiceRepository) Metadata(serviceName, namespace string) (interface{}, error) {
+func (repo *ServiceRepository) Metadata(org, serviceName, namespace string) (interface{}, error) {
 	var meta string
 	if err := repo.Transact(func(tx Tx) error {
-		row := tx.QueryRow("select meta from service_meta where service_name=? and namespace=?", serviceName, namespace)
+		row := tx.QueryRow("select meta from service_meta where org=? and service_name=? and namespace=?", org, serviceName, namespace)
 		if err := row.Scan(&meta); err != nil {
 			return fmt.Errorf("scan: %v", err)
 		}
@@ -557,7 +571,7 @@ func (repo *ServiceRepository) Metadata(serviceName, namespace string) (interfac
 }
 
 // insert into service_metadata values(${serviceName}, ${namespace}, ${metadata})
-func (repo *ServiceRepository) SaveMetadata(serviceName, namespace string, metadata interface{}) (*domain.Success, error) {
+func (repo *ServiceRepository) SaveMetadata(org, serviceName, namespace string, metadata interface{}) (*domain.Success, error) {
 	meta, err := json.Marshal(metadata)
 	if err != nil {
 		return &domain.Success{Success: false}, nil
@@ -565,7 +579,8 @@ func (repo *ServiceRepository) SaveMetadata(serviceName, namespace string, metad
 
 	if err := repo.Transact(func(tx Tx) error {
 		if _, err := tx.Exec(
-			"insert into service_meta values(?, ?, ?)",
+			"insert into service_meta values(?, ?, ?, ?)",
+			org,
 			serviceName,
 			namespace,
 			string(meta),
@@ -582,10 +597,11 @@ func (repo *ServiceRepository) SaveMetadata(serviceName, namespace string, metad
 }
 
 // delete from service_metadata where service_name=${serviceName} and namespace=${namespace}
-func (repo *ServiceRepository) DeleteMetadata(serviceName, namespace string) (*domain.Success, error) {
+func (repo *ServiceRepository) DeleteMetadata(org, serviceName, namespace string) (*domain.Success, error) {
 	if err := repo.Transact(func(tx Tx) error {
 		if _, err := tx.Exec(
-			"delete from service_meta where service_name=? and namespace=?",
+			"delete from service_meta where org=? and service_name=? and namespace=?",
+			org,
 			serviceName,
 			namespace,
 		); err != nil {
@@ -601,8 +617,14 @@ func (repo *ServiceRepository) DeleteMetadata(serviceName, namespace string) (*d
 }
 
 // select * from role_metadata where service_name=${serviceName} and role_name=${roleName} and namespace=${namespace} limit=1
-func (repo *ServiceRepository) ExistsRoleMetadata(serviceName, roleName, namespace string) bool {
-	rows, err := repo.Query("select 1 from role_meta where service_name=? and role_name=? and namespace=?", serviceName, roleName, namespace)
+func (repo *ServiceRepository) ExistsRoleMetadata(org, serviceName, roleName, namespace string) bool {
+	rows, err := repo.Query(
+		"select 1 from role_meta where org=? and service_name=? and role_name=? and namespace=?",
+		org,
+		serviceName,
+		roleName,
+		namespace,
+	)
 	if err != nil {
 		panic(err)
 	}
@@ -616,10 +638,10 @@ func (repo *ServiceRepository) ExistsRoleMetadata(serviceName, roleName, namespa
 }
 
 // select namespace from role_metadata where service_name=${serviceName} and role_name=${roleName}
-func (repo *ServiceRepository) RoleMetadataList(serviceName, roleName string) (*domain.RoleMetadataList, error) {
+func (repo *ServiceRepository) RoleMetadataList(org, serviceName, roleName string) (*domain.RoleMetadataList, error) {
 	values := make([]domain.RoleMetadata, 0)
 	if err := repo.Transact(func(tx Tx) error {
-		rows, err := tx.Query("select namespace from role_meta where service_name=? and role_name=? ", serviceName, roleName)
+		rows, err := tx.Query("select namespace from role_meta where org=? and service_name=? and role_name=? ", org, serviceName, roleName)
 		if err != nil {
 			return fmt.Errorf("select namespace from role_meta: %v", err)
 		}
@@ -645,10 +667,10 @@ func (repo *ServiceRepository) RoleMetadataList(serviceName, roleName string) (*
 }
 
 // select * from role_metadata where service_name=${serviceName} and role_name=${roleName} and namespace=${namespace}
-func (repo *ServiceRepository) RoleMetadata(serviceName, roleName, namespace string) (interface{}, error) {
+func (repo *ServiceRepository) RoleMetadata(org, serviceName, roleName, namespace string) (interface{}, error) {
 	var meta string
 	if err := repo.Transact(func(tx Tx) error {
-		row := tx.QueryRow("select meta from role_meta where service_name=? and role_name=? and namespace=?", serviceName, roleName, namespace)
+		row := tx.QueryRow("select meta from role_meta where org=? and service_name=? and role_name=? and namespace=?", org, serviceName, roleName, namespace)
 		if err := row.Scan(&meta); err != nil {
 			return fmt.Errorf("scan: %v", err)
 		}
@@ -667,7 +689,7 @@ func (repo *ServiceRepository) RoleMetadata(serviceName, roleName, namespace str
 }
 
 // insert into role_metadata values(${serviveName}, ${roleName}, ${namespace}, ${metadata})
-func (repo *ServiceRepository) SaveRoleMetadata(serviceName, roleName, namespace string, metadata interface{}) (*domain.Success, error) {
+func (repo *ServiceRepository) SaveRoleMetadata(org, serviceName, roleName, namespace string, metadata interface{}) (*domain.Success, error) {
 	meta, err := json.Marshal(metadata)
 	if err != nil {
 		return &domain.Success{Success: false}, nil
@@ -675,7 +697,8 @@ func (repo *ServiceRepository) SaveRoleMetadata(serviceName, roleName, namespace
 
 	if err := repo.Transact(func(tx Tx) error {
 		if _, err := tx.Exec(
-			"insert into role_meta values(?, ?, ?, ?)",
+			"insert into role_meta values(?, ?, ?, ?, ?)",
+			org,
 			serviceName,
 			roleName,
 			namespace,
@@ -693,10 +716,11 @@ func (repo *ServiceRepository) SaveRoleMetadata(serviceName, roleName, namespace
 }
 
 // delete from role_metadata where service_name=${serviceName} and role_name=${roleName} and namespace=${namespace}
-func (repo *ServiceRepository) DeleteRoleMetadata(serviceName, roleName, namespace string) (*domain.Success, error) {
+func (repo *ServiceRepository) DeleteRoleMetadata(org, serviceName, roleName, namespace string) (*domain.Success, error) {
 	if err := repo.Transact(func(tx Tx) error {
 		if _, err := tx.Exec(
-			"delete from role_meta where service_name=? and role_name=? and namespace=?",
+			"delete from role_meta where org=? and service_name=? and role_name=? and namespace=?",
+			org,
 			serviceName,
 			roleName,
 			namespace,

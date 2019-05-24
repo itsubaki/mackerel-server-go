@@ -12,7 +12,7 @@ func NewGraphRepository() *GraphRepository {
 	}
 }
 
-func (repo *GraphRepository) Save(g []domain.GraphDef) (*domain.Success, error) {
+func (repo *GraphRepository) Save(org string, g []domain.GraphDef) (*domain.Success, error) {
 	repo.GraphDef = append(repo.GraphDef, g...)
 	return &domain.Success{Success: true}, nil
 }

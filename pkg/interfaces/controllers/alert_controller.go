@@ -35,6 +35,7 @@ func (s *AlertController) List(c Context) {
 	}
 
 	out, err := s.Interactor.List(
+		c.GetString("org"),
 		withClosed,
 		c.Query("nextId"),
 		limit,
@@ -51,6 +52,7 @@ func (s *AlertController) Close(c Context) {
 	}
 
 	out, err := s.Interactor.Close(
+		c.GetString("org"),
 		c.Param("alertId"),
 		in.Reason,
 	)

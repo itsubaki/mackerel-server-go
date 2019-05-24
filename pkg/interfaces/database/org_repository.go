@@ -15,11 +15,11 @@ func NewOrgRepository(handler SQLHandler) *OrgRepository {
 		if _, err := tx.Exec(
 			`
 			create table if not exists orgs (
-				x_api_key varchar(45)  not null primary key,
-				name      varchar(16)  not null,
-				xread     boolean not  null default 1,
-				xwrite    boolean not  null default 1,
-				org       varchar(128) not null
+				org       varchar(64) not null,
+				x_api_key varchar(45) not null primary key,
+				name      varchar(16) not null,
+				xread     boolean     not null default 1,
+				xwrite    boolean     not null default 1
 			)
 			`,
 		); err != nil {
@@ -29,23 +29,24 @@ func NewOrgRepository(handler SQLHandler) *OrgRepository {
 		if _, err := tx.Exec(
 			`
 			insert into orgs (
+				org,
 				x_api_key,
 				name,
 				xread,
-				xwrite,
-				org
+				xwrite
 			) values (?, ?, ?, ?, ?)
 			on duplicate key update
-				name   = values(name),
-				xread  = values(xread),
-				xwrite = values(xwrite),
-				org    = values(org)
+				org       = values(org),
+				x_api_key = values(x_api_key),
+				name      = values(name),
+				xread     = values(xread),
+				xwrite    = values(xwrite)
 			`,
+			"default",
 			"2684d06cfedbee8499f326037bb6fb7e8c22e73b16bb",
 			"default",
 			1,
 			1,
-			"default",
 		); err != nil {
 			return fmt.Errorf("insert into orgs: %v", err)
 		}
@@ -73,11 +74,11 @@ func (repo *OrgRepository) XAPIKey(xapikey string) (*domain.XAPIKey, error) {
 		row := tx.QueryRow(`select * from orgs where x_api_key=?`, xapikey)
 
 		if err := row.Scan(
+			&key.Org,
 			&key.XAPIKey,
 			&key.Name,
 			&key.Read,
 			&key.Write,
-			&key.Org,
 		); err != nil {
 			return fmt.Errorf("select * from orgs: %v", err)
 		}

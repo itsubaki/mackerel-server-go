@@ -27,7 +27,7 @@ mackerel compatible monitoring service
    - [x] Database/Transaction
    - [ ] Amazon Timestream
  - Security
-   - [ ] `X-Api-Key`
+   - [x] `X-Api-Key`
 
 # Install
 

@@ -3,23 +3,23 @@ package usecase
 import "github.com/itsubaki/mackerel-api/pkg/domain"
 
 type HostRepository interface {
-	List() (*domain.Hosts, error)
-	Save(host *domain.Host) (*domain.HostID, error)
-	Host(hostID string) (*domain.Host, error)
-	Exists(hostID string) bool
-	Status(hostID, status string) (*domain.Success, error)
-	SaveRoleFullNames(hostID string, names *domain.RoleFullNames) (*domain.Success, error)
-	Retire(hostID string, retire *domain.HostRetire) (*domain.Success, error)
+	List(org string) (*domain.Hosts, error)
+	Save(org string, host *domain.Host) (*domain.HostID, error)
+	Host(org, hostID string) (*domain.Host, error)
+	Exists(org, hostID string) bool
+	Status(org, hostID, status string) (*domain.Success, error)
+	SaveRoleFullNames(org, hostID string, names *domain.RoleFullNames) (*domain.Success, error)
+	Retire(org, hostID string, retire *domain.HostRetire) (*domain.Success, error)
 
-	ExistsMetric(hostID, name string) bool
-	MetricNames(hostID string) (*domain.MetricNames, error)
-	MetricValues(hostID, name string, from, to int64) (*domain.MetricValues, error)
-	MetricValuesLatest(hostID, name []string) (*domain.TSDBLatest, error)
-	SaveMetricValues(values []domain.MetricValue) (*domain.Success, error)
+	ExistsMetric(org, hostID, name string) bool
+	MetricNames(org, hostID string) (*domain.MetricNames, error)
+	MetricValues(org, hostID, name string, from, to int64) (*domain.MetricValues, error)
+	MetricValuesLatest(org string, hostID, name []string) (*domain.TSDBLatest, error)
+	SaveMetricValues(org string, values []domain.MetricValue) (*domain.Success, error)
 
-	ExistsMetadata(hostID, namespace string) bool
-	MetadataList(hostID string) (*domain.HostMetadataList, error)
-	Metadata(hostID, namespace string) (interface{}, error)
-	SaveMetadata(hostID, namespace string, metadata interface{}) (*domain.Success, error)
-	DeleteMetadata(hostID, namespace string) (*domain.Success, error)
+	ExistsMetadata(org, hostID, namespace string) bool
+	MetadataList(org, hostID string) (*domain.HostMetadataList, error)
+	Metadata(org, hostID, namespace string) (interface{}, error)
+	SaveMetadata(org, hostID, namespace string, metadata interface{}) (*domain.Success, error)
+	DeleteMetadata(org, hostID, namespace string) (*domain.Success, error)
 }

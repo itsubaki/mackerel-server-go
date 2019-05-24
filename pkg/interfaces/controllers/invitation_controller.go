@@ -22,7 +22,10 @@ func NewInvitationController(handler database.SQLHandler) *InvitationController 
 }
 
 func (s *InvitationController) List(c Context) {
-	out, err := s.Interactor.List()
+	out, err := s.Interactor.List(
+		c.GetString("org"),
+	)
+
 	doResponse(c, out, err)
 }
 
@@ -33,7 +36,11 @@ func (s *InvitationController) Save(c Context) {
 		return
 	}
 
-	out, err := s.Interactor.Save(&in)
+	out, err := s.Interactor.Save(
+		c.GetString("org"),
+		&in,
+	)
+
 	doResponse(c, out, err)
 }
 
@@ -44,6 +51,10 @@ func (s *InvitationController) Revoke(c Context) {
 		return
 	}
 
-	out, err := s.Interactor.Revoke(in.EMail)
+	out, err := s.Interactor.Revoke(
+		c.GetString("org"),
+		in.EMail,
+	)
+
 	doResponse(c, out, err)
 }
