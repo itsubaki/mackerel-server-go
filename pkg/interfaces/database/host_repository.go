@@ -39,6 +39,19 @@ func NewHostRepository(handler SQLHandler) *HostRepository {
 
 		if _, err := tx.Exec(
 			`
+			create table if not exists host_meta (
+				host_id   varchar(16)  not null,
+				namespace varchar(128) not null,
+				meta      text,
+				primary key(host_id, namespace)
+			)
+			`,
+		); err != nil {
+			return fmt.Errorf("create table host_meta: %v", err)
+		}
+
+		if _, err := tx.Exec(
+			`
 			create table if not exists host_metric_values (
 				host_id varchar(16)  not null,
 				name    varchar(128) not null,
@@ -631,25 +644,110 @@ func (repo *HostRepository) SaveMetricValues(values []domain.MetricValue) (*doma
 
 // select * from host_metadata where host_id=${hostID} and namespace=${namespace} limit=1
 func (repo *HostRepository) ExistsMetadata(hostID, namespace string) bool {
-	return true
+	rows, err := repo.Query("select 1 from host_meta where host_id=? and namespace=?", hostID, namespace)
+	if err != nil {
+		panic(err)
+	}
+	defer rows.Close()
+
+	if rows.Next() {
+		return true
+	}
+
+	return false
 }
 
 // select namespace from host_metadata where host_id=${hostID}
 func (repo *HostRepository) MetadataList(hostID string) (*domain.HostMetadataList, error) {
-	return &domain.HostMetadataList{}, nil
+	values := make([]domain.Namespace, 0)
+	if err := repo.Transact(func(tx Tx) error {
+		rows, err := tx.Query("select namespace from host_meta where host_id=?", hostID)
+		if err != nil {
+			return fmt.Errorf("select namespace from host_meta: %v", err)
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			var namespace string
+			if err := rows.Scan(
+				&namespace,
+			); err != nil {
+				return fmt.Errorf("scan: %v", err)
+			}
+
+			values = append(values, domain.Namespace{Namespace: namespace})
+		}
+
+		return nil
+	}); err != nil {
+		return nil, fmt.Errorf("transaction: %v", err)
+	}
+
+	return &domain.HostMetadataList{Metadata: values}, nil
 }
 
 // select * from host_metadata where host_id=${hostID} and namespace=${namespace}
 func (repo *HostRepository) Metadata(hostID, namespace string) (interface{}, error) {
-	return "", nil
+	var meta string
+	if err := repo.Transact(func(tx Tx) error {
+		row := tx.QueryRow("select meta from host_meta where host_id=? and namespace=?", hostID, namespace)
+		if err := row.Scan(&meta); err != nil {
+			return fmt.Errorf("scan: %v", err)
+		}
+
+		return nil
+	}); err != nil {
+		return nil, fmt.Errorf("transaction: %v", err)
+	}
+
+	var out interface{}
+	if err := json.Unmarshal([]byte(meta), &out); err != nil {
+		return nil, fmt.Errorf("unmarshal: %v", err)
+	}
+
+	return out, nil
 }
 
 // insert into host_metadata values(${hostID}, ${namespace}, ${metadata})
 func (repo *HostRepository) SaveMetadata(hostID, namespace string, metadata interface{}) (*domain.Success, error) {
+	meta, err := json.Marshal(metadata)
+	if err != nil {
+		return &domain.Success{Success: false}, nil
+	}
+
+	if err := repo.Transact(func(tx Tx) error {
+		if _, err := tx.Exec(
+			"insert into host_meta values(?, ?, ?)",
+			hostID,
+			namespace,
+			string(meta),
+		); err != nil {
+			return fmt.Errorf("insert into host_meta: %v", err)
+		}
+
+		return nil
+	}); err != nil {
+		return &domain.Success{Success: false}, nil
+	}
+
 	return &domain.Success{Success: true}, nil
 }
 
 // delete from host_metadata where host_id=${hostID} and namespace=${namespace}
 func (repo *HostRepository) DeleteMetadata(hostID, namespace string) (*domain.Success, error) {
+	if err := repo.Transact(func(tx Tx) error {
+		if _, err := tx.Exec(
+			"delete from host_meta where host_id=? and namespace=?",
+			hostID,
+			namespace,
+		); err != nil {
+			return fmt.Errorf("delete from host_meta: %v", err)
+		}
+
+		return nil
+	}); err != nil {
+		return &domain.Success{Success: false}, nil
+	}
+
 	return &domain.Success{Success: true}, nil
 }

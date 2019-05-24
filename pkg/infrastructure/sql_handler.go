@@ -12,16 +12,20 @@ type SQLHandler struct {
 }
 
 func NewSQLHandler() database.SQLHandler {
-	db, err := sql.Open("mysql", "root:secret@tcp(127.0.0.1:3307)/")
+	{
+		db, err := sql.Open("mysql", "root:secret@tcp(127.0.0.1:3307)/")
+		if err != nil {
+			panic(err)
+		}
+		defer db.Close()
+
+		if _, err := db.Exec("create database if not exists mackerel"); err != nil {
+			panic(err)
+		}
+	}
+
+	db, err := sql.Open("mysql", "root:secret@tcp(127.0.0.1:3307)/mackerel")
 	if err != nil {
-		panic(err)
-	}
-
-	if _, err := db.Exec("create database if not exists mackerel"); err != nil {
-		panic(err)
-	}
-
-	if _, err := db.Exec("use mackerel"); err != nil {
 		panic(err)
 	}
 

@@ -24,7 +24,7 @@ mackerel compatible monitoring service
    - [x] Organizations
  - Persistence
    - [x] Memory
-   - [ ] Database/Transaction
+   - [x] Database/Transaction
    - [ ] Amazon Timestream
  - Security
    - [ ] `X-Api-Key`

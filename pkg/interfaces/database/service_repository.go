@@ -1,6 +1,7 @@
 package database
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/itsubaki/mackerel-api/pkg/domain"
@@ -49,6 +50,33 @@ func NewServiceRepository(handler SQLHandler) *ServiceRepository {
 			`,
 		); err != nil {
 			return fmt.Errorf("create table service_metric_values: %v", err)
+		}
+
+		if _, err := tx.Exec(
+			`
+			create table if not exists service_meta (
+				service_name varchar(16)  not null,
+				namespace    varchar(128) not null,
+				meta         text,
+				primary key(service_name, namespace)
+			)
+			`,
+		); err != nil {
+			return fmt.Errorf("create table service_meta: %v", err)
+		}
+
+		if _, err := tx.Exec(
+			`
+			create table if not exists role_meta (
+				service_name varchar(16)  not null,
+				role_name    varchar(16)  not null,
+				namespace    varchar(128) not null,
+				meta         text,
+				primary key(role_name, namespace)
+			)
+			`,
+		); err != nil {
+			return fmt.Errorf("create table role_meta: %v", err)
 		}
 
 		return nil
@@ -294,7 +322,7 @@ func (repo *ServiceRepository) SaveRole(serviceName string, r *domain.Role) erro
 			on duplicate key update
 				service_name = values(service_name),
 				name = values(name),
-				memo = values(memo
+				memo = values(memo)
 			`,
 			serviceName,
 			r.Name,
@@ -408,60 +436,278 @@ func (repo *ServiceRepository) MetricNames(serviceName string) (*domain.ServiceM
 
 // select * from service_metrics where service_name=${serviceName} and name=${metricName}  and ${from} < from and to < ${to}
 func (repo *ServiceRepository) MetricValues(serviceName, metricName string, from, to int64) (*domain.ServiceMetricValues, error) {
-	return &domain.ServiceMetricValues{}, nil
+	values := make([]domain.ServiceMetricValue, 0)
+	if err := repo.Transact(func(tx Tx) error {
+		rows, err := tx.Query("select time, value from service_metric_values where service_name=? and name=? and ? < time and time < ?", serviceName, metricName, from, to)
+		if err != nil {
+			return fmt.Errorf("select time, value from service_metric_values: %v", err)
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			var time int64
+			var value float64
+			if err := rows.Scan(&time, &value); err != nil {
+				return fmt.Errorf("scan: %v", err)
+			}
+
+			values = append(values, domain.ServiceMetricValue{
+				ServiceName: serviceName,
+				Name:        metricName,
+				Time:        time,
+				Value:       value,
+			})
+		}
+
+		return nil
+	}); err != nil {
+		return nil, fmt.Errorf("transaction: %v", err)
+	}
+
+	return &domain.ServiceMetricValues{Metrics: values}, nil
 }
 
 // insert into service_metrics values(${serviceName}, ${name}, ${time}, ${value})
 func (repo *ServiceRepository) SaveMetricValues(serviceName string, values []domain.ServiceMetricValue) (*domain.Success, error) {
+	if err := repo.Transact(func(tx Tx) error {
+		for i := range values {
+			if _, err := tx.Exec(
+				"insert into service_metric_values values(?, ?, ?, ?)",
+				serviceName,
+				values[i].Name,
+				values[i].Time,
+				values[i].Value,
+			); err != nil {
+				return fmt.Errorf("insert into service_metric_values: %v", err)
+			}
+		}
+
+		return nil
+	}); err != nil {
+		return &domain.Success{Success: false}, nil
+	}
+
 	return &domain.Success{Success: true}, nil
 }
 
 // select * from service_metadata where service_name=${serviceName} and namespace=${namespace} limit=1
 func (repo *ServiceRepository) ExistsMetadata(serviceName, namespace string) bool {
-	return true
+	rows, err := repo.Query("select 1 from service_meta where service_name=? and namespace=?", serviceName, namespace)
+	if err != nil {
+		panic(err)
+	}
+	defer rows.Close()
+
+	if rows.Next() {
+		return true
+	}
+
+	return false
 }
 
 // select namespacee from service_metadata where service_name=${serviceName}
 func (repo *ServiceRepository) MetadataList(serviceName string) (*domain.ServiceMetadataList, error) {
-	return nil, nil
+	values := make([]domain.ServiceMetadata, 0)
+	if err := repo.Transact(func(tx Tx) error {
+		rows, err := tx.Query("select namespace from service_meta where service_name=?", serviceName)
+		if err != nil {
+			return fmt.Errorf("select namespace from service_meta: %v", err)
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			var namespace string
+			if err := rows.Scan(
+				&namespace,
+			); err != nil {
+				return fmt.Errorf("scan: %v", err)
+			}
+
+			values = append(values, domain.ServiceMetadata{Namespace: namespace})
+		}
+
+		return nil
+	}); err != nil {
+		return nil, fmt.Errorf("transaction: %v", err)
+	}
+
+	return &domain.ServiceMetadataList{Metadata: values}, nil
 }
 
 // select * from service_metadata where service_name=${serviceName} and namespace=${namespace}
 func (repo *ServiceRepository) Metadata(serviceName, namespace string) (interface{}, error) {
-	return nil, nil
+	var meta string
+	if err := repo.Transact(func(tx Tx) error {
+		row := tx.QueryRow("select meta from service_meta where service_name=? and namespace=?", serviceName, namespace)
+		if err := row.Scan(&meta); err != nil {
+			return fmt.Errorf("scan: %v", err)
+		}
+
+		return nil
+	}); err != nil {
+		return nil, fmt.Errorf("transaction: %v", err)
+	}
+
+	var out interface{}
+	if err := json.Unmarshal([]byte(meta), &out); err != nil {
+		return nil, fmt.Errorf("unmarshal: %v", err)
+	}
+
+	return out, nil
 }
 
 // insert into service_metadata values(${serviceName}, ${namespace}, ${metadata})
 func (repo *ServiceRepository) SaveMetadata(serviceName, namespace string, metadata interface{}) (*domain.Success, error) {
-	return nil, nil
+	meta, err := json.Marshal(metadata)
+	if err != nil {
+		return &domain.Success{Success: false}, nil
+	}
+
+	if err := repo.Transact(func(tx Tx) error {
+		if _, err := tx.Exec(
+			"insert into service_meta values(?, ?, ?)",
+			serviceName,
+			namespace,
+			string(meta),
+		); err != nil {
+			return fmt.Errorf("insert into service_meta: %v", err)
+		}
+
+		return nil
+	}); err != nil {
+		return &domain.Success{Success: false}, nil
+	}
+
+	return &domain.Success{Success: true}, nil
 }
 
 // delete from service_metadata where service_name=${serviceName} and namespace=${namespace}
 func (repo *ServiceRepository) DeleteMetadata(serviceName, namespace string) (*domain.Success, error) {
-	return nil, nil
+	if err := repo.Transact(func(tx Tx) error {
+		if _, err := tx.Exec(
+			"delete from service_meta where service_name=? and namespace=?",
+			serviceName,
+			namespace,
+		); err != nil {
+			return fmt.Errorf("delete from service_meta: %v", err)
+		}
+
+		return nil
+	}); err != nil {
+		return &domain.Success{Success: false}, nil
+	}
+
+	return &domain.Success{Success: true}, nil
 }
 
 // select * from role_metadata where service_name=${serviceName} and role_name=${roleName} and namespace=${namespace} limit=1
 func (repo *ServiceRepository) ExistsRoleMetadata(serviceName, roleName, namespace string) bool {
-	return true
+	rows, err := repo.Query("select 1 from role_meta where service_name=? and role_name=? and namespace=?", serviceName, roleName, namespace)
+	if err != nil {
+		panic(err)
+	}
+	defer rows.Close()
+
+	if rows.Next() {
+		return true
+	}
+
+	return false
 }
 
 // select namespace from role_metadata where service_name=${serviceName} and role_name=${roleName}
 func (repo *ServiceRepository) RoleMetadataList(serviceName, roleName string) (*domain.RoleMetadataList, error) {
-	return nil, nil
+	values := make([]domain.RoleMetadata, 0)
+	if err := repo.Transact(func(tx Tx) error {
+		rows, err := tx.Query("select namespace from role_meta where service_name=? and role_name=? ", serviceName, roleName)
+		if err != nil {
+			return fmt.Errorf("select namespace from role_meta: %v", err)
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			var namespace string
+			if err := rows.Scan(
+				&namespace,
+			); err != nil {
+				return fmt.Errorf("scan: %v", err)
+			}
+
+			values = append(values, domain.RoleMetadata{Namespace: namespace})
+		}
+
+		return nil
+	}); err != nil {
+		return nil, fmt.Errorf("transaction: %v", err)
+	}
+
+	return &domain.RoleMetadataList{Metadata: values}, nil
 }
 
 // select * from role_metadata where service_name=${serviceName} and role_name=${roleName} and namespace=${namespace}
 func (repo *ServiceRepository) RoleMetadata(serviceName, roleName, namespace string) (interface{}, error) {
-	return nil, nil
+	var meta string
+	if err := repo.Transact(func(tx Tx) error {
+		row := tx.QueryRow("select meta from role_meta where service_name=? and role_name=? and namespace=?", serviceName, roleName, namespace)
+		if err := row.Scan(&meta); err != nil {
+			return fmt.Errorf("scan: %v", err)
+		}
+
+		return nil
+	}); err != nil {
+		return nil, fmt.Errorf("transaction: %v", err)
+	}
+
+	var out interface{}
+	if err := json.Unmarshal([]byte(meta), &out); err != nil {
+		return nil, fmt.Errorf("unmarshal: %v", err)
+	}
+
+	return out, nil
 }
 
 // insert into role_metadata values(${serviveName}, ${roleName}, ${namespace}, ${metadata})
 func (repo *ServiceRepository) SaveRoleMetadata(serviceName, roleName, namespace string, metadata interface{}) (*domain.Success, error) {
-	return nil, nil
+	meta, err := json.Marshal(metadata)
+	if err != nil {
+		return &domain.Success{Success: false}, nil
+	}
+
+	if err := repo.Transact(func(tx Tx) error {
+		if _, err := tx.Exec(
+			"insert into role_meta values(?, ?, ?, ?)",
+			serviceName,
+			roleName,
+			namespace,
+			string(meta),
+		); err != nil {
+			return fmt.Errorf("insert into role_meta: %v", err)
+		}
+
+		return nil
+	}); err != nil {
+		return &domain.Success{Success: false}, nil
+	}
+
+	return &domain.Success{Success: true}, nil
 }
 
 // delete from role_metadata where service_name=${serviceName} and role_name=${roleName} and namespace=${namespace}
 func (repo *ServiceRepository) DeleteRoleMetadata(serviceName, roleName, namespace string) (*domain.Success, error) {
-	return nil, nil
+	if err := repo.Transact(func(tx Tx) error {
+		if _, err := tx.Exec(
+			"delete from role_meta where service_name=? and role_name=? and namespace=?",
+			serviceName,
+			roleName,
+			namespace,
+		); err != nil {
+			return fmt.Errorf("delete from role_meta: %v", err)
+		}
+
+		return nil
+	}); err != nil {
+		return &domain.Success{Success: false}, nil
+	}
+
+	return &domain.Success{Success: true}, nil
 }

@@ -2,6 +2,7 @@ package infrastructure
 
 import (
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/itsubaki/mackerel-api/pkg/interfaces/controllers"
@@ -15,11 +16,13 @@ func Default() *gin.Engine {
 func Router(handler database.SQLHandler) *gin.Engine {
 	g := gin.Default()
 
-	auth := controllers.NewAuthController(handler)
-	g.Use(func(c *gin.Context) {
-		c.Set("Method", c.Request.Method)
-		auth.Required(c)
-	})
+	if os.Getenv("MACKEREL_API_AUTH") == "true" {
+		auth := controllers.NewAuthController(handler)
+		g.Use(func(c *gin.Context) {
+			c.Set("Method", c.Request.Method)
+			auth.Required(c)
+		})
+	}
 
 	{
 		g.GET("/", func(c *gin.Context) {
@@ -28,6 +31,31 @@ func Router(handler database.SQLHandler) *gin.Engine {
 	}
 
 	v0 := g.Group("/api").Group("/v0")
+	{
+
+		hosts := controllers.NewHostController(handler)
+
+		h := v0.Group("/hosts")
+		h.GET("", func(c *gin.Context) { hosts.List(c) })
+		h.POST("", func(c *gin.Context) { hosts.Save(c) })
+
+		h.GET("/:hostId", func(c *gin.Context) { hosts.Host(c) })
+		h.PUT("/:hostId", func(c *gin.Context) { hosts.Update(c) })
+		h.PUT("/:hostId/role-fullnames", func(c *gin.Context) { hosts.RoleFullNames(c) })
+		h.POST("/:hostId/status", func(c *gin.Context) { hosts.Status(c) })
+		h.POST("/:hostId/retire", func(c *gin.Context) { hosts.Retire(c) })
+
+		h.GET("/:hostId/metric-names", func(c *gin.Context) { hosts.MetricNames(c) })
+		h.GET("/:hostId/metrics", func(c *gin.Context) { hosts.MetricValues(c) })
+		v0.GET("/tsdb/latest", func(c *gin.Context) { hosts.MetricValuesLatest(c) })
+		v0.POST("/tsdb", func(c *gin.Context) { hosts.SaveMetricValues(c) })
+
+		h.GET("/:hostId/metadata", func(c *gin.Context) { hosts.MetadataList(c) })
+		h.GET("/:hostId/metadata/:namespace", func(c *gin.Context) { hosts.Metadata(c) })
+		h.PUT("/:hostId/metadata/:namespace", func(c *gin.Context) { hosts.SaveMetadata(c) })
+		h.DELETE("/:hostId/metadata/:namespace", func(c *gin.Context) { hosts.DeleteMetadata(c) })
+	}
+
 	{
 		services := controllers.NewServiceController(handler)
 
@@ -53,31 +81,6 @@ func Router(handler database.SQLHandler) *gin.Engine {
 		s.GET("/:serviceName/roles/:roleName/metadata/:namespace", func(c *gin.Context) { services.RoleMetadata(c) })
 		s.PUT("/:serviceName/roles/:roleName/metadata/:namespace", func(c *gin.Context) { services.SaveRoleMetadata(c) })
 		s.DELETE("/:serviceName/roles/:roleName/metadata/:namespace", func(c *gin.Context) { services.DeleteRoleMetadata(c) })
-	}
-
-	{
-
-		hosts := controllers.NewHostController(handler)
-
-		h := v0.Group("/hosts")
-		h.GET("", func(c *gin.Context) { hosts.List(c) })
-		h.POST("", func(c *gin.Context) { hosts.Save(c) })
-
-		h.GET("/:hostId", func(c *gin.Context) { hosts.Host(c) })
-		h.PUT("/:hostId", func(c *gin.Context) { hosts.Update(c) })
-		h.PUT("/:hostId/role-fullnames", func(c *gin.Context) { hosts.RoleFullNames(c) })
-		h.POST("/:hostId/status", func(c *gin.Context) { hosts.Status(c) })
-		h.POST("/:hostId/retire", func(c *gin.Context) { hosts.Retire(c) })
-
-		h.GET("/:hostId/metric-names", func(c *gin.Context) { hosts.MetricNames(c) })
-		h.GET("/:hostId/metrics", func(c *gin.Context) { hosts.MetricValues(c) })
-		v0.GET("/tsdb/latest", func(c *gin.Context) { hosts.MetricValuesLatest(c) })
-		v0.POST("/tsdb", func(c *gin.Context) { hosts.SaveMetricValues(c) })
-
-		h.GET("/:hostId/metadata", func(c *gin.Context) { hosts.MetadataList(c) })
-		h.GET("/:hostId/metadata/:namespace", func(c *gin.Context) { hosts.Metadata(c) })
-		h.PUT("/:hostId/metadata/:namespace", func(c *gin.Context) { hosts.SaveMetadata(c) })
-		h.DELETE("/:hostId/metadata/:namespace", func(c *gin.Context) { hosts.DeleteMetadata(c) })
 	}
 
 	{
