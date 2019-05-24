@@ -18,12 +18,16 @@ func NewUserController(handler database.SQLHandler) *UserController {
 }
 
 func (s *UserController) List(c Context) {
-	out, err := s.Interactor.List()
+	out, err := s.Interactor.List(
+		c.GetString("org"),
+	)
+
 	doResponse(c, out, err)
 }
 
 func (s *UserController) Delete(c Context) {
 	out, err := s.Interactor.Delete(
+		c.GetString("org"),
 		c.Param("userId"),
 	)
 

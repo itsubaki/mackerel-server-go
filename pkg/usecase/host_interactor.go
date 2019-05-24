@@ -11,11 +11,11 @@ type HostInteractor struct {
 	HostRepository HostRepository
 }
 
-func (s *HostInteractor) List() (*domain.Hosts, error) {
+func (s *HostInteractor) List(org string) (*domain.Hosts, error) {
 	return s.HostRepository.List()
 }
 
-func (s *HostInteractor) Save(host *domain.Host) (*domain.HostID, error) {
+func (s *HostInteractor) Save(org string, host *domain.Host) (*domain.HostID, error) {
 	// Update
 	if len(host.ID) > 0 && !s.HostRepository.Exists(host.ID) {
 		return nil, &HostNotFound{Err{errors.New("the host that corresponds to the <hostId> can’t be located")}}
@@ -25,7 +25,7 @@ func (s *HostInteractor) Save(host *domain.Host) (*domain.HostID, error) {
 	return s.HostRepository.Save(host)
 }
 
-func (s *HostInteractor) Host(hostID string) (*domain.HostInfo, error) {
+func (s *HostInteractor) Host(org, hostID string) (*domain.HostInfo, error) {
 	host, err := s.HostRepository.Host(hostID)
 	if err != nil {
 		return nil, err
@@ -34,7 +34,7 @@ func (s *HostInteractor) Host(hostID string) (*domain.HostInfo, error) {
 	return &domain.HostInfo{Host: *host}, nil
 }
 
-func (s *HostInteractor) Status(hostID, status string) (*domain.Success, error) {
+func (s *HostInteractor) Status(org, hostID, status string) (*domain.Success, error) {
 	if !s.HostRepository.Exists(hostID) {
 		return nil, &HostNotFound{Err{errors.New("the host that corresponds to the <hostId> can’t be located")}}
 	}
@@ -42,7 +42,7 @@ func (s *HostInteractor) Status(hostID, status string) (*domain.Success, error) 
 	return s.HostRepository.Status(hostID, status)
 }
 
-func (s *HostInteractor) SaveRoleFullNames(hostID string, names *domain.RoleFullNames) (*domain.Success, error) {
+func (s *HostInteractor) SaveRoleFullNames(org, hostID string, names *domain.RoleFullNames) (*domain.Success, error) {
 	if !s.HostRepository.Exists(hostID) {
 		return nil, &HostNotFound{Err{errors.New("the host that corresponds to the <hostId> can’t be located")}}
 	}
@@ -50,7 +50,7 @@ func (s *HostInteractor) SaveRoleFullNames(hostID string, names *domain.RoleFull
 	return s.HostRepository.SaveRoleFullNames(hostID, names)
 }
 
-func (s *HostInteractor) Retire(hostID string, retire *domain.HostRetire) (*domain.Success, error) {
+func (s *HostInteractor) Retire(org, hostID string, retire *domain.HostRetire) (*domain.Success, error) {
 	if !s.HostRepository.Exists(hostID) {
 		return nil, &HostNotFound{Err{errors.New("the host that corresponds to the <hostId> can’t be located")}}
 	}
@@ -58,7 +58,7 @@ func (s *HostInteractor) Retire(hostID string, retire *domain.HostRetire) (*doma
 	return s.HostRepository.Retire(hostID, retire)
 }
 
-func (s *HostInteractor) MetricNames(hostID string) (*domain.MetricNames, error) {
+func (s *HostInteractor) MetricNames(org, hostID string) (*domain.MetricNames, error) {
 	if !s.HostRepository.Exists(hostID) {
 		return nil, &HostNotFound{Err{errors.New("the host that corresponds to the <hostId> can’t be located")}}
 	}
@@ -66,7 +66,7 @@ func (s *HostInteractor) MetricNames(hostID string) (*domain.MetricNames, error)
 	return s.HostRepository.MetricNames(hostID)
 }
 
-func (s *HostInteractor) MetricValues(hostID, name string, from, to int64) (*domain.MetricValues, error) {
+func (s *HostInteractor) MetricValues(org, hostID, name string, from, to int64) (*domain.MetricValues, error) {
 	if !s.HostRepository.Exists(hostID) {
 		return nil, &HostNotFound{Err{errors.New("the host doesn't exist")}}
 	}
@@ -78,15 +78,15 @@ func (s *HostInteractor) MetricValues(hostID, name string, from, to int64) (*dom
 	return s.HostRepository.MetricValues(hostID, name, from, to)
 }
 
-func (s *HostInteractor) MetricValuesLatest(hostId, name []string) (*domain.TSDBLatest, error) {
+func (s *HostInteractor) MetricValuesLatest(org string, hostId, name []string) (*domain.TSDBLatest, error) {
 	return s.HostRepository.MetricValuesLatest(hostId, name)
 }
 
-func (s *HostInteractor) SaveMetricValues(values []domain.MetricValue) (*domain.Success, error) {
+func (s *HostInteractor) SaveMetricValues(org string, values []domain.MetricValue) (*domain.Success, error) {
 	return s.HostRepository.SaveMetricValues(values)
 }
 
-func (s *HostInteractor) MetadataList(hostID string) (*domain.HostMetadataList, error) {
+func (s *HostInteractor) MetadataList(org, hostID string) (*domain.HostMetadataList, error) {
 	if !s.HostRepository.Exists(hostID) {
 		return nil, &HostNotFound{Err{errors.New("the host does not exist")}}
 	}
@@ -103,7 +103,7 @@ func (s *HostInteractor) MetadataList(hostID string) (*domain.HostMetadataList, 
 	return s.HostRepository.MetadataList(hostID)
 }
 
-func (s *HostInteractor) Metadata(hostID, namespace string) (interface{}, error) {
+func (s *HostInteractor) Metadata(org, hostID, namespace string) (interface{}, error) {
 	if !s.HostRepository.Exists(hostID) {
 		return nil, &HostNotFound{Err{errors.New("the host does not exist")}}
 	}
@@ -124,7 +124,7 @@ func (s *HostInteractor) Metadata(hostID, namespace string) (interface{}, error)
 	return s.HostRepository.Metadata(hostID, namespace)
 }
 
-func (s *HostInteractor) SaveMetadata(hostID, namespace string, metadata interface{}) (*domain.Success, error) {
+func (s *HostInteractor) SaveMetadata(org, hostID, namespace string, metadata interface{}) (*domain.Success, error) {
 	if !s.HostRepository.Exists(hostID) {
 		return nil, &HostNotFound{Err{errors.New("the host does not exist")}}
 	}
@@ -159,7 +159,7 @@ func (s *HostInteractor) SaveMetadata(hostID, namespace string, metadata interfa
 	return s.HostRepository.SaveMetadata(hostID, namespace, metadata)
 }
 
-func (s *HostInteractor) DeleteMetadata(hostID, namespace string) (*domain.Success, error) {
+func (s *HostInteractor) DeleteMetadata(org, hostID, namespace string) (*domain.Success, error) {
 	if !s.HostRepository.Exists(hostID) {
 		return nil, &HostNotFound{Err{errors.New("the host does not exist")}}
 	}

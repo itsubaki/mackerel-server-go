@@ -14,11 +14,11 @@ type ServiceInteractor struct {
 	ServiceRepository ServiceRepository
 }
 
-func (s *ServiceInteractor) List() (*domain.Services, error) {
+func (s *ServiceInteractor) List(org string) (*domain.Services, error) {
 	return s.ServiceRepository.List()
 }
 
-func (s *ServiceInteractor) Save(service *domain.Service) (*domain.Service, error) {
+func (s *ServiceInteractor) Save(org string, service *domain.Service) (*domain.Service, error) {
 	if !s.NameRule.Match([]byte(service.Name)) {
 		return nil, &InvalidServiceName{}
 	}
@@ -34,7 +34,7 @@ func (s *ServiceInteractor) Save(service *domain.Service) (*domain.Service, erro
 	}, nil
 }
 
-func (s *ServiceInteractor) Delete(serviceName string) (*domain.Service, error) {
+func (s *ServiceInteractor) Delete(string, serviceName string) (*domain.Service, error) {
 	if !s.ServiceRepository.Exists(serviceName) {
 		return nil, &ServiceNotFound{Err{errors.New("the Service corresponding to <serviceName> can't be found")}}
 	}
@@ -51,7 +51,7 @@ func (s *ServiceInteractor) Delete(serviceName string) (*domain.Service, error) 
 	return service, nil
 }
 
-func (s *ServiceInteractor) RoleList(serviceName string) (*domain.Roles, error) {
+func (s *ServiceInteractor) RoleList(org, serviceName string) (*domain.Roles, error) {
 	if !s.ServiceRepository.Exists(serviceName) {
 		return nil, &ServiceNotFound{Err{errors.New("the Service corresponding to <serviceName> can't be found")}}
 	}
@@ -64,7 +64,7 @@ func (s *ServiceInteractor) RoleList(serviceName string) (*domain.Roles, error) 
 	return list, nil
 }
 
-func (s *ServiceInteractor) SaveRole(serviceName string, role *domain.Role) (*domain.Role, error) {
+func (s *ServiceInteractor) SaveRole(org, serviceName string, role *domain.Role) (*domain.Role, error) {
 	if !s.ServiceRepository.Exists(serviceName) {
 		return nil, &ServiceNotFound{Err{errors.New("the Service corresponding to <serviceName> can't be found")}}
 	}
@@ -80,7 +80,7 @@ func (s *ServiceInteractor) SaveRole(serviceName string, role *domain.Role) (*do
 	return role, nil
 }
 
-func (s *ServiceInteractor) DeleteRole(serviceName, roleName string) (*domain.Role, error) {
+func (s *ServiceInteractor) DeleteRole(org, serviceName, roleName string) (*domain.Role, error) {
 	if !s.ServiceRepository.Exists(serviceName) {
 		return nil, &ServiceNotFound{Err{errors.New("the Service corresponding to <serviceName> can't be found")}}
 	}
@@ -101,7 +101,7 @@ func (s *ServiceInteractor) DeleteRole(serviceName, roleName string) (*domain.Ro
 	return r, nil
 }
 
-func (s *ServiceInteractor) MetadataList(serviceName string) (*domain.ServiceMetadataList, error) {
+func (s *ServiceInteractor) MetadataList(org, serviceName string) (*domain.ServiceMetadataList, error) {
 	if !s.ServiceRepository.Exists(serviceName) {
 		return nil, &ServiceNotFound{Err{errors.New("the Service corresponding to <serviceName> can't be found")}}
 	}
@@ -109,7 +109,7 @@ func (s *ServiceInteractor) MetadataList(serviceName string) (*domain.ServiceMet
 	return s.ServiceRepository.MetadataList(serviceName)
 }
 
-func (s *ServiceInteractor) Metadata(serviceName, namespace string) (interface{}, error) {
+func (s *ServiceInteractor) Metadata(org, serviceName, namespace string) (interface{}, error) {
 	if !s.ServiceRepository.Exists(serviceName) {
 		return nil, &ServiceNotFound{Err{errors.New("the Service corresponding to <serviceName> can't be found")}}
 	}
@@ -121,7 +121,7 @@ func (s *ServiceInteractor) Metadata(serviceName, namespace string) (interface{}
 	return s.ServiceRepository.Metadata(serviceName, namespace)
 }
 
-func (s *ServiceInteractor) SaveMetadata(serviceName, namespace string, metadata interface{}) (*domain.Success, error) {
+func (s *ServiceInteractor) SaveMetadata(org, serviceName, namespace string, metadata interface{}) (*domain.Success, error) {
 	if !s.ServiceRepository.Exists(serviceName) {
 		return nil, &ServiceNotFound{Err{errors.New("the Service corresponding to <serviceName> can't be found")}}
 	}
@@ -147,7 +147,7 @@ func (s *ServiceInteractor) SaveMetadata(serviceName, namespace string, metadata
 	return s.ServiceRepository.SaveMetadata(serviceName, namespace, metadata)
 }
 
-func (s *ServiceInteractor) DeleteMetadata(serviceName, namespace string) (*domain.Success, error) {
+func (s *ServiceInteractor) DeleteMetadata(org, serviceName, namespace string) (*domain.Success, error) {
 	if !s.ServiceRepository.Exists(serviceName) {
 		return nil, &ServiceNotFound{Err{errors.New("the Service corresponding to <serviceName> can't be found")}}
 	}
@@ -159,7 +159,7 @@ func (s *ServiceInteractor) DeleteMetadata(serviceName, namespace string) (*doma
 	return s.ServiceRepository.DeleteMetadata(serviceName, namespace)
 }
 
-func (s *ServiceInteractor) RoleMetadataList(serviceName, roleName string) (*domain.RoleMetadataList, error) {
+func (s *ServiceInteractor) RoleMetadataList(org, serviceName, roleName string) (*domain.RoleMetadataList, error) {
 	if !s.ServiceRepository.Exists(serviceName) {
 		return nil, &ServiceNotFound{Err{errors.New("the service does not exist")}}
 	}
@@ -171,7 +171,7 @@ func (s *ServiceInteractor) RoleMetadataList(serviceName, roleName string) (*dom
 	return s.ServiceRepository.RoleMetadataList(serviceName, roleName)
 }
 
-func (s *ServiceInteractor) RoleMetadata(serviceName, roleName, namespace string) (interface{}, error) {
+func (s *ServiceInteractor) RoleMetadata(org, serviceName, roleName, namespace string) (interface{}, error) {
 	if !s.ServiceRepository.Exists(serviceName) {
 		return nil, &ServiceNotFound{Err{errors.New("the service does not exist")}}
 	}
@@ -187,7 +187,7 @@ func (s *ServiceInteractor) RoleMetadata(serviceName, roleName, namespace string
 	return s.ServiceRepository.RoleMetadata(serviceName, roleName, namespace)
 }
 
-func (s *ServiceInteractor) SaveRoleMetadata(serviceName, roleName, namespace string, metadata interface{}) (*domain.Success, error) {
+func (s *ServiceInteractor) SaveRoleMetadata(org, serviceName, roleName, namespace string, metadata interface{}) (*domain.Success, error) {
 	if !s.ServiceRepository.Exists(serviceName) {
 		return nil, &ServiceNotFound{Err{errors.New("the service does not exist")}}
 	}
@@ -217,7 +217,7 @@ func (s *ServiceInteractor) SaveRoleMetadata(serviceName, roleName, namespace st
 	return s.ServiceRepository.SaveRoleMetadata(serviceName, roleName, namespace, metadata)
 }
 
-func (s *ServiceInteractor) DeleteRoleMetadata(serviceName, roleName, namespace string) (*domain.Success, error) {
+func (s *ServiceInteractor) DeleteRoleMetadata(org, serviceName, roleName, namespace string) (*domain.Success, error) {
 	if !s.ServiceRepository.Exists(serviceName) {
 		return nil, &ServiceNotFound{Err{errors.New("the service does not exist")}}
 	}
@@ -233,7 +233,7 @@ func (s *ServiceInteractor) DeleteRoleMetadata(serviceName, roleName, namespace 
 	return s.ServiceRepository.DeleteRoleMetadata(serviceName, roleName, namespace)
 }
 
-func (s *ServiceInteractor) MetricNames(serviceName string) (*domain.ServiceMetricValueNames, error) {
+func (s *ServiceInteractor) MetricNames(org, serviceName string) (*domain.ServiceMetricValueNames, error) {
 	if !s.ServiceRepository.Exists(serviceName) {
 		return nil, &ServiceNotFound{Err{errors.New("the Service corresponding to <serviceName> can't be found")}}
 	}
@@ -241,7 +241,7 @@ func (s *ServiceInteractor) MetricNames(serviceName string) (*domain.ServiceMetr
 	return s.ServiceRepository.MetricNames(serviceName)
 }
 
-func (s *ServiceInteractor) MetricValues(serviceName, metricName string, from, to int64) (*domain.ServiceMetricValues, error) {
+func (s *ServiceInteractor) MetricValues(org, serviceName, metricName string, from, to int64) (*domain.ServiceMetricValues, error) {
 	if !s.ServiceRepository.Exists(serviceName) {
 		return nil, &ServiceNotFound{Err{errors.New("the service does not exist")}}
 	}
@@ -253,7 +253,7 @@ func (s *ServiceInteractor) MetricValues(serviceName, metricName string, from, t
 	return s.ServiceRepository.MetricValues(serviceName, metricName, from, to)
 }
 
-func (s *ServiceInteractor) SaveMetricValues(serviceName string, values []domain.ServiceMetricValue) (*domain.Success, error) {
+func (s *ServiceInteractor) SaveMetricValues(org, serviceName string, values []domain.ServiceMetricValue) (*domain.Success, error) {
 	// TODO
 	// When the number of requests per minute is exceeded. Correct this by setting the posting frequency to a 1 minute interval, or posting multiple metrics at once, etc.
 	return s.ServiceRepository.SaveMetricValues(serviceName, values)
