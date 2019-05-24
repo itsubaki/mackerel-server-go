@@ -6,7 +6,6 @@ import (
 
 	"github.com/itsubaki/mackerel-api/pkg/domain"
 	"github.com/itsubaki/mackerel-api/pkg/interfaces/database"
-	"github.com/itsubaki/mackerel-api/pkg/interfaces/memory"
 	"github.com/itsubaki/mackerel-api/pkg/usecase"
 )
 
@@ -15,15 +14,9 @@ type AlertController struct {
 }
 
 func NewAlertController(handler database.SQLHandler) *AlertController {
-	var repo usecase.AlertRepository
-	repo = memory.NewAlertRepository()
-	if handler != nil {
-		repo = database.NewAlertRepository(handler)
-	}
-
 	return &AlertController{
 		Interactor: &usecase.AlertInteractor{
-			AlertRepository: repo,
+			AlertRepository: database.NewAlertRepository(handler),
 		},
 	}
 }

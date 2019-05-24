@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/itsubaki/mackerel-api/pkg/interfaces/database"
-	"github.com/itsubaki/mackerel-api/pkg/interfaces/memory"
 	"github.com/itsubaki/mackerel-api/pkg/usecase"
 )
 
@@ -13,15 +12,9 @@ type AuthController struct {
 }
 
 func NewAuthController(handler database.SQLHandler) *AuthController {
-	var repo usecase.OrgRepository
-	repo = memory.NewOrgRepository()
-	if handler != nil {
-		repo = database.NewOrgRepository(handler)
-	}
-
 	return &AuthController{
 		Interactor: &usecase.OrgInteractor{
-			OrgRepository: repo,
+			OrgRepository: database.NewOrgRepository(handler),
 		},
 	}
 }

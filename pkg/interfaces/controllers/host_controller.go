@@ -6,7 +6,6 @@ import (
 
 	"github.com/itsubaki/mackerel-api/pkg/domain"
 	"github.com/itsubaki/mackerel-api/pkg/interfaces/database"
-	"github.com/itsubaki/mackerel-api/pkg/interfaces/memory"
 	"github.com/itsubaki/mackerel-api/pkg/usecase"
 )
 
@@ -15,15 +14,9 @@ type HostController struct {
 }
 
 func NewHostController(handler database.SQLHandler) *HostController {
-	var repo usecase.HostRepository
-	repo = memory.NewHostRepository()
-	if handler != nil {
-		repo = database.NewHostRepository(handler)
-	}
-
 	return &HostController{
 		Interactor: &usecase.HostInteractor{
-			HostRepository: repo,
+			HostRepository: database.NewHostRepository(handler),
 		},
 	}
 }

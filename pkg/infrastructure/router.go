@@ -27,6 +27,7 @@ func Router(handler database.SQLHandler) *gin.Engine {
 		})
 	}
 
+	v0 := g.Group("/api").Group("/v0")
 	{
 		services := controllers.NewServiceController(handler)
 
@@ -118,7 +119,6 @@ func Router(handler database.SQLHandler) *gin.Engine {
 		u.DELETE("/:userId", func(c *gin.Context) { users.Delete(c) })
 	}
 
-	v0 := g.Group("/api").Group("/v0")
 	{
 		org := controllers.NewOrgController(handler)
 		o := v0.Group("/org")
