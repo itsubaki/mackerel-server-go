@@ -19,7 +19,7 @@ func NewGraphRepository(handler SQLHandler) *GraphRepository {
 				org          varchar(64) not null,
 				name         varchar(64) not null,
 				display_name varchar(64),
-				unit		 varchar(64),
+				unit         varchar(64),
 				metrics      text,
 				primary key(org, name)
 			)
@@ -32,13 +32,13 @@ func NewGraphRepository(handler SQLHandler) *GraphRepository {
 			`
 			create table if not exists graph_annotations (
 				org         varchar(64) not null,
-				id          varchar(16)  not null primary key,
+				id          varchar(16) not null primary key,
 				title       varchar(64) not null,
 				description varchar(64),
 				time_from   bigint,
 				time_to     bigint,
 				service     varchar(128) not null,
-				roles		text
+				roles       text
 			)
 			`,
 		); err != nil {
