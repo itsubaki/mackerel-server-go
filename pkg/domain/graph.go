@@ -18,10 +18,11 @@ type GraphAnnotations struct {
 }
 
 type GraphAnnotation struct {
+	ID          string   `json:"id"`
 	Title       string   `json:"title"`
-	Description string   `json:"description"`
+	Description string   `json:"description,omitempty"`
 	From        int64    `json:"from"`
 	To          int64    `json:"to"`
 	Service     string   `json:"service"`
-	Roles       []string `json:"roles"`
+	Roles       []string `json:"roles,omitempty"`
 }

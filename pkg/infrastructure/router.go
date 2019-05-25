@@ -81,10 +81,27 @@ func Router(handler database.SQLHandler) *gin.Engine {
 	}
 
 	{
+		//mon := controllers.NewMonitorController(handler)
+
+		m := v0.Group("/monitors")
+		m.GET("", func(c *gin.Context) {})
+		m.POST("", func(c *gin.Context) {})
+		m.GET("/:monitorId", func(c *gin.Context) {})
+		m.PUT("/:monitorId", func(c *gin.Context) {})
+		m.DELETE("/:monitorId", func(c *gin.Context) {})
+	}
+
+	{
 		graphs := controllers.NewGraphController(handler)
 
 		d := v0.Group("/graph-defs")
-		d.POST("/create", func(c *gin.Context) { graphs.Save(c) })
+		d.POST("/create", func(c *gin.Context) { graphs.SaveDef(c) })
+
+		a := v0.Group("/graph-annotations")
+		a.GET("", func(c *gin.Context) {})
+		a.POST("", func(c *gin.Context) {})
+		a.PUT("/:annotationId", func(c *gin.Context) {})
+		a.DELETE("/:annotationId", func(c *gin.Context) {})
 	}
 
 	{

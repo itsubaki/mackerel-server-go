@@ -5,7 +5,6 @@ import (
 
 	"github.com/itsubaki/mackerel-api/pkg/domain"
 	"github.com/itsubaki/mackerel-api/pkg/interfaces/database"
-	"github.com/itsubaki/mackerel-api/pkg/interfaces/memory"
 	"github.com/itsubaki/mackerel-api/pkg/usecase"
 )
 
@@ -16,7 +15,7 @@ type InvitationController struct {
 func NewInvitationController(handler database.SQLHandler) *InvitationController {
 	return &InvitationController{
 		Interactor: &usecase.InvitationInteractor{
-			InvitationRepository: memory.NewInvitationRepository(),
+			InvitationRepository: database.NewInvitationRepository(handler),
 		},
 	}
 }

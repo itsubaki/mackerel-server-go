@@ -8,9 +8,9 @@ mackerel compatible monitoring service
 # TODO
 
  - API
-   - [x] Services
    - [x] Hosts
    - [x] Host Metrics
+   - [x] Services
    - [x] Service Metrics
    - [x] Check Monitoring
    - [x] Metadata
