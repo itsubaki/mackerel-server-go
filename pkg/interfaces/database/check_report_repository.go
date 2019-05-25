@@ -17,9 +17,9 @@ func NewCheckReportRepository(handler SQLHandler) *CheckReportRepository {
 			create table if not exists check_reports (
 				org                   varchar(64)  not null,
 				host_id               varchar(16)  not null,
-				type                  varchar(16)  not null,
+				type                  enum('host') not null,
 				name                  varchar(128) not null,
-				status                varchar(16)  not null,
+				status                enum('OK', 'CRITICAL', 'WARNING', 'UNKNOWN') not null,
 				message               text,
 				occurred_at           bigint,
 				notification_interval bigint,

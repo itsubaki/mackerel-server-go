@@ -18,7 +18,7 @@ func NewInvitationRepository(handler SQLHandler) *InvitationRepository {
 			create table if not exists invitations (
 				org        varchar(64) not null,
 				email      varchar(64) not null,
-				authority  varchar(64) not null,
+				authority  enum('manager', 'collaborator', 'viewer') not null,
 				expires_at bigint,
 				primary key(org, email)
 			)

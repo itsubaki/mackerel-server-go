@@ -20,7 +20,7 @@ func NewHostRepository(handler SQLHandler) *HostRepository {
 				org               varchar(64)  not null,
 				id                varchar(16)  not null primary key,
 				name              varchar(128) not null,
-				status            varchar(16)  not null,
+				status            enum('working', 'standby', 'maintenance', 'poweroff') not null,
 				memo              varchar(128) not null default '',
 				display_name      varchar(128),
 				custom_identifier varchar(128),
@@ -212,6 +212,7 @@ func (repo *HostRepository) Save(org string, host *domain.Host) (*domain.HostID,
 			values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 			on duplicate key update
 				name = values(name),
+				status = values(status),
 				memo = values(memo),
 				display_name = values(display_name),
 				custom_identifier = values(custom_identifier),
@@ -238,6 +239,7 @@ func (repo *HostRepository) Save(org string, host *domain.Host) (*domain.HostID,
 			string(meta),
 		); err != nil {
 			return fmt.Errorf("insert into hosts: %v", err)
+
 		}
 
 		for svc, role := range host.Roles {

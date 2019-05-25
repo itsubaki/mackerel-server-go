@@ -20,11 +20,11 @@ func NewUserRepository(handler SQLHandler) *UserRepository {
 				id          varchar(128) not null primary key,
 				screen_name varchar(128),
 				email       varchar(128),
-				authority   varchar(128),
-				is_in_registeration_process boolean,
-				is_mfa_enabled              boolean,
-				authentication_methods      varchar(128),
-				joined_at                   bigint
+				authority   enum('owner', 'manager', 'collaborator', 'viewer') not null,
+				is_in_registration_process boolean,
+				is_mfa_enabled             boolean,
+				authentication_methods     enum('password', 'github', 'idcf', ' google', 'nifty', ' yammer', 'kddi') not null,
+				joined_at                  bigint
 			)
 			`,
 		); err != nil {

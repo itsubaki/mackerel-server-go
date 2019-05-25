@@ -18,9 +18,9 @@ func NewAlertRepository(handler SQLHandler) *AlertRepository {
 			create table if not exists alerts (
 				org        varchar(64) not null,
 				id         varchar(16) not null primary key,
-				status     varchar(16) not null,
+				status     enum('OK', 'CRITICAL', 'WARNING', 'UNKNOWN') not null,
 				monitor_id varchar(16) not null,
-				type       varchar(16) not null,
+				type       enum('connectivity', 'host', 'service', 'external', 'check', 'expression') not null,
 				host_id    varchar(16),
 				value      double not null,
 				message    text,

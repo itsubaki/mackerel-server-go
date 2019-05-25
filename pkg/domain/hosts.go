@@ -88,6 +88,7 @@ type Host struct {
 }
 
 func (h *Host) Init() {
+	// role_fullnames -> roles
 	h.Roles = make(map[string][]string)
 	for i := range h.RoleFullNames {
 		svc := strings.Split(h.RoleFullNames[i], ":")
@@ -98,10 +99,12 @@ func (h *Host) Init() {
 		h.Roles[svc[0]] = append(h.Roles[svc[0]], svc[1])
 	}
 
+	// update
 	if len(h.ID) > 0 {
 		return
 	}
 
+	// create
 	sha := sha256.Sum256([]byte(uuid.Must(uuid.NewRandom()).String()))
 	hash := hex.EncodeToString(sha[:])
 

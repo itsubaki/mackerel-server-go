@@ -20,6 +20,13 @@ func (s *HostInteractor) Save(org string, host *domain.Host) (*domain.HostID, er
 	if len(host.ID) > 0 && !s.HostRepository.Exists(org, host.ID) {
 		return nil, &HostNotFound{Err{errors.New("the host that corresponds to the <hostId> can’t be located")}}
 	}
+	if len(host.Status) < 1 && s.HostRepository.Exists(org, host.ID) {
+		exists, err := s.HostRepository.Host(org, host.ID)
+		if err != nil {
+			return nil, &HostNotFound{Err{errors.New("the host that corresponds to the <hostId> can’t be located")}}
+		}
+		host.Status = exists.Status
+	}
 
 	host.Init()
 	return s.HostRepository.Save(org, host)
