@@ -567,6 +567,45 @@ func (repo *HostRepository) MetricValues(org, hostID, name string, from, to int6
 	return &domain.MetricValues{Metrics: values}, nil
 }
 
+// mysql> explain select time, value from host_metric_values where org='default' and host_id='ceb7c8b51c0' and name='loadavg5' order by time desc limit 3;
+// +----+-------------+--------------------+------------+------+---------------+---------+---------+-------------+------+----------+-------------+
+// | id | select_type | table              | partitions | type | possible_keys | key     | key_len | ref         | rows | filtered | Extra       |
+// +----+-------------+--------------------+------------+------+---------------+---------+---------+-------------+------+----------+-------------+
+// |  1 | SIMPLE      | host_metric_values | NULL       | ref  | PRIMARY       | PRIMARY | 580     | const,const |    4 |    10.00 | Using where |
+// +----+-------------+--------------------+------------+------+---------------+---------+---------+-------------+------+----------+-------------+
+// 1 row in set, 1 warning (0.01 sec)
+func (repo *HostRepository) MetricValuesLimit(org, hostID, name string, limit int) (*domain.MetricValues, error) {
+	values := make([]domain.MetricValue, 0)
+	if err := repo.Transact(func(tx Tx) error {
+		rows, err := tx.Query("select time, value from host_metric_values where org=? and host_id=? and name=? order by time desc limit ?", org, hostID, name, limit)
+		if err != nil {
+			return fmt.Errorf("select time, value from host_metric_values: %v", err)
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			var time int64
+			var value float64
+			if err := rows.Scan(&time, &value); err != nil {
+				return fmt.Errorf("scan: %v", err)
+			}
+
+			values = append(values, domain.MetricValue{
+				HostID: hostID,
+				Name:   name,
+				Time:   time,
+				Value:  value,
+			})
+		}
+
+		return nil
+	}); err != nil {
+		return nil, fmt.Errorf("transaction: %v", err)
+	}
+
+	return &domain.MetricValues{Metrics: values}, nil
+}
+
 // mysql> explain select * from host_metric_values_latest where host_id in('27b9dad3197') and name in('loadavg5', 'loadavg15');
 // +----+-------------+---------------------------+------------+-------+---------------+---------+---------+------+------+----------+-------------+
 // | id | select_type | table                     | partitions | type  | possible_keys | key     | key_len | ref  | rows | filtered | Extra       |
