@@ -203,3 +203,41 @@ mysql> select host_id, name, time, value, rank() over(partition by host_id order
 +-------------+-------------+------------+------------+-----+
 83 rows in set (0.01 sec)
 ```
+
+
+```
+mysql> explain select host_id, name, time, value, rank() over(order by time desc) as rnk from host_metric_values where name='memory.used' and host_id='f49131deaec' limit 3;
++----+-------------+--------------------+------------+------+---------------+---------+---------+-------------+------+----------+----------------+
+| id | select_type | table              | partitions | type | possible_keys | key     | key_len | ref         | rows | filtered | Extra          |
++----+-------------+--------------------+------------+------+---------------+---------+---------+-------------+------+----------+----------------+
+|  1 | SIMPLE      | host_metric_values | NULL       | ref  | PRIMARY       | PRIMARY | 580     | const,const |   54 |   100.00 | Using filesort |
++----+-------------+--------------------+------------+------+---------------+---------+---------+-------------+------+----------+----------------+
+1 row in set, 2 warnings (0.00 sec)
+
+mysql> select host_id, name, time, value, rank() over(order by time desc) as rnk from host_metric_values where name='memory.used' and host_id='f49131deaec' limit 3;
++-------------+-------------+------------+------------+-----+
+| host_id     | name        | time       | value      | rnk |
++-------------+-------------+------------+------------+-----+
+| f49131deaec | memory.used | 1558845780 | 7224537088 |   1 |
+| f49131deaec | memory.used | 1558845720 | 7271268352 |   2 |
+| f49131deaec | memory.used | 1558845660 | 7191089152 |   3 |
++-------------+-------------+------------+------------+-----+
+3 rows in set (0.00 sec)
+
+mysql> explain select host_id, avg(value) from(select host_id, name, time, value, rank() over(order by time desc) as rnk from host_metric_values where name='memory.used' and host_id='f49131deaec' limit 3) as rnktable group by host_id;
++----+-------------+--------------------+------------+------+---------------+---------+---------+-------------+------+----------+-----------------+
+| id | select_type | table              | partitions | type | possible_keys | key     | key_len | ref         | rows | filtered | Extra           |
++----+-------------+--------------------+------------+------+---------------+---------+---------+-------------+------+----------+-----------------+
+|  1 | PRIMARY     | <derived2>         | NULL       | ALL  | NULL          | NULL    | NULL    | NULL        |    3 |   100.00 | Using temporary |
+|  2 | DERIVED     | host_metric_values | NULL       | ref  | PRIMARY       | PRIMARY | 580     | const,const |   56 |   100.00 | Using filesort  |
++----+-------------+--------------------+------------+------+---------------+---------+---------+-------------+------+----------+-----------------+
+2 rows in set, 2 warnings (0.00 sec)
+
+mysql> select host_id, avg(value) from(select host_id, name, time, value, rank() over(order by time desc) as rnk from host_metric_values where name='memory.used' and host_id='f49131deaec' limit 3) as rnktable group by host_id;
++-------------+-------------------+
+| host_id     | avg(value)        |
++-------------+-------------------+
+| f49131deaec | 7231591765.333333 |
++-------------+-------------------+
+1 row in set (0.00 sec)
+```
