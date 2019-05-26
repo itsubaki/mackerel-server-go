@@ -1,10 +1,35 @@
 package domain
 
 type Monitoring struct {
-	Type                 string `json:"type"` // host, connectivity, service, external, expression
-	Name                 string `json:"name"`
-	NotificationInterval int    `json:"notificationInterval,omitempty"`
-	IsMute               bool   `json:"isMute,omitempty"`
+	ID                              string              `json:"id"`
+	Type                            string              `json:"type"` // host, connectivity, service, external, expression
+	Name                            string              `json:"name"`
+	Memo                            string              `json:"memo,omitempty"`
+	NotificationInterval            int                 `json:"notificationInterval,omitempty"`
+	IsMute                          bool                `json:"isMute,omitempty"`
+	Duration                        int                 `json:"duration,omitempty"`                        // HostMetric, Service
+	Metric                          string              `json:"metric,omitempty"`                          // HostMetric, Service
+	Operator                        string              `json:"operator,omitempty"`                        // HostMetric, Service
+	Warning                         float64             `json:"warning,omitempty"`                         // HostMetric, Service
+	Critical                        float64             `json:"critical,omitempty"`                        // HostMetric, Service
+	MaxCheckAttempts                int                 `json:"maxCheckAttempts,omitempty"`                // HostMetric, Service
+	Scopes                          []string            `json:"scopes,omitempty"`                          // HostMetric, Connectivity
+	ExcludeScopes                   []string            `json:"excludeScopes,omitempty"`                   // HostMetric, Connectivity
+	MissingDurationWarning          int                 `json:"missingDurationWarning,omitempty"`          // Service
+	MissingDurationCritical         int                 `json:"missingDurationCritical,omitempty"`         // Service
+	URL                             string              `json:"url,omitempty"`                             // External
+	Method                          string              `json:"method,omitempty"`                          // External
+	Service                         string              `json:"service,omitempty"`                         // External
+	ResponseTimeWarning             int                 `json:"responseTimeWarning,omitempty"`             // External
+	ResponseTimeCritical            int                 `json:"responseTimeCritical,omitempty"`            // External
+	ResponseTimeDuration            int                 `json:"responseTimeDuration,omitempty"`            // External
+	ContainsString                  string              `json:"containsString,omitempty"`                  // External
+	CertificationExpirationWarning  int                 `json:"certificationExpirationWarning,omitempty"`  // External
+	CertificationExpirationCritical int                 `json:"certificationExpirationCritical,omitempty"` // External
+	SkipCertificateVerification     bool                `json:"skipCertificateVerification,omitempty"`     // External
+	Headers                         []map[string]string `json:"notificationInterval,omitempty"`            // External
+	RequestBody                     string              `json:"notificationInterval,omitempty"`            // External
+	Expression                      int                 `json:"expression,omitempty"`                      // Expression
 }
 
 type HostMetricMonitoring struct {
