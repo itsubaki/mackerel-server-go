@@ -28,8 +28,6 @@ mackerel compatible monitoring service
    - [ ] Amazon Timestream
  - Security
    - [x] `X-Api-Key`
- - Subsystem
-   - [ ] Monitoring
 
 # Install
 
