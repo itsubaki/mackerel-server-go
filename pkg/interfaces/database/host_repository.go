@@ -60,7 +60,7 @@ func NewHostRepository(handler SQLHandler) *HostRepository {
 				name    varchar(128) not null,
 				time    bigint not null,
 				value   double not null,
-				primary key(host_id, name, time)
+				primary key(host_id, name, time desc)
 			)
 			`,
 		); err != nil {

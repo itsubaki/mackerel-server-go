@@ -49,7 +49,7 @@ func NewServiceRepository(handler SQLHandler) *ServiceRepository {
 				name         varchar(128) not null,
 				time         bigint not null,
 				value        double not null,
-				primary key(org, service_name, name, time)
+				primary key(org, service_name, name, time desc)
 			)
 			`,
 		); err != nil {

@@ -15,7 +15,7 @@ func TestHostRepository(t *testing.T) {
 	repo := database.NewHostRepository(NewSQLHandler())
 	defer repo.Close()
 
-	if _, err := repo.List(); err != nil {
+	if _, err := repo.List("default"); err != nil {
 		t.Error(err)
 	}
 
@@ -56,11 +56,11 @@ func TestHostRepository(t *testing.T) {
 		},
 	}
 
-	if _, err := repo.Save(&host); err != nil {
+	if _, err := repo.Save("default", &host); err != nil {
 		t.Error(err)
 	}
 
-	hosts, err := repo.List()
+	hosts, err := repo.List("default")
 	if err != nil {
 		t.Error(err)
 	}

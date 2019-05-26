@@ -12,7 +12,7 @@ func TestUserRepository(t *testing.T) {
 	repo := database.NewUserRepository(NewSQLHandler())
 	defer repo.Close()
 
-	if _, err := repo.List(); err != nil {
+	if _, err := repo.List("default"); err != nil {
 		t.Error(err)
 	}
 
@@ -27,19 +27,19 @@ func TestUserRepository(t *testing.T) {
 		JoinedAt:                 time.Now().Unix(),
 	}
 
-	if err := repo.Save(&user); err != nil {
+	if err := repo.Save("default", &user); err != nil {
 		t.Error(err)
 	}
 
-	if !repo.Exists("example001") {
+	if !repo.Exists("default", "example001") {
 		t.Error("example001 not found")
 	}
 
-	if _, err := repo.Delete("example001"); err != nil {
+	if _, err := repo.Delete("default", "example001"); err != nil {
 		t.Error(err)
 	}
 
-	if repo.Exists("example001") {
+	if repo.Exists("default", "example001") {
 		t.Error("example001 already exists")
 	}
 }
