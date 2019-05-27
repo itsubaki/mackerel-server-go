@@ -1,12 +1,7 @@
 package domain
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
 	"strings"
-	"time"
-
-	"github.com/google/uuid"
 )
 
 type TSDBLatest struct {
@@ -85,37 +80,6 @@ type Host struct {
 	Interfaces       []Interface         `json:"interfaces,omitempty"`
 	Checks           []Check             `json:"checks,omitempty"`
 	Meta             Meta                `json:"meta"`
-}
-
-func (h *Host) Init() {
-	// role_fullnames -> roles
-	h.Roles = make(map[string][]string)
-	for i := range h.RoleFullNames {
-		svc := strings.Split(h.RoleFullNames[i], ":")
-		if _, ok := h.Roles[svc[0]]; !ok {
-			h.Roles[svc[0]] = make([]string, 0)
-		}
-
-		h.Roles[svc[0]] = append(h.Roles[svc[0]], svc[1])
-	}
-
-	// update
-	if len(h.ID) > 0 {
-		return
-	}
-
-	// create
-	sha := sha256.Sum256([]byte(uuid.Must(uuid.NewRandom()).String()))
-	hash := hex.EncodeToString(sha[:])
-
-	h.ID = hash[:11]
-	h.CreatedAt = time.Now().Unix()
-	h.RetiredAt = 0
-	h.IsRetired = false
-	h.Checks = []Check{}
-	if len(h.Status) < 1 {
-		h.Status = "working"
-	}
 }
 
 type Meta struct {

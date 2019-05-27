@@ -1,9 +1,14 @@
 package usecase
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"strings"
+	"time"
 
+	"github.com/google/uuid"
 	"github.com/itsubaki/mackerel-api/pkg/domain"
 )
 
@@ -28,7 +33,32 @@ func (s *HostInteractor) Save(org string, host *domain.Host) (*domain.HostID, er
 		host.Status = exists.Status
 	}
 
-	host.Init()
+	// Create
+	if len(host.ID) < 1 {
+		sha := sha256.Sum256([]byte(uuid.Must(uuid.NewRandom()).String()))
+		hash := hex.EncodeToString(sha[:])
+
+		host.ID = hash[:11]
+		host.CreatedAt = time.Now().Unix()
+		host.RetiredAt = 0
+		host.IsRetired = false
+		host.Checks = []domain.Check{}
+		if len(host.Status) < 1 {
+			host.Status = "working"
+		}
+	}
+
+	// role_fullnames -> roles
+	host.Roles = make(map[string][]string)
+	for i := range host.RoleFullNames {
+		svc := strings.Split(host.RoleFullNames[i], ":")
+		if _, ok := host.Roles[svc[0]]; !ok {
+			host.Roles[svc[0]] = make([]string, 0)
+		}
+
+		host.Roles[svc[0]] = append(host.Roles[svc[0]], svc[1])
+	}
+
 	return s.HostRepository.Save(org, host)
 }
 

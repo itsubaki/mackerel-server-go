@@ -1,5 +1,9 @@
 package domain
 
+type Monitors struct {
+	Monitors []interface{} `json:"monitors"`
+}
+
 type Monitoring struct {
 	ID                              string              `json:"id"`
 	Type                            string              `json:"type"` // host, connectivity, service, external, expression
