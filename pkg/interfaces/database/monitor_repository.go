@@ -1,6 +1,7 @@
 package database
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/itsubaki/mackerel-api/pkg/domain"
@@ -19,12 +20,12 @@ func NewMonitorRepository(handler SQLHandler) *MonitorRepository {
 				id                                varchar(16) not null primary key,
 				type                              enum('host', 'connectivity', 'service', 'external', 'expression'),
 				name                              varchar(128) not null,
-				Memo                              text,
+				memo                              text,
 				notification_interval	          int  not null default 1,
 				is_mute                           bool not null default 1,
-				duration                          int  not null default 1,
+				duration                          int,
 				metric                            varchar(128),
-				operator                          enum('>', '<'),
+				operator                          enum('>', '<') default '<',
 				warning                           double,
 				critical                          double,
 				max_check_attempts                int,
@@ -33,7 +34,7 @@ func NewMonitorRepository(handler SQLHandler) *MonitorRepository {
 				missing_duration_warning          int,
 				missing_duration_critical         int,
 				url                               text,
-				method                            enum('GET', 'PUT', 'POST', 'DELETE'),
+				method                            enum('GET', 'PUT', 'POST', 'DELETE') default 'GET',
 				service                           text,
 				response_time_warning             int,
 				response_time_critical            int,
@@ -71,16 +72,44 @@ func (repo *MonitorRepository) List(org string) (*domain.Monitors, error) {
 		defer rows.Close()
 
 		for rows.Next() {
-			var mon domain.Monitoring
+			var monitor domain.Monitoring
 			var org string
 			if err := rows.Scan(
 				&org,
-				&mon.ID,
+				&monitor.ID,
+				&monitor.Type,
+				&monitor.Name,
+				&monitor.Memo,
+				&monitor.NotificationInterval,
+				&monitor.IsMute,
+				&monitor.Duration,
+				&monitor.Metric,
+				&monitor.Operator,
+				&monitor.Warning,
+				&monitor.Critical,
+				&monitor.MaxCheckAttempts,
+				&monitor.Scopes,
+				&monitor.ExcludeScopes,
+				&monitor.MissingDurationWarning,
+				&monitor.MissingDurationCritical,
+				&monitor.URL,
+				&monitor.Method,
+				&monitor.Service,
+				&monitor.ResponseTimeWarning,
+				&monitor.ResponseTimeCritical,
+				&monitor.ResponseTimeDuration,
+				&monitor.ContainsString,
+				&monitor.CertificationExpirationWarning,
+				&monitor.CertificationExpirationCritical,
+				&monitor.SkipCertificateVerification,
+				&monitor.Headers,
+				&monitor.RequestBody,
+				&monitor.Expression,
 			); err != nil {
 				return fmt.Errorf("scan: %v", err)
 			}
 
-			monitors = append(monitors, mon)
+			monitors = append(monitors, monitor)
 		}
 
 		return nil
@@ -92,7 +121,109 @@ func (repo *MonitorRepository) List(org string) (*domain.Monitors, error) {
 }
 
 func (repo *MonitorRepository) Save(org string, monitor *domain.Monitoring) (interface{}, error) {
-	return nil, nil
+	if err := repo.Transact(func(tx Tx) error {
+		scopes, err := json.Marshal(monitor.Scopes)
+		if err != nil {
+			return fmt.Errorf("marshal monitor.Scopes: %v", err)
+		}
+
+		exclude, err := json.Marshal(monitor.ExcludeScopes)
+		if err != nil {
+			return fmt.Errorf("marshal monitor.ExcludeScopes: %v", err)
+		}
+
+		service, err := json.Marshal(monitor.Service)
+		if err != nil {
+			return fmt.Errorf("marshal monitor.Service: %v", err)
+		}
+
+		headers, err := json.Marshal(monitor.Headers)
+		if err != nil {
+			return fmt.Errorf("marshal monitor.Headers: %v", err)
+		}
+
+		body, err := json.Marshal(monitor.RequestBody)
+		if err != nil {
+			return fmt.Errorf("marshal monitor.RequestBody: %v", err)
+		}
+
+		if _, err := tx.Exec(
+			`
+			insert into monitors (
+				org,
+				id,
+				name,
+				memo,
+				type,
+				notification_interval,
+				is_mute,
+				duration,
+				metric,
+				operator,
+				warning,
+				critical,
+				max_check_attempts,
+				scopes,
+				exclude_scopes,
+				missing_duration_warning,
+				missing_duration_critical,
+				url,
+				method,
+				service,
+				response_time_warning,
+				response_time_critical,
+				response_time_duration,
+				contains_string,
+				certification_expiration_warning,
+				certification_expiration_critical,
+				skip_certificate_verification,
+				headers,
+				request_body,
+				expression
+			)
+			values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+			`,
+			org,
+			monitor.ID,
+			monitor.Type,
+			monitor.Name,
+			monitor.Memo,
+			monitor.NotificationInterval,
+			monitor.IsMute,
+			monitor.Duration,
+			monitor.Metric,
+			monitor.Operator,
+			monitor.Warning,
+			monitor.Critical,
+			monitor.MaxCheckAttempts,
+			scopes,
+			exclude,
+			monitor.MissingDurationWarning,
+			monitor.MissingDurationCritical,
+			monitor.URL,
+			monitor.Method,
+			service,
+			monitor.ResponseTimeWarning,
+			monitor.ResponseTimeCritical,
+			monitor.ResponseTimeDuration,
+			monitor.ContainsString,
+			monitor.CertificationExpirationWarning,
+			monitor.CertificationExpirationCritical,
+			monitor.SkipCertificateVerification,
+			headers,
+			body,
+			monitor.Expression,
+		); err != nil {
+			return fmt.Errorf("insert into monitors: %v", err)
+
+		}
+
+		return nil
+	}); err != nil {
+		return nil, fmt.Errorf("transaction: %v", err)
+	}
+
+	return monitor, nil
 }
 
 func (repo *MonitorRepository) Update(org string, monitor *domain.Monitoring) (interface{}, error) {
