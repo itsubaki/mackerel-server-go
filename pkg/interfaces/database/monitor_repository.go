@@ -152,9 +152,9 @@ func (repo *MonitorRepository) Save(org string, monitor *domain.Monitoring) (int
 			insert into monitors (
 				org,
 				id,
+				type,
 				name,
 				memo,
-				type,
 				notification_interval,
 				is_mute,
 				duration,
@@ -227,13 +227,244 @@ func (repo *MonitorRepository) Save(org string, monitor *domain.Monitoring) (int
 }
 
 func (repo *MonitorRepository) Update(org string, monitor *domain.Monitoring) (interface{}, error) {
-	return nil, nil
+	if err := repo.Transact(func(tx Tx) error {
+		scopes, err := json.Marshal(monitor.Scopes)
+		if err != nil {
+			return fmt.Errorf("marshal monitor.Scopes: %v", err)
+		}
+
+		exclude, err := json.Marshal(monitor.ExcludeScopes)
+		if err != nil {
+			return fmt.Errorf("marshal monitor.ExcludeScopes: %v", err)
+		}
+
+		service, err := json.Marshal(monitor.Service)
+		if err != nil {
+			return fmt.Errorf("marshal monitor.Service: %v", err)
+		}
+
+		headers, err := json.Marshal(monitor.Headers)
+		if err != nil {
+			return fmt.Errorf("marshal monitor.Headers: %v", err)
+		}
+
+		body, err := json.Marshal(monitor.RequestBody)
+		if err != nil {
+			return fmt.Errorf("marshal monitor.RequestBody: %v", err)
+		}
+
+		if _, err := tx.Exec(
+			`
+			update monitors set
+				type=?,
+				name=?,
+				memo=?,
+				notification_interval=?,
+				is_mute=?,
+				duration=?,
+				metric=?,
+				operator=?,
+				warning=?,
+				critical=?,
+				max_check_attempts=?,
+				scopes=?,
+				exclude_scopes=?,
+				missing_duration_warning=?,
+				missing_duration_critical=?,
+				url=?,
+				method=?,
+				service=?,
+				response_time_warning=?,
+				response_time_critical=?,
+				response_time_duration=?,
+				contains_string=?,
+				certification_expiration_warning=?,
+				certification_expiration_critical=?,
+				skip_certificate_verification=?,
+				headers=?,
+				request_body=?,
+				expression=?	
+			where org=? and id=?
+			`,
+			monitor.Type,
+			monitor.Name,
+			monitor.Memo,
+			monitor.NotificationInterval,
+			monitor.IsMute,
+			monitor.Duration,
+			monitor.Metric,
+			monitor.Operator,
+			monitor.Warning,
+			monitor.Critical,
+			monitor.MaxCheckAttempts,
+			scopes,
+			exclude,
+			monitor.MissingDurationWarning,
+			monitor.MissingDurationCritical,
+			monitor.URL,
+			monitor.Method,
+			service,
+			monitor.ResponseTimeWarning,
+			monitor.ResponseTimeCritical,
+			monitor.ResponseTimeDuration,
+			monitor.ContainsString,
+			monitor.CertificationExpirationWarning,
+			monitor.CertificationExpirationCritical,
+			monitor.SkipCertificateVerification,
+			headers,
+			body,
+			monitor.Expression,
+			org,
+			monitor.ID,
+		); err != nil {
+			return fmt.Errorf("insert into monitors: %v", err)
+
+		}
+
+		return nil
+	}); err != nil {
+		return nil, fmt.Errorf("transaction: %v", err)
+	}
+
+	return monitor, nil
 }
 
 func (repo *MonitorRepository) Monitor(org, monitorID string) (interface{}, error) {
-	return nil, nil
+	var monitor domain.Monitoring
+	if err := repo.Transact(func(tx Tx) error {
+		row := tx.QueryRow("select * from monitors where org=? and id=?", org, monitorID)
+		var org, scopes, exclude, service, headers, body string
+		if err := row.Scan(
+			&org,
+			&monitor.ID,
+			&monitor.Type,
+			&monitor.Name,
+			&monitor.Memo,
+			&monitor.NotificationInterval,
+			&monitor.IsMute,
+			&monitor.Duration,
+			&monitor.Metric,
+			&monitor.Operator,
+			&monitor.Warning,
+			&monitor.Critical,
+			&monitor.MaxCheckAttempts,
+			scopes,
+			exclude,
+			&monitor.MissingDurationWarning,
+			&monitor.MissingDurationCritical,
+			&monitor.URL,
+			&monitor.Method,
+			service,
+			&monitor.ResponseTimeWarning,
+			&monitor.ResponseTimeCritical,
+			&monitor.ResponseTimeDuration,
+			&monitor.ContainsString,
+			&monitor.CertificationExpirationWarning,
+			&monitor.CertificationExpirationCritical,
+			&monitor.SkipCertificateVerification,
+			headers,
+			body,
+			&monitor.Expression,
+		); err != nil {
+			return fmt.Errorf("scan: %v", err)
+		}
+
+		if err := json.Unmarshal([]byte(scopes), &monitor.Scopes); err != nil {
+			return fmt.Errorf("unmarshal monitor.Scopes: %v", err)
+		}
+
+		if err := json.Unmarshal([]byte(exclude), &monitor.ExcludeScopes); err != nil {
+			return fmt.Errorf("unmarshal monitor.ExcludeScopes: %v", err)
+		}
+
+		if err := json.Unmarshal([]byte(service), &monitor.Service); err != nil {
+			return fmt.Errorf("unmarshal monitor.Service: %v", err)
+		}
+
+		if err := json.Unmarshal([]byte(headers), &monitor.Headers); err != nil {
+			return fmt.Errorf("unmarshal monitor.Headers: %v", err)
+		}
+
+		if err := json.Unmarshal([]byte(body), &monitor.RequestBody); err != nil {
+			return fmt.Errorf("unmarshal monitor.RequestBody: %v", err)
+		}
+
+		return nil
+	}); err != nil {
+		return nil, fmt.Errorf("transaction: %v", err)
+	}
+
+	return &monitor, nil
 }
 
 func (repo *MonitorRepository) Delete(org, monitorID string) (interface{}, error) {
-	return nil, nil
+	var monitor domain.Monitoring
+	if err := repo.Transact(func(tx Tx) error {
+		row := tx.QueryRow("select * from monitors where org=? and id=?", org, monitorID)
+		var trash, scopes, exclude, service, headers, body string
+		if err := row.Scan(
+			&trash,
+			&monitor.ID,
+			&monitor.Type,
+			&monitor.Name,
+			&monitor.Memo,
+			&monitor.NotificationInterval,
+			&monitor.IsMute,
+			&monitor.Duration,
+			&monitor.Metric,
+			&monitor.Operator,
+			&monitor.Warning,
+			&monitor.Critical,
+			&monitor.MaxCheckAttempts,
+			scopes,
+			exclude,
+			&monitor.MissingDurationWarning,
+			&monitor.MissingDurationCritical,
+			&monitor.URL,
+			&monitor.Method,
+			service,
+			&monitor.ResponseTimeWarning,
+			&monitor.ResponseTimeCritical,
+			&monitor.ResponseTimeDuration,
+			&monitor.ContainsString,
+			&monitor.CertificationExpirationWarning,
+			&monitor.CertificationExpirationCritical,
+			&monitor.SkipCertificateVerification,
+			headers,
+			body,
+			&monitor.Expression,
+		); err != nil {
+			return fmt.Errorf("scan: %v", err)
+		}
+
+		if err := json.Unmarshal([]byte(scopes), &monitor.Scopes); err != nil {
+			return fmt.Errorf("unmarshal monitor.Scopes: %v", err)
+		}
+
+		if err := json.Unmarshal([]byte(exclude), &monitor.ExcludeScopes); err != nil {
+			return fmt.Errorf("unmarshal monitor.ExcludeScopes: %v", err)
+		}
+
+		if err := json.Unmarshal([]byte(service), &monitor.Service); err != nil {
+			return fmt.Errorf("unmarshal monitor.Service: %v", err)
+		}
+
+		if err := json.Unmarshal([]byte(headers), &monitor.Headers); err != nil {
+			return fmt.Errorf("unmarshal monitor.Headers: %v", err)
+		}
+
+		if err := json.Unmarshal([]byte(body), &monitor.RequestBody); err != nil {
+			return fmt.Errorf("unmarshal monitor.RequestBody: %v", err)
+		}
+
+		if _, err := tx.Exec("delete from monitors where org=? and id=?", org, monitorID); err != nil {
+			return fmt.Errorf("delete from monitors: %v", err)
+		}
+
+		return nil
+	}); err != nil {
+		return nil, fmt.Errorf("transaction: %v", err)
+	}
+
+	return &monitor, nil
 }
