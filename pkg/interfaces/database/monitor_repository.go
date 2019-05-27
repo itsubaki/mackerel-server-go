@@ -25,7 +25,7 @@ func NewMonitorRepository(handler SQLHandler) *MonitorRepository {
 				is_mute                           bool not null default 1,
 				duration                          int,
 				metric                            varchar(128),
-				operator                          enum('>', '<') default '<',
+				operator                          enum('>', '<', '') default '<',
 				warning                           double,
 				critical                          double,
 				max_check_attempts                int,
@@ -34,7 +34,7 @@ func NewMonitorRepository(handler SQLHandler) *MonitorRepository {
 				missing_duration_warning          int,
 				missing_duration_critical         int,
 				url                               text,
-				method                            enum('GET', 'PUT', 'POST', 'DELETE') default 'GET',
+				method                            enum('GET', 'PUT', 'POST', 'DELETE', '') default 'GET',
 				service                           text,
 				response_time_warning             int,
 				response_time_critical            int,
@@ -109,7 +109,7 @@ func (repo *MonitorRepository) List(org string) (*domain.Monitors, error) {
 				return fmt.Errorf("scan: %v", err)
 			}
 
-			monitors = append(monitors, monitor)
+			monitors = append(monitors, monitor.Cast())
 		}
 
 		return nil
@@ -326,7 +326,7 @@ func (repo *MonitorRepository) Update(org string, monitor *domain.Monitoring) (i
 		return nil, fmt.Errorf("transaction: %v", err)
 	}
 
-	return monitor, nil
+	return monitor.Cast(), nil
 }
 
 func (repo *MonitorRepository) Monitor(org, monitorID string) (interface{}, error) {
@@ -348,13 +348,13 @@ func (repo *MonitorRepository) Monitor(org, monitorID string) (interface{}, erro
 			&monitor.Warning,
 			&monitor.Critical,
 			&monitor.MaxCheckAttempts,
-			scopes,
-			exclude,
+			&scopes,
+			&exclude,
 			&monitor.MissingDurationWarning,
 			&monitor.MissingDurationCritical,
 			&monitor.URL,
 			&monitor.Method,
-			service,
+			&service,
 			&monitor.ResponseTimeWarning,
 			&monitor.ResponseTimeCritical,
 			&monitor.ResponseTimeDuration,
@@ -362,8 +362,8 @@ func (repo *MonitorRepository) Monitor(org, monitorID string) (interface{}, erro
 			&monitor.CertificationExpirationWarning,
 			&monitor.CertificationExpirationCritical,
 			&monitor.SkipCertificateVerification,
-			headers,
-			body,
+			&headers,
+			&body,
 			&monitor.Expression,
 		); err != nil {
 			return fmt.Errorf("scan: %v", err)
@@ -394,7 +394,7 @@ func (repo *MonitorRepository) Monitor(org, monitorID string) (interface{}, erro
 		return nil, fmt.Errorf("transaction: %v", err)
 	}
 
-	return &monitor, nil
+	return monitor.Cast(), nil
 }
 
 func (repo *MonitorRepository) Delete(org, monitorID string) (interface{}, error) {
@@ -416,13 +416,13 @@ func (repo *MonitorRepository) Delete(org, monitorID string) (interface{}, error
 			&monitor.Warning,
 			&monitor.Critical,
 			&monitor.MaxCheckAttempts,
-			scopes,
-			exclude,
+			&scopes,
+			&exclude,
 			&monitor.MissingDurationWarning,
 			&monitor.MissingDurationCritical,
 			&monitor.URL,
 			&monitor.Method,
-			service,
+			&service,
 			&monitor.ResponseTimeWarning,
 			&monitor.ResponseTimeCritical,
 			&monitor.ResponseTimeDuration,
@@ -430,8 +430,8 @@ func (repo *MonitorRepository) Delete(org, monitorID string) (interface{}, error
 			&monitor.CertificationExpirationWarning,
 			&monitor.CertificationExpirationCritical,
 			&monitor.SkipCertificateVerification,
-			headers,
-			body,
+			&headers,
+			&body,
 			&monitor.Expression,
 		); err != nil {
 			return fmt.Errorf("scan: %v", err)
@@ -466,5 +466,5 @@ func (repo *MonitorRepository) Delete(org, monitorID string) (interface{}, error
 		return nil, fmt.Errorf("transaction: %v", err)
 	}
 
-	return &monitor, nil
+	return monitor.Cast(), nil
 }

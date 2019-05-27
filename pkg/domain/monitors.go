@@ -5,7 +5,7 @@ type Monitors struct {
 }
 
 type Monitoring struct {
-	ID                              string              `json:"id"`
+	ID                              string              `json:"id,omitempty"`
 	Type                            string              `json:"type"` // host, connectivity, service, external, expression
 	Name                            string              `json:"name"`
 	Memo                            string              `json:"memo,omitempty"`
@@ -33,10 +33,106 @@ type Monitoring struct {
 	SkipCertificateVerification     bool                `json:"skipCertificateVerification,omitempty"`     // External
 	Headers                         []map[string]string `json:"notificationInterval,omitempty"`            // External
 	RequestBody                     string              `json:"notificationInterval,omitempty"`            // External
-	Expression                      int                 `json:"expression,omitempty"`                      // Expression
+	Expression                      string              `json:"expression,omitempty"`                      // Expression
+}
+
+func (m *Monitoring) Cast() interface{} {
+	if m.Type == "host" {
+		return &HostMetricMonitoring{
+			ID:                   m.ID,
+			Type:                 m.Type,
+			Name:                 m.Name,
+			Memo:                 m.Memo,
+			Duration:             m.Duration,
+			Metric:               m.Metric,
+			Operator:             m.Operator,
+			Warning:              m.Warning,
+			Critical:             m.Critical,
+			MaxCheckAttempts:     m.MaxCheckAttempts,
+			NotificationInterval: m.NotificationInterval,
+			Scopes:               m.Scopes,
+			ExcludeScopes:        m.ExcludeScopes,
+			IsMute:               m.IsMute,
+		}
+	}
+
+	if m.Type == "connectivity" {
+		return &HostConnectivityMonitoring{
+			ID:                   m.ID,
+			Type:                 m.Type,
+			Name:                 m.Name,
+			Memo:                 m.Memo,
+			NotificationInterval: m.NotificationInterval,
+			Scopes:               m.Scopes,
+			ExcludeScopes:        m.ExcludeScopes,
+			IsMute:               m.IsMute,
+		}
+	}
+
+	if m.Type == "service" {
+		return &ServiceMetricMonitoring{
+			ID:                      m.ID,
+			Type:                    m.Type,
+			Name:                    m.Name,
+			Memo:                    m.Memo,
+			Duration:                m.Duration,
+			Metric:                  m.Metric,
+			Operator:                m.Operator,
+			Warning:                 m.Warning,
+			Critical:                m.Critical,
+			MaxCheckAttempts:        m.MaxCheckAttempts,
+			MissingDurationWarning:  m.MissingDurationWarning,
+			MissingDurationCritical: m.MissingDurationCritical,
+			NotificationInterval:    m.NotificationInterval,
+			Scopes:                  m.Scopes,
+			ExcludeScopes:           m.ExcludeScopes,
+			IsMute:                  m.IsMute,
+		}
+	}
+
+	if m.Type == "external" {
+		return &ExternalMonitoring{
+			ID:                              m.ID,
+			Type:                            m.Type,
+			Name:                            m.Name,
+			Memo:                            m.Memo,
+			URL:                             m.URL,
+			Method:                          m.Method,
+			Service:                         m.Service,
+			NotificationInterval:            m.NotificationInterval,
+			ResponseTimeWarning:             m.ResponseTimeWarning,
+			ResponseTimeCritical:            m.ResponseTimeCritical,
+			ResponseTimeDuration:            m.ResponseTimeDuration,
+			ContainsString:                  m.ContainsString,
+			MaxCheckAttempts:                m.MaxCheckAttempts,
+			CertificationExpirationWarning:  m.CertificationExpirationWarning,
+			CertificationExpirationCritical: m.CertificationExpirationCritical,
+			IsMute:      m.IsMute,
+			Headers:     m.Headers,
+			RequestBody: m.RequestBody,
+		}
+	}
+
+	if m.Type == "expression" {
+		return &ExpressionMonitoring{
+			ID:                   m.ID,
+			Type:                 m.Type,
+			Name:                 m.Name,
+			Memo:                 m.Memo,
+			Expression:           m.Expression,
+			Operator:             m.Operator,
+			Warning:              m.Warning,
+			Critical:             m.Critical,
+			NotificationInterval: m.NotificationInterval,
+			IsMute:               m.IsMute,
+		}
+	}
+
+	return m
 }
 
 type HostMetricMonitoring struct {
+	ID                   string   `json:"id,omitempty"`
 	Type                 string   `json:"type"` // host
 	Name                 string   `json:"name"`
 	Memo                 string   `json:"memo,omitempty"`
@@ -53,6 +149,7 @@ type HostMetricMonitoring struct {
 }
 
 type HostConnectivityMonitoring struct {
+	ID                   string   `json:"id"`
 	Type                 string   `json:"type"` // connectivity
 	Name                 string   `json:"name"`
 	Memo                 string   `json:"memo,omitempty"`
@@ -63,6 +160,7 @@ type HostConnectivityMonitoring struct {
 }
 
 type ServiceMetricMonitoring struct {
+	ID                      string   `json:"id,omitempty"`
 	Type                    string   `json:"type"` // service
 	Name                    string   `json:"name"`
 	Memo                    string   `json:"memo,omitempty"`
@@ -81,6 +179,7 @@ type ServiceMetricMonitoring struct {
 }
 
 type ExternalMonitoring struct {
+	ID                              string              `json:"id,omitempty"`
 	Type                            string              `json:"type"` // external
 	Name                            string              `json:"name"`
 	Memo                            string              `json:"memo,omitempty"`
@@ -102,10 +201,11 @@ type ExternalMonitoring struct {
 }
 
 type ExpressionMonitoring struct {
+	ID                   string  `json:"id,omitempty"`
 	Type                 string  `json:"type"` // expression
 	Name                 string  `json:"name"`
 	Memo                 string  `json:"memo,omitempty"`
-	Expression           int     `json:"expression"`
+	Expression           string  `json:"expression"`
 	Operator             string  `json:"operator"` // > or <
 	Warning              float64 `json:"warning"`
 	Critical             float64 `json:"critical"`
