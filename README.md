@@ -14,7 +14,7 @@ mackerel compatible monitoring service
    - [x] Service Metrics
    - [x] Check Monitoring
    - [x] Metadata
-   - [ ] Monitors
+   - [x] Monitors
    - [x] Alerts
    - [ ] Notification channels
    - [ ] Notification groups
