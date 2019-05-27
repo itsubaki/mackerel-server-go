@@ -475,12 +475,12 @@ func (repo *HostRepository) Retire(org, hostID string, retire *domain.HostRetire
 	return &domain.Success{Success: true}, nil
 }
 
-// mysql> explain select * from host_metric_values where host_id='f8775dfd1af' and name='loadavg5' limit 1;
-// +----+-------------+--------------------+------------+------+---------------+---------+---------+-------------+------+----------+-------+
-// | id | select_type | table              | partitions | type | possible_keys | key     | key_len | ref         | rows | filtered | Extra |
-// +----+-------------+--------------------+------------+------+---------------+---------+---------+-------------+------+----------+-------+
-// |  1 | SIMPLE      | host_metric_values | NULL       | ref  | PRIMARY       | PRIMARY | 580     | const,const |    5 |   100.00 | NULL  |
-// +----+-------------+--------------------+------------+------+---------------+---------+---------+-------------+------+----------+-------+
+// mysql> explain select * from host_metric_values where org='default' and host_id='bc754968495' and name='loadavg5' limit 1;
+// +----+-------------+--------------------+------------+------+---------------+---------+---------+-------------+------+----------+-------------+
+// | id | select_type | table              | partitions | type | possible_keys | key     | key_len | ref         | rows | filtered | Extra       |
+// +----+-------------+--------------------+------------+------+---------------+---------+---------+-------------+------+----------+-------------+
+// |  1 | SIMPLE      | host_metric_values | NULL       | ref  | PRIMARY       | PRIMARY | 580     | const,const |   14 |    10.00 | Using where |
+// +----+-------------+--------------------+------------+------+---------------+---------+---------+-------------+------+----------+-------------+
 // 1 row in set, 1 warning (0.00 sec)
 func (repo *HostRepository) ExistsMetric(org, hostID, name string) bool {
 	rows, err := repo.Query("select 1 from host_metric_values where org=? and host_id=? and name=? limit 1", org, hostID, name)
@@ -496,13 +496,13 @@ func (repo *HostRepository) ExistsMetric(org, hostID, name string) bool {
 	return false
 }
 
-// mysql> explain select distinct name from host_metric_values where host_id='f8775dfd1af';
+// mysql> explain select distinct name from host_metric_values where org='default' and host_id='bc754968495';
 // +----+-------------+--------------------+------------+------+---------------+---------+---------+-------+------+----------+-------------+
 // | id | select_type | table              | partitions | type | possible_keys | key     | key_len | ref   | rows | filtered | Extra       |
 // +----+-------------+--------------------+------------+------+---------------+---------+---------+-------+------+----------+-------------+
-// |  1 | SIMPLE      | host_metric_values | NULL       | ref  | PRIMARY       | PRIMARY | 66      | const |  170 |   100.00 | Using index |
+// |  1 | SIMPLE      | host_metric_values | NULL       | ref  | PRIMARY       | PRIMARY | 66      | const |  570 |    10.00 | Using where |
 // +----+-------------+--------------------+------------+------+---------------+---------+---------+-------+------+----------+-------------+
-// 1 row in set, 1 warning (0.01 sec)
+// 1 row in set, 1 warning (0.00 sec)
 func (repo *HostRepository) MetricNames(org, hostID string) (*domain.MetricNames, error) {
 	names := make([]string, 0)
 	if err := repo.Transact(func(tx Tx) error {
