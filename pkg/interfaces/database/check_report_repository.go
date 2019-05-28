@@ -24,7 +24,8 @@ func NewCheckReportRepository(handler SQLHandler) *CheckReportRepository {
 				occurred_at           bigint,
 				notification_interval bigint,
 				max_check_attempts    bigint,
-				primary key(host_id, name)
+				primary key(host_id, name),
+				index (org, status)
 			)
 			`,
 		); err != nil {
