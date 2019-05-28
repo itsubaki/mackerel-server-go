@@ -16,7 +16,7 @@ func NewUserRepository(handler SQLHandler) *UserRepository {
 		if _, err := tx.Exec(
 			`
 			create table if not exists users (
-				org         varchar(64)  not null,
+				org_id      varchar(64)  not null,
 				id          varchar(128) not null primary key,
 				screen_name varchar(128),
 				email       varchar(128),
@@ -48,11 +48,11 @@ func NewUserRepository(handler SQLHandler) *UserRepository {
 // |  1 | SIMPLE      | users | NULL       | ALL  | NULL          | NULL | NULL    | NULL |    1 |   100.00 | NULL  |
 // +----+-------------+-------+------------+------+---------------+------+---------+------+------+----------+-------+
 // 1 row in set, 1 warning (0.01 sec)
-func (repo *UserRepository) List(org string) (*domain.Users, error) {
+func (repo *UserRepository) List(orgID string) (*domain.Users, error) {
 	users := make([]domain.User, 0)
 
 	if err := repo.Transact(func(tx Tx) error {
-		rows, err := tx.Query("select * from users where org=?", org)
+		rows, err := tx.Query("select * from users where org_id=?", orgID)
 		if err != nil {
 			return fmt.Errorf("select * from users: %v", err)
 		}
@@ -60,9 +60,9 @@ func (repo *UserRepository) List(org string) (*domain.Users, error) {
 
 		for rows.Next() {
 			var user domain.User
-			var org, method string
+			var trash, method string
 			if err := rows.Scan(
-				&org,
+				&trash,
 				&user.ID,
 				&user.ScreenName,
 				&user.Email,
@@ -87,8 +87,8 @@ func (repo *UserRepository) List(org string) (*domain.Users, error) {
 	return &domain.Users{Users: users}, nil
 }
 
-func (repo *UserRepository) Exists(org, userID string) bool {
-	rows, err := repo.Query("select 1 from users where org=? and id=? limit 1", org, userID)
+func (repo *UserRepository) Exists(orgID, userID string) bool {
+	rows, err := repo.Query("select 1 from users where org_id=? and id=? limit 1", orgID, userID)
 	if err != nil {
 		panic(err)
 	}
@@ -101,11 +101,11 @@ func (repo *UserRepository) Exists(org, userID string) bool {
 	return false
 }
 
-func (repo *UserRepository) Save(org string, user *domain.User) error {
+func (repo *UserRepository) Save(orgID string, user *domain.User) error {
 	if err := repo.Transact(func(tx Tx) error {
 		if _, err := tx.Exec(
 			"insert into users values (?. ?, ?, ?, ?, ?, ?, ?, ?)",
-			org,
+			orgID,
 			user.ID,
 			user.ScreenName,
 			user.Email,
@@ -126,14 +126,14 @@ func (repo *UserRepository) Save(org string, user *domain.User) error {
 	return nil
 }
 
-func (repo *UserRepository) Delete(org, userID string) (*domain.User, error) {
+func (repo *UserRepository) Delete(orgID, userID string) (*domain.User, error) {
 	var user domain.User
 
 	if err := repo.Transact(func(tx Tx) error {
-		row := tx.QueryRow("select * from users where org=? and id=?", org, userID)
-		var org, method string
+		row := tx.QueryRow("select * from users where org_id=? and id=?", orgID, userID)
+		var trash, method string
 		if err := row.Scan(
-			&org,
+			&trash,
 			&user.ID,
 			&user.ScreenName,
 			&user.Email,
@@ -148,7 +148,7 @@ func (repo *UserRepository) Delete(org, userID string) (*domain.User, error) {
 
 		user.AuthenticationMethods = strings.Split(method, ",")
 
-		if _, err := tx.Exec("delete from users where org=? and id=?", org, userID); err != nil {
+		if _, err := tx.Exec("delete from users where org_id=? and id=?", orgID, userID); err != nil {
 			return fmt.Errorf("delete from users: %v", err)
 		}
 

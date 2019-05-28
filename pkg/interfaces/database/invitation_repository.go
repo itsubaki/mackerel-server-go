@@ -16,11 +16,11 @@ func NewInvitationRepository(handler SQLHandler) *InvitationRepository {
 		if _, err := tx.Exec(
 			`
 			create table if not exists invitations (
-				org        varchar(64) not null,
+				org_id     varchar(64) not null,
 				email      varchar(64) not null,
 				authority  enum('manager', 'collaborator', 'viewer') not null,
 				expires_at bigint,
-				primary key(org, email)
+				primary key(org_id, email)
 			)
 			`,
 		); err != nil {
@@ -37,10 +37,10 @@ func NewInvitationRepository(handler SQLHandler) *InvitationRepository {
 	}
 }
 
-func (repo *InvitationRepository) List(org string) (*domain.Invitations, error) {
+func (repo *InvitationRepository) List(orgID string) (*domain.Invitations, error) {
 	invitations := make([]domain.Invitation, 0)
 	if err := repo.Transact(func(tx Tx) error {
-		rows, err := tx.Query("select * from invitations where org=?", org)
+		rows, err := tx.Query("select * from invitations where org_id=?", orgID)
 		if err != nil {
 			return fmt.Errorf("select * from invitations: %v", err)
 		}
@@ -48,9 +48,9 @@ func (repo *InvitationRepository) List(org string) (*domain.Invitations, error) 
 
 		for rows.Next() {
 			var in domain.Invitation
-			var org string
+			var trash string
 			if err := rows.Scan(
-				&org,
+				&trash,
 				&in.EMail,
 				&in.Authority,
 				&in.ExpiresAt,
@@ -69,8 +69,8 @@ func (repo *InvitationRepository) List(org string) (*domain.Invitations, error) 
 	return &domain.Invitations{Invitations: invitations}, nil
 }
 
-func (repo *InvitationRepository) Exists(org, email string) bool {
-	rows, err := repo.Query("select 1 from invitations where org=? and email=?", org, email)
+func (repo *InvitationRepository) Exists(orgID, email string) bool {
+	rows, err := repo.Query("select 1 from invitations where org_id=? and email=?", orgID, email)
 	if err != nil {
 		panic(err)
 	}
@@ -83,11 +83,11 @@ func (repo *InvitationRepository) Exists(org, email string) bool {
 	return false
 }
 
-func (repo *InvitationRepository) Save(org string, inv *domain.Invitation) (*domain.Invitation, error) {
+func (repo *InvitationRepository) Save(orgID string, inv *domain.Invitation) (*domain.Invitation, error) {
 	if err := repo.Transact(func(tx Tx) error {
 		if _, err := tx.Exec(
 			"insert into invitations values(?, ?, ?, ?)",
-			org,
+			orgID,
 			inv.EMail,
 			inv.Authority,
 			time.Now().Unix()+604800,
@@ -103,10 +103,10 @@ func (repo *InvitationRepository) Save(org string, inv *domain.Invitation) (*dom
 	return inv, nil
 }
 
-func (repo *InvitationRepository) Revoke(org, email string) (*domain.Success, error) {
+func (repo *InvitationRepository) Revoke(orgID, email string) (*domain.Success, error) {
 	if err := repo.Transact(func(tx Tx) error {
 		if _, err := tx.Exec(
-			"delete from invitations where org=? and email=?", org, email,
+			"delete from invitations where org_id=? and email=?", orgID, email,
 		); err != nil {
 			return fmt.Errorf("delete from invitations: %v", err)
 		}

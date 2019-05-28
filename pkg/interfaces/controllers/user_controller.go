@@ -19,7 +19,7 @@ func NewUserController(handler database.SQLHandler) *UserController {
 
 func (s *UserController) List(c Context) {
 	out, err := s.Interactor.List(
-		c.GetString("org"),
+		c.GetString("org_id"),
 	)
 
 	doResponse(c, out, err)
@@ -27,7 +27,7 @@ func (s *UserController) List(c Context) {
 
 func (s *UserController) Delete(c Context) {
 	out, err := s.Interactor.Delete(
-		c.GetString("org"),
+		c.GetString("org_id"),
 		c.Param("userId"),
 	)
 

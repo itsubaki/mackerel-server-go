@@ -16,12 +16,12 @@ func NewGraphRepository(handler SQLHandler) *GraphRepository {
 		if _, err := tx.Exec(
 			`
 			create table if not exists graph_defs (
-				org          varchar(64) not null,
+				org_id       varchar(64) not null,
 				name         varchar(64) not null,
 				display_name varchar(64),
 				unit         varchar(64),
 				metrics      text,
-				primary key(org, name)
+				primary key(org_id, name)
 			)
 			`,
 		); err != nil {
@@ -31,7 +31,7 @@ func NewGraphRepository(handler SQLHandler) *GraphRepository {
 		if _, err := tx.Exec(
 			`
 			create table if not exists graph_annotations (
-				org         varchar(64) not null,
+				org_id      varchar(64) not null,
 				id          varchar(16) not null primary key,
 				title       varchar(64) not null,
 				description varchar(64),
@@ -55,7 +55,7 @@ func NewGraphRepository(handler SQLHandler) *GraphRepository {
 	}
 }
 
-func (repo *GraphRepository) SaveDef(org string, g []domain.GraphDef) (*domain.Success, error) {
+func (repo *GraphRepository) SaveDef(orgID string, g []domain.GraphDef) (*domain.Success, error) {
 	if err := repo.Transact(func(tx Tx) error {
 		for i := range g {
 			metrics, err := json.Marshal(g[i].Metrics)
@@ -66,7 +66,7 @@ func (repo *GraphRepository) SaveDef(org string, g []domain.GraphDef) (*domain.S
 			if _, err := tx.Exec(
 				`
 				insert into graph_defs (
-					org,
+					org_id,
 					name,
 					display_name,
 					unit,
@@ -78,7 +78,7 @@ func (repo *GraphRepository) SaveDef(org string, g []domain.GraphDef) (*domain.S
 					unit = values(unit),
 					metrics = values(metrics)
 				`,
-				org,
+				orgID,
 				g[i].Name,
 				g[i].DisplayName,
 				g[i].Unit,

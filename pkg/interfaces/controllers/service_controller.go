@@ -26,7 +26,7 @@ func NewServiceController(handler database.SQLHandler) *ServiceController {
 
 func (s *ServiceController) List(c Context) {
 	out, err := s.Interactor.List(
-		c.GetString("org"),
+		c.GetString("org_id"),
 	)
 
 	doResponse(c, out, err)
@@ -40,7 +40,7 @@ func (s *ServiceController) Save(c Context) {
 	}
 
 	out, err := s.Interactor.Save(
-		c.GetString("org"),
+		c.GetString("org_id"),
 		&in,
 	)
 
@@ -49,7 +49,7 @@ func (s *ServiceController) Save(c Context) {
 
 func (s *ServiceController) Delete(c Context) {
 	out, err := s.Interactor.Delete(
-		c.GetString("org"),
+		c.GetString("org_id"),
 		c.Param("serviceName"),
 	)
 
@@ -58,7 +58,7 @@ func (s *ServiceController) Delete(c Context) {
 
 func (s *ServiceController) RoleList(c Context) {
 	out, err := s.Interactor.RoleList(
-		c.GetString("org"),
+		c.GetString("org_id"),
 		c.Param("serviceName"),
 	)
 
@@ -73,7 +73,7 @@ func (s *ServiceController) SaveRole(c Context) {
 	}
 
 	out, err := s.Interactor.SaveRole(
-		c.GetString("org"),
+		c.GetString("org_id"),
 		c.Param("serviceName"),
 		&in,
 	)
@@ -83,7 +83,7 @@ func (s *ServiceController) SaveRole(c Context) {
 
 func (s *ServiceController) DeleteRole(c Context) {
 	out, err := s.Interactor.DeleteRole(
-		c.GetString("org"),
+		c.GetString("org_id"),
 		c.Param("serviceName"),
 		c.Param("roleName"),
 	)
@@ -93,7 +93,7 @@ func (s *ServiceController) DeleteRole(c Context) {
 
 func (s *ServiceController) MetricNames(c Context) {
 	out, err := s.Interactor.MetricNames(
-		c.GetString("org"),
+		c.GetString("org_id"),
 		c.Param("serviceName"),
 	)
 
@@ -114,7 +114,7 @@ func (s *ServiceController) MetricValues(c Context) {
 	}
 
 	out, err := s.Interactor.MetricValues(
-		c.GetString("org"),
+		c.GetString("org_id"),
 		c.Param("serviceName"),
 		c.Query("name"),
 		from,
@@ -132,7 +132,7 @@ func (s *ServiceController) SaveMetricValues(c Context) {
 	}
 
 	out, err := s.Interactor.SaveMetricValues(
-		c.GetString("org"),
+		c.GetString("org_id"),
 		c.Param("serviceName"),
 		v,
 	)
@@ -142,7 +142,7 @@ func (s *ServiceController) SaveMetricValues(c Context) {
 
 func (s *ServiceController) MetadataList(c Context) {
 	out, err := s.Interactor.MetadataList(
-		c.GetString("org"),
+		c.GetString("org_id"),
 		c.Param("serviceName"),
 	)
 
@@ -151,7 +151,7 @@ func (s *ServiceController) MetadataList(c Context) {
 
 func (s *ServiceController) Metadata(c Context) {
 	out, err := s.Interactor.Metadata(
-		c.GetString("org"),
+		c.GetString("org_id"),
 		c.Param("serviceName"),
 		c.Param("namespace"),
 	)
@@ -167,7 +167,7 @@ func (s *ServiceController) SaveMetadata(c Context) {
 	}
 
 	out, err := s.Interactor.SaveMetadata(
-		c.GetString("org"),
+		c.GetString("org_id"),
 		c.Param("serviceName"),
 		c.Param("namespace"),
 		in,
@@ -178,7 +178,7 @@ func (s *ServiceController) SaveMetadata(c Context) {
 
 func (s *ServiceController) DeleteMetadata(c Context) {
 	out, err := s.Interactor.DeleteMetadata(
-		c.GetString("org"),
+		c.GetString("org_id"),
 		c.Param("serviceName"),
 		c.Param("namespace"),
 	)
@@ -188,7 +188,7 @@ func (s *ServiceController) DeleteMetadata(c Context) {
 
 func (s *ServiceController) RoleMetadata(c Context) {
 	out, err := s.Interactor.RoleMetadata(
-		c.GetString("org"),
+		c.GetString("org_id"),
 		c.Param("serviceName"),
 		c.Param("roleName"),
 		c.Param("namespace"),
@@ -199,7 +199,7 @@ func (s *ServiceController) RoleMetadata(c Context) {
 
 func (s *ServiceController) RoleMetadataList(c Context) {
 	out, err := s.Interactor.RoleMetadataList(
-		c.GetString("org"),
+		c.GetString("org_id"),
 		c.Param("serviceName"),
 		c.Param("roleName"),
 	)
@@ -215,7 +215,7 @@ func (s *ServiceController) SaveRoleMetadata(c Context) {
 	}
 
 	out, err := s.Interactor.SaveRoleMetadata(
-		c.GetString("org"),
+		c.GetString("org_id"),
 		c.Param("serviceName"),
 		c.Param("roleName"),
 		c.Param("namespace"),
@@ -227,7 +227,7 @@ func (s *ServiceController) SaveRoleMetadata(c Context) {
 
 func (s *ServiceController) DeleteRoleMetadata(c Context) {
 	out, err := s.Interactor.DeleteRoleMetadata(
-		c.GetString("org"),
+		c.GetString("org_id"),
 		c.Param("serviceName"),
 		c.Param("roleName"),
 		c.Param("namespace"),

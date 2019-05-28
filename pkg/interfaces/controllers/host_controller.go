@@ -23,7 +23,7 @@ func NewHostController(handler database.SQLHandler) *HostController {
 
 func (s *HostController) List(c Context) {
 	out, err := s.Interactor.List(
-		c.GetString("org"),
+		c.GetString("org_id"),
 	)
 
 	doResponse(c, out, err)
@@ -37,7 +37,7 @@ func (s *HostController) Save(c Context) {
 	}
 
 	out, err := s.Interactor.Save(
-		c.GetString("org"),
+		c.GetString("org_id"),
 		&in,
 	)
 
@@ -53,7 +53,7 @@ func (s *HostController) Update(c Context) {
 	in.ID = c.Param("hostId")
 
 	out, err := s.Interactor.Save(
-		c.GetString("org"),
+		c.GetString("org_id"),
 		&in,
 	)
 
@@ -62,7 +62,7 @@ func (s *HostController) Update(c Context) {
 
 func (s *HostController) Host(c Context) {
 	out, err := s.Interactor.Host(
-		c.GetString("org"),
+		c.GetString("org_id"),
 		c.Param("hostId"),
 	)
 
@@ -77,7 +77,7 @@ func (s *HostController) Status(c Context) {
 	}
 
 	out, err := s.Interactor.Status(
-		c.GetString("org"),
+		c.GetString("org_id"),
 		c.Param("hostId"),
 		in.Status,
 	)
@@ -93,7 +93,7 @@ func (s *HostController) RoleFullNames(c Context) {
 	}
 
 	out, err := s.Interactor.SaveRoleFullNames(
-		c.GetString("org"),
+		c.GetString("org_id"),
 		c.Param("hostId"),
 		&in,
 	)
@@ -109,7 +109,7 @@ func (s *HostController) Retire(c Context) {
 	}
 
 	out, err := s.Interactor.Retire(
-		c.GetString("org"),
+		c.GetString("org_id"),
 		c.Param("hostId"),
 		&in,
 	)
@@ -119,7 +119,7 @@ func (s *HostController) Retire(c Context) {
 
 func (s *HostController) MetricNames(c Context) {
 	out, err := s.Interactor.MetricNames(
-		c.GetString("org"),
+		c.GetString("org_id"),
 		c.Param("hostId"),
 	)
 
@@ -140,7 +140,7 @@ func (s *HostController) MetricValues(c Context) {
 	}
 
 	out, err := s.Interactor.MetricValues(
-		c.GetString("org"),
+		c.GetString("org_id"),
 		c.Param("hostId"),
 		c.Query("name"),
 		from,
@@ -152,7 +152,7 @@ func (s *HostController) MetricValues(c Context) {
 
 func (s *HostController) MetricValuesLatest(c Context) {
 	out, err := s.Interactor.MetricValuesLatest(
-		c.GetString("org"),
+		c.GetString("org_id"),
 		c.QueryArray("hostId"),
 		c.QueryArray("name"),
 	)
@@ -168,7 +168,7 @@ func (s *HostController) SaveMetricValues(c Context) {
 	}
 
 	out, err := s.Interactor.SaveMetricValues(
-		c.GetString("org"),
+		c.GetString("org_id"),
 		in,
 	)
 
@@ -177,7 +177,7 @@ func (s *HostController) SaveMetricValues(c Context) {
 
 func (s *HostController) MetadataList(c Context) {
 	out, err := s.Interactor.MetadataList(
-		c.GetString("org"),
+		c.GetString("org_id"),
 		c.Param("hostId"),
 	)
 
@@ -186,7 +186,7 @@ func (s *HostController) MetadataList(c Context) {
 
 func (s *HostController) Metadata(c Context) {
 	out, err := s.Interactor.Metadata(
-		c.GetString("org"),
+		c.GetString("org_id"),
 		c.Param("hostId"),
 		c.Param("namespace"),
 	)
@@ -202,7 +202,7 @@ func (s *HostController) SaveMetadata(c Context) {
 	}
 
 	out, err := s.Interactor.SaveMetadata(
-		c.GetString("org"),
+		c.GetString("org_id"),
 		c.Param("hostId"),
 		c.Param("namespace"),
 		in,
@@ -213,7 +213,7 @@ func (s *HostController) SaveMetadata(c Context) {
 
 func (s *HostController) DeleteMetadata(c Context) {
 	out, err := s.Interactor.DeleteMetadata(
-		c.GetString("org"),
+		c.GetString("org_id"),
 		c.Param("hostId"),
 		c.Param("namespace"),
 	)

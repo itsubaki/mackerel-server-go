@@ -8,23 +8,23 @@ type MonitorInteractor struct {
 	MonitorRepository MonitorRepository
 }
 
-func (s *MonitorInteractor) List(org string) (*domain.Monitors, error) {
-	return s.MonitorRepository.List(org)
+func (s *MonitorInteractor) List(orgID string) (*domain.Monitors, error) {
+	return s.MonitorRepository.List(orgID)
 }
 
-func (s *MonitorInteractor) Save(org string, monitor *domain.Monitoring) (interface{}, error) {
+func (s *MonitorInteractor) Save(orgID string, monitor *domain.Monitoring) (interface{}, error) {
 	monitor.ID = domain.NewMonitorID(monitor.Name)
-	return s.MonitorRepository.Save(org, monitor)
+	return s.MonitorRepository.Save(orgID, monitor)
 }
 
-func (s *MonitorInteractor) Update(org string, monitor *domain.Monitoring) (interface{}, error) {
-	return s.MonitorRepository.Update(org, monitor)
+func (s *MonitorInteractor) Update(orgID string, monitor *domain.Monitoring) (interface{}, error) {
+	return s.MonitorRepository.Update(orgID, monitor)
 }
 
-func (s *MonitorInteractor) Monitor(org, monitorID string) (interface{}, error) {
-	return s.MonitorRepository.Monitor(org, monitorID)
+func (s *MonitorInteractor) Monitor(orgID, monitorID string) (interface{}, error) {
+	return s.MonitorRepository.Monitor(orgID, monitorID)
 }
 
-func (s *MonitorInteractor) Delete(org, monitorID string) (interface{}, error) {
-	return s.MonitorRepository.Delete(org, monitorID)
+func (s *MonitorInteractor) Delete(orgID, monitorID string) (interface{}, error) {
+	return s.MonitorRepository.Delete(orgID, monitorID)
 }

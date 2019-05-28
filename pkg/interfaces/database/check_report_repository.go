@@ -15,7 +15,7 @@ func NewCheckReportRepository(handler SQLHandler) *CheckReportRepository {
 		if _, err := tx.Exec(
 			`
 			create table if not exists check_reports (
-				org                   varchar(64)  not null,
+				org_id                varchar(64)  not null,
 				host_id               varchar(16)  not null,
 				type                  enum('host') not null,
 				name                  varchar(128) not null,
@@ -25,7 +25,7 @@ func NewCheckReportRepository(handler SQLHandler) *CheckReportRepository {
 				notification_interval bigint,
 				max_check_attempts    bigint,
 				primary key(host_id, name),
-				index (org, status)
+				index (org_id, status)
 			)
 			`,
 		); err != nil {
@@ -42,19 +42,19 @@ func NewCheckReportRepository(handler SQLHandler) *CheckReportRepository {
 	}
 }
 
-func (repo *CheckReportRepository) CheckReport(org string) (*domain.CheckReports, error) {
+func (repo *CheckReportRepository) CheckReport(orgID string) (*domain.CheckReports, error) {
 	reports := make([]domain.CheckReport, 0)
 	if err := repo.Transact(func(tx Tx) error {
-		rows, err := tx.Query("select * from check_reports where org=? and status not in('OK')", org)
+		rows, err := tx.Query("select * from check_reports where org_id=? and status not in('OK')", orgID)
 		if err != nil {
 			return fmt.Errorf("select * from check_reports: %v", err)
 		}
 
 		for rows.Next() {
 			var report domain.CheckReport
-			var org string
+			var trash string
 			if err := rows.Scan(
-				&org,
+				&trash,
 				&report.Source.HostID,
 				&report.Source.Type,
 				&report.Name,
@@ -78,13 +78,13 @@ func (repo *CheckReportRepository) CheckReport(org string) (*domain.CheckReports
 	return &domain.CheckReports{Reports: reports}, nil
 }
 
-func (repo *CheckReportRepository) Save(org string, reports *domain.CheckReports) (*domain.Success, error) {
+func (repo *CheckReportRepository) Save(orgID string, reports *domain.CheckReports) (*domain.Success, error) {
 	if err := repo.Transact(func(tx Tx) error {
 		for i := range reports.Reports {
 			if _, err := tx.Exec(
 				`
 				insert into check_reports (
-					org,
+					org_id,
 					host_id,
 					type,
 					name,
@@ -101,7 +101,7 @@ func (repo *CheckReportRepository) Save(org string, reports *domain.CheckReports
 					notification_interval = values(notification_interval),
 					max_check_attempts = values(max_check_attempts)
 				`,
-				org,
+				orgID,
 				reports.Reports[i].Source.HostID,
 				reports.Reports[i].Source.Type,
 				reports.Reports[i].Name,

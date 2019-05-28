@@ -28,7 +28,7 @@ func (s *GraphController) SaveDef(c Context) {
 	}
 
 	out, err := s.Interactor.SaveDef(
-		c.GetString("org"),
+		c.GetString("org_id"),
 		in,
 	)
 

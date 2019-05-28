@@ -6,6 +6,6 @@ type GraphInteractor struct {
 	GraphRepository GraphRepository
 }
 
-func (s *GraphInteractor) SaveDef(org string, g []domain.GraphDef) (*domain.Success, error) {
-	return s.GraphRepository.SaveDef(org, g)
+func (s *GraphInteractor) SaveDef(orgID string, g []domain.GraphDef) (*domain.Success, error) {
+	return s.GraphRepository.SaveDef(orgID, g)
 }

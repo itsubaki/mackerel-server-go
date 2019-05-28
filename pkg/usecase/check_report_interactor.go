@@ -6,6 +6,6 @@ type CheckReportInteractor struct {
 	CheckReportRepository CheckReportRepository
 }
 
-func (s *CheckReportInteractor) Save(org string, reports *domain.CheckReports) (*domain.Success, error) {
-	return s.CheckReportRepository.Save(org, reports)
+func (s *CheckReportInteractor) Save(orgID string, reports *domain.CheckReports) (*domain.Success, error) {
+	return s.CheckReportRepository.Save(orgID, reports)
 }

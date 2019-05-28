@@ -1,7 +1,7 @@
 package domain
 
 type XAPIKey struct {
-	Org     string
+	OrgID   string
 	Name    string
 	XAPIKey string
 	Read    bool

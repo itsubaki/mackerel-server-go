@@ -11,6 +11,10 @@ func NewXAPIKey() string {
 	return GenID(44, uuid.Must(uuid.NewRandom()).String())
 }
 
+func NewOrgID() string {
+	return GenID(11, uuid.Must(uuid.NewRandom()).String())
+}
+
 func NewHostID() string {
 	return GenID(11, uuid.Must(uuid.NewRandom()).String())
 }

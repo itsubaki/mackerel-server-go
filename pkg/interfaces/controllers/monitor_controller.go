@@ -22,7 +22,7 @@ func NewMonitorController(handler database.SQLHandler) *MonitorController {
 
 func (s *MonitorController) List(c Context) {
 	out, err := s.Interactor.List(
-		c.GetString("org"),
+		c.GetString("org_id"),
 	)
 
 	doResponse(c, out, err)
@@ -36,7 +36,7 @@ func (s *MonitorController) Save(c Context) {
 	}
 
 	out, err := s.Interactor.Save(
-		c.GetString("org"),
+		c.GetString("org_id"),
 		&in,
 	)
 
@@ -52,7 +52,7 @@ func (s *MonitorController) Update(c Context) {
 	in.ID = c.Param("monitorId")
 
 	out, err := s.Interactor.Update(
-		c.GetString("org"),
+		c.GetString("org_id"),
 		&in,
 	)
 
@@ -61,7 +61,7 @@ func (s *MonitorController) Update(c Context) {
 
 func (s *MonitorController) Monitor(c Context) {
 	out, err := s.Interactor.Monitor(
-		c.GetString("org"),
+		c.GetString("org_id"),
 		c.Param("monitorId"),
 	)
 
@@ -70,7 +70,7 @@ func (s *MonitorController) Monitor(c Context) {
 
 func (s *MonitorController) Delete(c Context) {
 	out, err := s.Interactor.Delete(
-		c.GetString("org"),
+		c.GetString("org_id"),
 		c.Param("monitorId"),
 	)
 

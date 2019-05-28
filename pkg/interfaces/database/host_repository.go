@@ -17,7 +17,7 @@ func NewHostRepository(handler SQLHandler) *HostRepository {
 		if _, err := tx.Exec(
 			`
 			create table if not exists hosts (
-				org               varchar(64)  not null,
+				org_id            varchar(64)  not null,
 				id                varchar(16)  not null primary key,
 				name              varchar(128) not null,
 				status            enum('working', 'standby', 'maintenance', 'poweroff') not null,
@@ -41,7 +41,7 @@ func NewHostRepository(handler SQLHandler) *HostRepository {
 		if _, err := tx.Exec(
 			`
 			create table if not exists host_meta (
-				org       varchar(64)  not null,
+				org_id    varchar(64)  not null,
 				host_id   varchar(16)  not null,
 				namespace varchar(128) not null,
 				meta      text,
@@ -55,7 +55,7 @@ func NewHostRepository(handler SQLHandler) *HostRepository {
 		if _, err := tx.Exec(
 			`
 			create table if not exists host_metric_values (
-				org     varchar(64)  not null,
+				org_id  varchar(64)  not null,
 				host_id varchar(16)  not null,
 				name    varchar(128) not null,
 				time    bigint not null,
@@ -70,7 +70,7 @@ func NewHostRepository(handler SQLHandler) *HostRepository {
 		if _, err := tx.Exec(
 			`
 			create table if not exists host_metric_values_latest (
-				org     varchar(64)  not null,
+				org_id  varchar(64)  not null,
 				host_id varchar(16)  not null,
 				name    varchar(128) not null,
 				value   double       not null,
@@ -98,11 +98,11 @@ func NewHostRepository(handler SQLHandler) *HostRepository {
 // |  1 | SIMPLE      | hosts | NULL       | ALL  | NULL          | NULL | NULL    | NULL |    4 |   100.00 | NULL  |
 // +----+-------------+-------+------------+------+---------------+------+---------+------+------+----------+-------+
 // 1 row in set, 1 warning (0.01 sec)
-func (repo *HostRepository) List(org string) (*domain.Hosts, error) {
+func (repo *HostRepository) List(orgID string) (*domain.Hosts, error) {
 	hosts := make([]domain.Host, 0)
 
 	if err := repo.Transact(func(tx Tx) error {
-		rows, err := tx.Query("select * from hosts where org=?", org)
+		rows, err := tx.Query("select * from hosts where org_id=?", orgID)
 		if err != nil {
 			return fmt.Errorf("select * from hosts: %v", err)
 		}
@@ -110,9 +110,9 @@ func (repo *HostRepository) List(org string) (*domain.Hosts, error) {
 
 		for rows.Next() {
 			var host domain.Host
-			var org, roles, roleFullnames, interfaces, checks, meta string
+			var trash, roles, roleFullnames, interfaces, checks, meta string
 			if err := rows.Scan(
-				&org,
+				&trash,
 				&host.ID,
 				&host.Name,
 				&host.Status,
@@ -163,7 +163,7 @@ func (repo *HostRepository) List(org string) (*domain.Hosts, error) {
 }
 
 // insert into hosts values(${name}, ${meta}, ${interfaces}, ${checks}, ${display_name}, ${custom_identifier}, ${created_at}, ${id}, ${status}, ${memo}, ${roles}, ${is_retired}, ${retired_at} )
-func (repo *HostRepository) Save(org string, host *domain.Host) (*domain.HostID, error) {
+func (repo *HostRepository) Save(orgID string, host *domain.Host) (*domain.HostID, error) {
 	if err := repo.Transact(func(tx Tx) error {
 		roles, err := json.Marshal(host.Roles)
 		if err != nil {
@@ -193,7 +193,7 @@ func (repo *HostRepository) Save(org string, host *domain.Host) (*domain.HostID,
 		if _, err := tx.Exec(
 			`
 			insert into hosts (
-				org,
+				org_id,
 				id,
 				name,
 				status,
@@ -222,7 +222,7 @@ func (repo *HostRepository) Save(org string, host *domain.Host) (*domain.HostID,
 				checks = values(checks),
 				meta = values(meta)
 			`,
-			org,
+			orgID,
 			host.ID,
 			host.Name,
 			host.Status,
@@ -246,15 +246,13 @@ func (repo *HostRepository) Save(org string, host *domain.Host) (*domain.HostID,
 			if _, err := tx.Exec(
 				`
 				insert into services (
-					org,
+					org_id,
 					name
 				)
-				select ?, ? where not exists (select 1 from services where org=? and name=?)
+				select ?, ? where not exists (select 1 from services where org_id=? and name=?)
 				`,
-				org,
-				svc,
-				org,
-				svc,
+				orgID, svc,
+				orgID, svc,
 			); err != nil {
 				return fmt.Errorf("insert into services: %v", err)
 			}
@@ -263,18 +261,14 @@ func (repo *HostRepository) Save(org string, host *domain.Host) (*domain.HostID,
 				if _, err := tx.Exec(
 					`
 					insert into roles (
-						org,
+						org_id,
 						service_name,
 						name
 					)
-					select ?, ?, ? where not exists (select 1 from roles where org=? and service_name=? and name=?)
+					select ?, ?, ? where not exists (select 1 from roles where org_id=? and service_name=? and name=?)
 					`,
-					org,
-					svc,
-					role[i],
-					org,
-					svc,
-					role[i],
+					orgID, svc, role[i],
+					orgID, svc, role[i],
 				); err != nil {
 					return fmt.Errorf("insert into roles: %v", err)
 				}
@@ -297,14 +291,14 @@ func (repo *HostRepository) Save(org string, host *domain.Host) (*domain.HostID,
 // |  1 | SIMPLE      | hosts | NULL       | const | PRIMARY       | PRIMARY | 66      | const |    1 |   100.00 | NULL  |
 // +----+-------------+-------+------------+-------+---------------+---------+---------+-------+------+----------+-------+
 // 1 row in set, 1 warning (0.01 sec)
-func (repo *HostRepository) Host(org, hostID string) (*domain.Host, error) {
+func (repo *HostRepository) Host(orgID, hostID string) (*domain.Host, error) {
 	var host domain.Host
 
 	if err := repo.Transact(func(tx Tx) error {
-		row := tx.QueryRow("select * from hosts where org=? and id=?", org, hostID)
-		var org, roles, roleFullnames, interfaces, checks, meta string
+		row := tx.QueryRow("select * from hosts where org_id=? and id=?", orgID, hostID)
+		var trash, roles, roleFullnames, interfaces, checks, meta string
 		if err := row.Scan(
-			&org,
+			&trash,
 			&host.ID,
 			&host.Name,
 			&host.Status,
@@ -358,8 +352,8 @@ func (repo *HostRepository) Host(org, hostID string) (*domain.Host, error) {
 // |  1 | SIMPLE      | hosts | NULL       | const | PRIMARY       | PRIMARY | 66      | const |    1 |   100.00 | NULL  |
 // +----+-------------+-------+------------+-------+---------------+---------+---------+-------+------+----------+-------+
 // 1 row in set, 1 warning (0.00 sec)
-func (repo *HostRepository) Exists(org, hostID string) bool {
-	rows, err := repo.Query("select 1 from hosts where org=? and id=? limit 1", org, hostID)
+func (repo *HostRepository) Exists(orgID, hostID string) bool {
+	rows, err := repo.Query("select 1 from hosts where org_id=? and id=? limit 1", orgID, hostID)
 	if err != nil {
 		panic(err)
 	}
@@ -373,9 +367,9 @@ func (repo *HostRepository) Exists(org, hostID string) bool {
 }
 
 // update hosts set status=${status} where id=${hostID}
-func (repo *HostRepository) Status(org, hostID, status string) (*domain.Success, error) {
+func (repo *HostRepository) Status(orgID, hostID, status string) (*domain.Success, error) {
 	if err := repo.Transact(func(tx Tx) error {
-		if _, err := tx.Exec("update hosts set status=? where org=? and id=?", status, org, hostID); err != nil {
+		if _, err := tx.Exec("update hosts set status=? where org_id=? and id=?", status, orgID, hostID); err != nil {
 			return fmt.Errorf("update hosts: %v", err)
 		}
 
@@ -388,7 +382,7 @@ func (repo *HostRepository) Status(org, hostID, status string) (*domain.Success,
 }
 
 // update hosts set roles=${roles} where id=${hostID}
-func (repo *HostRepository) SaveRoleFullNames(org, hostID string, names *domain.RoleFullNames) (*domain.Success, error) {
+func (repo *HostRepository) SaveRoleFullNames(orgID, hostID string, names *domain.RoleFullNames) (*domain.Success, error) {
 	roles := names.Roles()
 
 	mroles, err := json.Marshal(roles)
@@ -403,10 +397,10 @@ func (repo *HostRepository) SaveRoleFullNames(org, hostID string, names *domain.
 
 	if err := repo.Transact(func(tx Tx) error {
 		if _, err := tx.Exec(
-			"update hosts set role_fullnames=?, roles=? where org=? and id=?",
+			"update hosts set role_fullnames=?, roles=? where org_id=? and id=?",
 			string(roleFullnames),
 			string(mroles),
-			org,
+			orgID,
 			hostID,
 		); err != nil {
 			return fmt.Errorf("update hosts: %v", err)
@@ -416,15 +410,13 @@ func (repo *HostRepository) SaveRoleFullNames(org, hostID string, names *domain.
 			if _, err := tx.Exec(
 				`
 				insert into services (
-					org,
+					org_id,
 					name
 				)
-				select ?, ? where not exists (select 1 from services where org=? and name=?)
+				select ?, ? where not exists (select 1 from services where org_id=? and name=?)
 				`,
-				org,
-				svc,
-				org,
-				svc,
+				orgID, svc,
+				orgID, svc,
 			); err != nil {
 				return fmt.Errorf("insert into services: %v", err)
 			}
@@ -433,18 +425,14 @@ func (repo *HostRepository) SaveRoleFullNames(org, hostID string, names *domain.
 				if _, err := tx.Exec(
 					`
 					insert into roles (
-						org,
+						org_id,
 						service_name,
 						name
 					)
-					select ?, ?, ? where not exists (select 1 from roles where org=? and service_name=? and name=?)
+					select ?, ?, ? where not exists (select 1 from roles where org_id=? and service_name=? and name=?)
 					`,
-					org,
-					svc,
-					role[i],
-					org,
-					svc,
-					role[i],
+					orgID, svc, role[i],
+					orgID, svc, role[i],
 				); err != nil {
 					return fmt.Errorf("insert into roles: %v", err)
 				}
@@ -461,9 +449,9 @@ func (repo *HostRepository) SaveRoleFullNames(org, hostID string, names *domain.
 }
 
 // update hosts set is_retired=true, retired_at=time.Now().Unix() where id=${hostID}
-func (repo *HostRepository) Retire(org, hostID string, retire *domain.HostRetire) (*domain.Success, error) {
+func (repo *HostRepository) Retire(orgID, hostID string, retire *domain.HostRetire) (*domain.Success, error) {
 	if err := repo.Transact(func(tx Tx) error {
-		if _, err := tx.Exec("update hosts set is_retired=?, retired_at=? where org=? and id=?", true, time.Now().Unix(), org, hostID); err != nil {
+		if _, err := tx.Exec("update hosts set is_retired=?, retired_at=? where org_id=? and id=?", true, time.Now().Unix(), orgID, hostID); err != nil {
 			return fmt.Errorf("update hosts: %v", err)
 		}
 
@@ -475,15 +463,15 @@ func (repo *HostRepository) Retire(org, hostID string, retire *domain.HostRetire
 	return &domain.Success{Success: true}, nil
 }
 
-// mysql> explain select * from host_metric_values where org='default' and host_id='bc754968495' and name='loadavg5' limit 1;
+// mysql> explain select * from host_metric_values where org_id='default' and host_id='bc754968495' and name='loadavg5' limit 1;
 // +----+-------------+--------------------+------------+------+---------------+---------+---------+-------------+------+----------+-------------+
 // | id | select_type | table              | partitions | type | possible_keys | key     | key_len | ref         | rows | filtered | Extra       |
 // +----+-------------+--------------------+------------+------+---------------+---------+---------+-------------+------+----------+-------------+
 // |  1 | SIMPLE      | host_metric_values | NULL       | ref  | PRIMARY       | PRIMARY | 580     | const,const |   14 |    10.00 | Using where |
 // +----+-------------+--------------------+------------+------+---------------+---------+---------+-------------+------+----------+-------------+
 // 1 row in set, 1 warning (0.00 sec)
-func (repo *HostRepository) ExistsMetric(org, hostID, name string) bool {
-	rows, err := repo.Query("select 1 from host_metric_values where org=? and host_id=? and name=? limit 1", org, hostID, name)
+func (repo *HostRepository) ExistsMetric(orgID, hostID, name string) bool {
+	rows, err := repo.Query("select 1 from host_metric_values where org_id=? and host_id=? and name=? limit 1", orgID, hostID, name)
 	if err != nil {
 		panic(err)
 	}
@@ -496,17 +484,17 @@ func (repo *HostRepository) ExistsMetric(org, hostID, name string) bool {
 	return false
 }
 
-// mysql> explain select distinct name from host_metric_values where org='default' and host_id='bc754968495';
+// mysql> explain select distinct name from host_metric_values where org_id='default' and host_id='bc754968495';
 // +----+-------------+--------------------+------------+------+---------------+---------+---------+-------+------+----------+-------------+
 // | id | select_type | table              | partitions | type | possible_keys | key     | key_len | ref   | rows | filtered | Extra       |
 // +----+-------------+--------------------+------------+------+---------------+---------+---------+-------+------+----------+-------------+
 // |  1 | SIMPLE      | host_metric_values | NULL       | ref  | PRIMARY       | PRIMARY | 66      | const |  570 |    10.00 | Using where |
 // +----+-------------+--------------------+------------+------+---------------+---------+---------+-------+------+----------+-------------+
 // 1 row in set, 1 warning (0.00 sec)
-func (repo *HostRepository) MetricNames(org, hostID string) (*domain.MetricNames, error) {
+func (repo *HostRepository) MetricNames(orgID, hostID string) (*domain.MetricNames, error) {
 	names := make([]string, 0)
 	if err := repo.Transact(func(tx Tx) error {
-		rows, err := tx.Query("select distinct name from host_metric_values where org=? and host_id=?", org, hostID)
+		rows, err := tx.Query("select distinct name from host_metric_values where org_id=? and host_id=?", orgID, hostID)
 		if err != nil {
 			return fmt.Errorf("select distinct name from host_metric_values: %v", err)
 		}
@@ -535,10 +523,10 @@ func (repo *HostRepository) MetricNames(org, hostID string) (*domain.MetricNames
 // |  1 | SIMPLE      | host_metric_values | NULL       | range | PRIMARY       | PRIMARY | 588     | NULL |    1 |   100.00 | Using where |
 // +----+-------------+--------------------+------------+-------+---------------+---------+---------+------+------+----------+-------------+
 // 1 row in set, 1 warning (0.01 sec)
-func (repo *HostRepository) MetricValues(org, hostID, name string, from, to int64) (*domain.MetricValues, error) {
+func (repo *HostRepository) MetricValues(orgID, hostID, name string, from, to int64) (*domain.MetricValues, error) {
 	values := make([]domain.MetricValue, 0)
 	if err := repo.Transact(func(tx Tx) error {
-		rows, err := tx.Query("select time, value from host_metric_values where org=? and host_id=? and name=? and ? < time and time < ?", org, hostID, name, from, to)
+		rows, err := tx.Query("select time, value from host_metric_values where org_id=? and host_id=? and name=? and ? < time and time < ?", orgID, hostID, name, from, to)
 		if err != nil {
 			return fmt.Errorf("select time, value from host_metric_values: %v", err)
 		}
@@ -567,17 +555,17 @@ func (repo *HostRepository) MetricValues(org, hostID, name string, from, to int6
 	return &domain.MetricValues{Metrics: values}, nil
 }
 
-// mysql> explain select time, value from host_metric_values where org='default' and host_id='ceb7c8b51c0' and name='loadavg5' order by time desc limit 3;
+// mysql> explain select time, value from host_metric_values where org_id='default' and host_id='ceb7c8b51c0' and name='loadavg5' order by time desc limit 3;
 // +----+-------------+--------------------+------------+------+---------------+---------+---------+-------------+------+----------+-------------+
 // | id | select_type | table              | partitions | type | possible_keys | key     | key_len | ref         | rows | filtered | Extra       |
 // +----+-------------+--------------------+------------+------+---------------+---------+---------+-------------+------+----------+-------------+
 // |  1 | SIMPLE      | host_metric_values | NULL       | ref  | PRIMARY       | PRIMARY | 580     | const,const |    4 |    10.00 | Using where |
 // +----+-------------+--------------------+------------+------+---------------+---------+---------+-------------+------+----------+-------------+
 // 1 row in set, 1 warning (0.01 sec)
-func (repo *HostRepository) MetricValuesLimit(org, hostID, name string, limit int) (*domain.MetricValues, error) {
+func (repo *HostRepository) MetricValuesLimit(orgID, hostID, name string, limit int) (*domain.MetricValues, error) {
 	values := make([]domain.MetricValue, 0)
 	if err := repo.Transact(func(tx Tx) error {
-		rows, err := tx.Query("select time, value from host_metric_values where org=? and host_id=? and name=? order by time desc limit ?", org, hostID, name, limit)
+		rows, err := tx.Query("select time, value from host_metric_values where org_id=? and host_id=? and name=? order by time desc limit ?", orgID, hostID, name, limit)
 		if err != nil {
 			return fmt.Errorf("select time, value from host_metric_values: %v", err)
 		}
@@ -630,10 +618,10 @@ func (repo *HostRepository) MetricValuesLimit(org, hostID, name string, limit in
 // |  2 | SUBQUERY    | host_metric_values | NULL       | range | PRIMARY       | PRIMARY | 580     | NULL |  116 |   100.00 | Using index for group-by |
 // +----+-------------+--------------------+------------+-------+---------------+---------+---------+------+------+----------+--------------------------+
 // 2 rows in set, 1 warning (0.00 sec)
-func (repo *HostRepository) MetricValuesLatest(org string, hostID, name []string) (*domain.TSDBLatest, error) {
+func (repo *HostRepository) MetricValuesLatest(orgID string, hostID, name []string) (*domain.TSDBLatest, error) {
 	latest := make(map[string]map[string]float64)
 	if err := repo.Transact(func(tx Tx) error {
-		rows, err := tx.Query("select * from host_metric_values_latest where org=?", org)
+		rows, err := tx.Query("select * from host_metric_values_latest where org_id=?", orgID)
 		// TODO multiple ?
 		//	rows, err := tx.Query("select * from host_metric_values_latest where host_id in(?) and name in(?)", hostID[0], name[0])
 		if err != nil {
@@ -664,12 +652,12 @@ func (repo *HostRepository) MetricValuesLatest(org string, hostID, name []string
 }
 
 // insert into host_metric_values values(${host_id}, ${name}, ${time}, ${value})
-func (repo *HostRepository) SaveMetricValues(org string, values []domain.MetricValue) (*domain.Success, error) {
+func (repo *HostRepository) SaveMetricValues(orgID string, values []domain.MetricValue) (*domain.Success, error) {
 	if err := repo.Transact(func(tx Tx) error {
 		for i := range values {
 			if _, err := tx.Exec(
 				"insert into host_metric_values values(?, ?, ?, ?, ?)",
-				org,
+				orgID,
 				values[i].HostID,
 				values[i].Name,
 				values[i].Time,
@@ -681,7 +669,7 @@ func (repo *HostRepository) SaveMetricValues(org string, values []domain.MetricV
 			if _, err := tx.Exec(
 				`
 				insert into host_metric_values_latest (
-					org,
+					org_id,
 					host_id,
 					name,
 					value
@@ -690,7 +678,7 @@ func (repo *HostRepository) SaveMetricValues(org string, values []domain.MetricV
 				on duplicate key update
 					value = values(value)
 				`,
-				org,
+				orgID,
 				values[i].HostID,
 				values[i].Name,
 				values[i].Value,
@@ -708,8 +696,8 @@ func (repo *HostRepository) SaveMetricValues(org string, values []domain.MetricV
 }
 
 // select * from host_metadata where host_id=${hostID} and namespace=${namespace} limit=1
-func (repo *HostRepository) ExistsMetadata(org, hostID, namespace string) bool {
-	rows, err := repo.Query("select 1 from host_meta where org=? and host_id=? and namespace=?", org, hostID, namespace)
+func (repo *HostRepository) ExistsMetadata(orgID, hostID, namespace string) bool {
+	rows, err := repo.Query("select 1 from host_meta where org_id=? and host_id=? and namespace=?", orgID, hostID, namespace)
 	if err != nil {
 		panic(err)
 	}
@@ -723,10 +711,10 @@ func (repo *HostRepository) ExistsMetadata(org, hostID, namespace string) bool {
 }
 
 // select namespace from host_metadata where host_id=${hostID}
-func (repo *HostRepository) MetadataList(org, hostID string) (*domain.HostMetadataList, error) {
+func (repo *HostRepository) MetadataList(orgID, hostID string) (*domain.HostMetadataList, error) {
 	values := make([]domain.Namespace, 0)
 	if err := repo.Transact(func(tx Tx) error {
-		rows, err := tx.Query("select namespace from host_meta where org=? and host_id=?", org, hostID)
+		rows, err := tx.Query("select namespace from host_meta where org_id=? and host_id=?", orgID, hostID)
 		if err != nil {
 			return fmt.Errorf("select namespace from host_meta: %v", err)
 		}
@@ -752,10 +740,10 @@ func (repo *HostRepository) MetadataList(org, hostID string) (*domain.HostMetada
 }
 
 // select * from host_metadata where host_id=${hostID} and namespace=${namespace}
-func (repo *HostRepository) Metadata(org, hostID, namespace string) (interface{}, error) {
+func (repo *HostRepository) Metadata(orgID, hostID, namespace string) (interface{}, error) {
 	var meta string
 	if err := repo.Transact(func(tx Tx) error {
-		row := tx.QueryRow("select meta from host_meta where org=? and host_id=? and namespace=?", org, hostID, namespace)
+		row := tx.QueryRow("select meta from host_meta where org_id=? and host_id=? and namespace=?", orgID, hostID, namespace)
 		if err := row.Scan(&meta); err != nil {
 			return fmt.Errorf("scan: %v", err)
 		}
@@ -774,7 +762,7 @@ func (repo *HostRepository) Metadata(org, hostID, namespace string) (interface{}
 }
 
 // insert into host_metadata values(${hostID}, ${namespace}, ${metadata})
-func (repo *HostRepository) SaveMetadata(org, hostID, namespace string, metadata interface{}) (*domain.Success, error) {
+func (repo *HostRepository) SaveMetadata(orgID, hostID, namespace string, metadata interface{}) (*domain.Success, error) {
 	meta, err := json.Marshal(metadata)
 	if err != nil {
 		return &domain.Success{Success: false}, nil
@@ -783,7 +771,7 @@ func (repo *HostRepository) SaveMetadata(org, hostID, namespace string, metadata
 	if err := repo.Transact(func(tx Tx) error {
 		if _, err := tx.Exec(
 			"insert into host_meta values(?, ?, ?, ?)",
-			org,
+			orgID,
 			hostID,
 			namespace,
 			string(meta),
@@ -800,10 +788,11 @@ func (repo *HostRepository) SaveMetadata(org, hostID, namespace string, metadata
 }
 
 // delete from host_metadata where host_id=${hostID} and namespace=${namespace}
-func (repo *HostRepository) DeleteMetadata(org, hostID, namespace string) (*domain.Success, error) {
+func (repo *HostRepository) DeleteMetadata(orgID, hostID, namespace string) (*domain.Success, error) {
 	if err := repo.Transact(func(tx Tx) error {
 		if _, err := tx.Exec(
-			"delete from host_meta where org=? and host_id=? and namespace=?",
+			"delete from host_meta where org_id=? and host_id=? and namespace=?",
+			orgID,
 			hostID,
 			namespace,
 		); err != nil {

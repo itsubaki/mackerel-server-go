@@ -28,7 +28,7 @@ func (s *CheckReportController) Save(c Context) {
 	}
 
 	out, err := s.Interactor.Save(
-		c.GetString("org"),
+		c.GetString("org_id"),
 		&in,
 	)
 

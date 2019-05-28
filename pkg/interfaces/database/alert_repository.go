@@ -16,7 +16,7 @@ func NewAlertRepository(handler SQLHandler) *AlertRepository {
 		if _, err := tx.Exec(
 			`
 			create table if not exists alerts (
-				org        varchar(64) not null,
+				org_id     varchar(64) not null,
 				id         varchar(16) not null primary key,
 				status     enum('OK', 'CRITICAL', 'WARNING', 'UNKNOWN') not null,
 				monitor_id varchar(16) not null,
@@ -43,8 +43,8 @@ func NewAlertRepository(handler SQLHandler) *AlertRepository {
 	}
 }
 
-func (repo *AlertRepository) Exists(org, alertID string) bool {
-	rows, err := repo.Query("select * from alerts where org=? and id=? limit 1", org, alertID)
+func (repo *AlertRepository) Exists(orgID, alertID string) bool {
+	rows, err := repo.Query("select * from alerts where org_id=? and id=? limit 1", orgID, alertID)
 	if err != nil {
 		panic(err)
 	}
@@ -57,7 +57,7 @@ func (repo *AlertRepository) Exists(org, alertID string) bool {
 	return false
 }
 
-func (repo *AlertRepository) List(org string, withClosed bool, nextID string, limit int) (*domain.Alerts, error) {
+func (repo *AlertRepository) List(orgID string, withClosed bool, nextID string, limit int) (*domain.Alerts, error) {
 	status := "UNKNOWN"
 	if withClosed {
 		status = "OK"
@@ -67,10 +67,10 @@ func (repo *AlertRepository) List(org string, withClosed bool, nextID string, li
 		`
 		select * from alerts
 		where
-			org=? and status in ('CRITICAL', 'WARNING', 'UNKNOWN', ?)
+			org_id=? and status in ('CRITICAL', 'WARNING', 'UNKNOWN', ?)
 		order by opened_at limit ?
 		`,
-		org,
+		orgID,
 		status,
 		limit+1,
 	)
@@ -82,9 +82,9 @@ func (repo *AlertRepository) List(org string, withClosed bool, nextID string, li
 	var alerts []domain.Alert
 	for rows.Next() {
 		var alert domain.Alert
-		var org string
+		var trash string
 		if err := rows.Scan(
-			&org,
+			&trash,
 			&alert.ID,
 			&alert.Status,
 			&alert.MonitorID,
@@ -112,25 +112,25 @@ func (repo *AlertRepository) List(org string, withClosed bool, nextID string, li
 	return &domain.Alerts{Alerts: alerts}, nil
 }
 
-func (repo *AlertRepository) Close(org, alertID, reason string) (*domain.Alert, error) {
+func (repo *AlertRepository) Close(orgID, alertID, reason string) (*domain.Alert, error) {
 	var alert domain.Alert
 	if err := repo.Transact(func(tx Tx) error {
 		if _, err := tx.Exec(
 			`
-			update alerts set reason=?, closed_at=? where org=? and id=?
+			update alerts set reason=?, closed_at=? where org_id=? and id=?
 			`,
 			reason,
 			time.Now().Unix(),
-			org,
+			orgID,
 			alertID,
 		); err != nil {
 			return fmt.Errorf("update alerts: %v", err)
 		}
 
-		row := tx.QueryRow("select * from alerts where org=? and id=?", alertID)
-		var org string
+		row := tx.QueryRow("select * from alerts where org_id=? and id=?", orgID, alertID)
+		var trash string
 		if err := row.Scan(
-			&org,
+			&trash,
 			&alert.ID,
 			&alert.Status,
 			&alert.MonitorID,

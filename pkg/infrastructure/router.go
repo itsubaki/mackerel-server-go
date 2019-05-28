@@ -17,20 +17,20 @@ func Router(handler database.SQLHandler) *gin.Engine {
 
 	auth := controllers.NewAuthController(handler)
 	g.Use(func(c *gin.Context) {
-		org, write, err := auth.Required(c)
+		key, err := auth.Required(c)
 		if err != nil {
 			c.Status(http.StatusForbidden)
 			c.Abort()
 			return
 		}
 
-		if c.Request.Method != http.MethodGet && !write {
+		if c.Request.Method != http.MethodGet && !key.Write {
 			c.Status(http.StatusForbidden)
 			c.Abort()
 			return
 		}
 
-		c.Set("org", org)
+		c.Set("org_id", key.OrgID)
 		c.Next()
 	})
 

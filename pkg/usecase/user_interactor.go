@@ -10,14 +10,14 @@ type UserInteractor struct {
 	UserRepository UserRepository
 }
 
-func (s *UserInteractor) List(org string) (*domain.Users, error) {
-	return s.UserRepository.List(org)
+func (s *UserInteractor) List(orgID string) (*domain.Users, error) {
+	return s.UserRepository.List(orgID)
 }
 
-func (s *UserInteractor) Delete(org, userID string) (*domain.User, error) {
-	if !s.UserRepository.Exists(org, userID) {
-		return nil, &UserNotFound{Err{errors.New("the <userId> that was designated doesn't belong to the organization")}}
+func (s *UserInteractor) Delete(orgID, userID string) (*domain.User, error) {
+	if !s.UserRepository.Exists(orgID, userID) {
+		return nil, &UserNotFound{Err{errors.New("the <userId> that was designated doesn't belong to the orgIDanization")}}
 	}
 
-	return s.UserRepository.Delete(org, userID)
+	return s.UserRepository.Delete(orgID, userID)
 }

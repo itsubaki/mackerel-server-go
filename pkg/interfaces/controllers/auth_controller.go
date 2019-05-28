@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"github.com/itsubaki/mackerel-api/pkg/domain"
 	"github.com/itsubaki/mackerel-api/pkg/interfaces/database"
 	"github.com/itsubaki/mackerel-api/pkg/usecase"
 )
@@ -17,11 +18,6 @@ func NewAuthController(handler database.SQLHandler) *AuthController {
 	}
 }
 
-func (s *AuthController) Required(c Context) (string, bool, error) {
-	key, err := s.Interactor.XAPIKey(c.GetHeader("X-Api-Key"))
-	if err != nil {
-		return "", false, err
-	}
-
-	return key.Org, key.Write, nil
+func (s *AuthController) Required(c Context) (*domain.XAPIKey, error) {
+	return s.Interactor.XAPIKey(c.GetHeader("X-Api-Key"))
 }
