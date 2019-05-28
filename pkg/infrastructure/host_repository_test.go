@@ -1,12 +1,9 @@
 package infrastructure
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
 	"testing"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/itsubaki/mackerel-api/pkg/domain"
 	"github.com/itsubaki/mackerel-api/pkg/interfaces/database"
 )
@@ -19,14 +16,11 @@ func TestHostRepository(t *testing.T) {
 		t.Error(err)
 	}
 
-	sha := sha256.Sum256([]byte(uuid.Must(uuid.NewRandom()).String()))
-	hash := hex.EncodeToString(sha[:])
-
 	roles := make(map[string][]string)
 	roles["ExampleService"] = []string{"ExampleRole"}
 
 	host := domain.Host{
-		ID:               hash[:11],
+		ID:               domain.NewHostID(),
 		Name:             "example001",
 		Status:           "working",
 		Memo:             "none",

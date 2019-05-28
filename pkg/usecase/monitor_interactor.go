@@ -1,10 +1,6 @@
 package usecase
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
-
-	"github.com/google/uuid"
 	"github.com/itsubaki/mackerel-api/pkg/domain"
 )
 
@@ -17,10 +13,7 @@ func (s *MonitorInteractor) List(org string) (*domain.Monitors, error) {
 }
 
 func (s *MonitorInteractor) Save(org string, monitor *domain.Monitoring) (interface{}, error) {
-	sha := sha256.Sum256([]byte(uuid.Must(uuid.NewRandom()).String()))
-	hash := hex.EncodeToString(sha[:])
-	monitor.ID = hash[:11]
-
+	monitor.ID = domain.NewMonitorID(monitor.Name)
 	return s.MonitorRepository.Save(org, monitor)
 }
 

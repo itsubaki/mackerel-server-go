@@ -18,10 +18,10 @@ func NewAuthController(handler database.SQLHandler) *AuthController {
 }
 
 func (s *AuthController) Required(c Context) (string, bool, error) {
-	xapikey, err := s.Interactor.XAPIKey(c.GetHeader("X-Api-Key"))
+	key, err := s.Interactor.XAPIKey(c.GetHeader("X-Api-Key"))
 	if err != nil {
 		return "", false, err
 	}
 
-	return xapikey.Org, xapikey.Write, nil
+	return key.Org, key.Write, nil
 }

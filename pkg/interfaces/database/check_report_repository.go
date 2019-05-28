@@ -1,8 +1,6 @@
 package database
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
 	"fmt"
 
 	"github.com/itsubaki/mackerel-api/pkg/domain"
@@ -114,56 +112,6 @@ func (repo *CheckReportRepository) Save(org string, reports *domain.CheckReports
 				reports.Reports[i].MaxCheckAttempts,
 			); err != nil {
 				return fmt.Errorf("insert into check_reports: %v", err)
-			}
-
-			for i := range reports.Reports {
-				if reports.Reports[i].Status == "OK" {
-					continue
-				}
-
-				seed0 := reports.Reports[i].Source.HostID + reports.Reports[i].Name
-				sha0 := sha256.Sum256([]byte(seed0))
-				hash0 := hex.EncodeToString(sha0[:])
-
-				seed1 := reports.Reports[i].Name + reports.Reports[i].Source.HostID
-				sha1 := sha256.Sum256([]byte(seed1))
-				hash1 := hex.EncodeToString(sha1[:])
-
-				if _, err := tx.Exec(
-					`
-				insert into alerts (
-					org,
-					id,
-					status,
-					monitor_id,
-					type,
-					host_id,
-					value,
-					message,
-					reason,
-					opened_at,
-					closed_at
-				) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-				on duplicate key update
-					status = values(status),
-					value = values(value),
-					message = values(message)
-				`,
-					org,
-					hash0[:11],
-					reports.Reports[i].Status,
-					hash1[:11],
-					reports.Reports[i].Source.Type,
-					reports.Reports[i].Source.HostID,
-					0,
-					reports.Reports[i].Message[:len(reports.Reports[i].Message)-1], // remove \n
-					"",
-					reports.Reports[i].OccurredAt,
-					0,
-				); err != nil {
-					fmt.Println(err)
-					return fmt.Errorf("insert into alerts: %v", err)
-				}
 			}
 		}
 

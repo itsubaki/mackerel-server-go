@@ -1,14 +1,11 @@
 package usecase
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"strings"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/itsubaki/mackerel-api/pkg/domain"
 )
 
@@ -35,10 +32,7 @@ func (s *HostInteractor) Save(org string, host *domain.Host) (*domain.HostID, er
 
 	// Create
 	if len(host.ID) < 1 {
-		sha := sha256.Sum256([]byte(uuid.Must(uuid.NewRandom()).String()))
-		hash := hex.EncodeToString(sha[:])
-
-		host.ID = hash[:11]
+		host.ID = domain.NewHostID()
 		host.CreatedAt = time.Now().Unix()
 		host.RetiredAt = 0
 		host.IsRetired = false
