@@ -24,7 +24,7 @@ func NewCheckReportRepository(handler SQLHandler) *CheckReportRepository {
 				occurred_at           bigint,
 				notification_interval bigint,
 				max_check_attempts    bigint,
-				primary key(host_id, type, name)
+				primary key(host_id, name)
 			)
 			`,
 		); err != nil {
@@ -39,6 +39,42 @@ func NewCheckReportRepository(handler SQLHandler) *CheckReportRepository {
 	return &CheckReportRepository{
 		SQLHandler: handler,
 	}
+}
+
+func (repo *CheckReportRepository) CheckReport(org string) (*domain.CheckReports, error) {
+	reports := make([]domain.CheckReport, 0)
+	if err := repo.Transact(func(tx Tx) error {
+		rows, err := tx.Query("select * from check_reports where org=? and status not in('OK')", org)
+		if err != nil {
+			return fmt.Errorf("select * from check_reports: %v", err)
+		}
+
+		for rows.Next() {
+			var report domain.CheckReport
+			var org string
+			if err := rows.Scan(
+				&org,
+				&report.Source.HostID,
+				&report.Source.Type,
+				&report.Name,
+				&report.Status,
+				&report.Message,
+				&report.OccurredAt,
+				&report.NotificationInterval,
+				&report.MaxCheckAttempts,
+			); err != nil {
+				return fmt.Errorf("scan: %v", err)
+			}
+
+			reports = append(reports, report)
+		}
+
+		return nil
+	}); err != nil {
+		return nil, fmt.Errorf("transaction: %v", err)
+	}
+
+	return &domain.CheckReports{Reports: reports}, nil
 }
 
 func (repo *CheckReportRepository) Save(org string, reports *domain.CheckReports) (*domain.Success, error) {
