@@ -22,7 +22,7 @@ func NewAlertRepository(handler SQLHandler) *AlertRepository {
 				monitor_id varchar(16) not null,
 				type       enum('connectivity', 'host', 'service', 'external', 'check', 'expression') not null,
 				host_id    varchar(16),
-				value      double not null,
+				value      double,
 				message    text,
 				reason     text,
 				opened_at  bigint,
@@ -66,7 +66,8 @@ func (repo *AlertRepository) List(org string, withClosed bool, nextID string, li
 	rows, err := repo.Query(
 		`
 		select * from alerts
-		where org=? and status in ('CRITICAL', 'WARNING', 'UNKNOWN', ?)
+		where
+			org=? and status in ('CRITICAL', 'WARNING', 'UNKNOWN', ?)
 		order by opened_at limit ?
 		`,
 		org,
