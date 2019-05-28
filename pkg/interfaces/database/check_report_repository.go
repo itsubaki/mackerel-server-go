@@ -156,7 +156,7 @@ func (repo *CheckReportRepository) Save(org string, reports *domain.CheckReports
 					reports.Reports[i].Source.Type,
 					reports.Reports[i].Source.HostID,
 					0,
-					reports.Reports[i].Message,
+					reports.Reports[i].Message[:len(reports.Reports[i].Message)-1], // remove \n
 					"",
 					reports.Reports[i].OccurredAt,
 					0,
