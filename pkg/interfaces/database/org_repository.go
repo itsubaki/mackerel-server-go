@@ -37,7 +37,7 @@ func NewOrgRepository(handler SQLHandler) *OrgRepository {
 			return fmt.Errorf("create table xapikey: %v", err)
 		}
 
-		id := domain.NewOrgID()
+		org := domain.NewOrgID()
 		if _, err := tx.Exec(
 			`
 			insert into orgs (
@@ -47,8 +47,8 @@ func NewOrgRepository(handler SQLHandler) *OrgRepository {
 			on duplicate key update
 				name = values(name)
 			`,
-			id,
-			"default",
+			org,
+			"mackerel",
 		); err != nil {
 			return fmt.Errorf("insert into orgs: %v", err)
 		}
@@ -69,7 +69,7 @@ func NewOrgRepository(handler SQLHandler) *OrgRepository {
 				xread     = values(xread),
 				xwrite    = values(xwrite)
 			`,
-			id,
+			org,
 			"default",
 			"2684d06cfedbee8499f326037bb6fb7e8c22e73b16bb",
 			1,
