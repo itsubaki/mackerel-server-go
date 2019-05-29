@@ -1,20 +1,27 @@
 package infrastructure
 
 import (
+	"log"
 	"testing"
 	"time"
 
+	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/itsubaki/mackerel-api/pkg/domain"
 	"github.com/itsubaki/mackerel-api/pkg/interfaces/database"
 )
 
 func TestUserRepository(t *testing.T) {
-	repo := database.NewUserRepository(NewSQLHandler())
-	defer repo.Close()
-
-	if _, err := repo.List("default"); err != nil {
-		t.Error(err)
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		log.Fatal(err)
 	}
+
+	mock.ExpectBegin()
+	mock.ExpectExec(`insert into users`).WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectCommit()
+
+	repo := database.UserRepository{&SQLHandler{db}}
+	defer repo.Close()
 
 	user := domain.User{
 		ID:                      "example001",
@@ -27,19 +34,11 @@ func TestUserRepository(t *testing.T) {
 		JoinedAt:                time.Now().Unix(),
 	}
 
-	if err := repo.Save("default", &user); err != nil {
-		t.Error(err)
+	if err := repo.Save("mackerel-api", &user); err != nil {
+		t.Fatal(err)
 	}
 
-	if !repo.Exists("default", "example001") {
-		t.Error("example001 not found")
-	}
-
-	if _, err := repo.Delete("default", "example001"); err != nil {
-		t.Error(err)
-	}
-
-	if repo.Exists("default", "example001") {
-		t.Error("example001 already exists")
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatal(err)
 	}
 }
