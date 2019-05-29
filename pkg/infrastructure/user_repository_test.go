@@ -17,14 +17,14 @@ func TestUserRepository(t *testing.T) {
 	}
 
 	user := domain.User{
-		ID:                       "example001",
-		ScreenName:               "example001.screen",
-		Email:                    "example@example.com",
-		Authority:                "owner",
-		IsInRegisterationProcess: false,
-		IsMFAEnabled:             false,
-		AuthenticationMethods:    []string{"google", "github"},
-		JoinedAt:                 time.Now().Unix(),
+		ID:                      "example001",
+		ScreenName:              "example001.screen",
+		Email:                   "example@example.com",
+		Authority:               "owner",
+		IsInRegistrationProcess: false,
+		IsMFAEnabled:            false,
+		AuthenticationMethods:   []string{"google", "github"},
+		JoinedAt:                time.Now().Unix(),
 	}
 
 	if err := repo.Save("default", &user); err != nil {
