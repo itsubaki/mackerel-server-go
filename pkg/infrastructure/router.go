@@ -94,14 +94,14 @@ func Router(handler database.SQLHandler) *gin.Engine {
 	}
 
 	{
-		mon := controllers.NewMonitorController(handler)
+		monitors := controllers.NewMonitorController(handler)
 
 		m := v0.Group("/monitors")
-		m.GET("", func(c *gin.Context) { mon.List(c) })
-		m.POST("", func(c *gin.Context) { mon.Save(c) })
-		m.GET("/:monitorId", func(c *gin.Context) { mon.Monitor(c) })
-		m.PUT("/:monitorId", func(c *gin.Context) { mon.Update(c) })
-		m.DELETE("/:monitorId", func(c *gin.Context) { mon.Delete(c) })
+		m.GET("", func(c *gin.Context) { monitors.List(c) })
+		m.POST("", func(c *gin.Context) { monitors.Save(c) })
+		m.GET("/:monitorId", func(c *gin.Context) { monitors.Monitor(c) })
+		m.PUT("/:monitorId", func(c *gin.Context) { monitors.Update(c) })
+		m.DELETE("/:monitorId", func(c *gin.Context) { monitors.Delete(c) })
 	}
 
 	{

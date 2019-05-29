@@ -26,7 +26,8 @@ func NewAlertRepository(handler SQLHandler) *AlertRepository {
 				message    text,
 				reason     text,
 				opened_at  bigint,
-				closed_at  bigint
+				closed_at  bigint,
+				index(monitor_id)
 			)
 			`,
 		); err != nil {
@@ -67,8 +68,11 @@ func (repo *AlertRepository) List(orgID string, withClosed bool, nextID string, 
 		`
 		select * from alerts
 		where
-			org_id=? and status in ('CRITICAL', 'WARNING', 'UNKNOWN', ?)
-		order by opened_at limit ?
+			org_id=? and 
+			status in ('CRITICAL', 'WARNING', 'UNKNOWN', ?)
+		order by
+			opened_at
+		limit ?
 		`,
 		orgID,
 		status,
