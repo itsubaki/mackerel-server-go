@@ -17,7 +17,7 @@ func Router(handler database.SQLHandler) *gin.Engine {
 
 	auth := controllers.NewAuthController(handler)
 	g.Use(func(c *gin.Context) {
-		key, err := auth.Required(c)
+		key, err := auth.XAPIKey(c)
 		if err != nil {
 			c.Status(http.StatusForbidden)
 			c.Abort()

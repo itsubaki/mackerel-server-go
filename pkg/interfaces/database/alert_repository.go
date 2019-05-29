@@ -79,7 +79,7 @@ func (repo *AlertRepository) List(orgID string, withClosed bool, nextID string, 
 	}
 	defer rows.Close()
 
-	var alerts []domain.Alert
+	alerts := make([]domain.Alert, 0)
 	for rows.Next() {
 		var alert domain.Alert
 		var trash string

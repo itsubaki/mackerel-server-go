@@ -7,17 +7,17 @@ import (
 )
 
 type AuthController struct {
-	Interactor *usecase.OrgInteractor
+	Interactor *usecase.AuthInteractor
 }
 
 func NewAuthController(handler database.SQLHandler) *AuthController {
 	return &AuthController{
-		Interactor: &usecase.OrgInteractor{
-			OrgRepository: database.NewOrgRepository(handler),
+		Interactor: &usecase.AuthInteractor{
+			AuthRepository: database.NewAuthRepository(handler),
 		},
 	}
 }
 
-func (s *AuthController) Required(c Context) (*domain.XAPIKey, error) {
+func (s *AuthController) XAPIKey(c Context) (*domain.XAPIKey, error) {
 	return s.Interactor.XAPIKey(c.GetHeader("X-Api-Key"))
 }
