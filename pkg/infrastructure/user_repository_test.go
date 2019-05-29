@@ -20,7 +20,8 @@ func TestUserRepository(t *testing.T) {
 	mock.ExpectExec(`insert into users`).WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectCommit()
 
-	repo := database.UserRepository{&SQLHandler{db}}
+	repo := database.UserRepository{}
+	repo.SQLHandler = &SQLHandler{db}
 	defer repo.Close()
 
 	user := domain.User{
