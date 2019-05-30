@@ -2,6 +2,8 @@ package infrastructure
 
 import (
 	"log"
+	"regexp"
+	"strings"
 	"testing"
 	"time"
 
@@ -17,13 +19,15 @@ func TestUserRepository(t *testing.T) {
 	}
 
 	mock.ExpectBegin()
-	mock.ExpectExec(`insert into users`).WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectExec(`insert into users`).
+		WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectCommit()
 
 	repo := database.UserRepository{}
 	repo.SQLHandler = &SQLHandler{db}
 	defer repo.Close()
 
+	orgID := domain.NewOrgID()
 	user := domain.User{
 		ID:                      "example001",
 		ScreenName:              "example001.screen",
@@ -35,7 +39,7 @@ func TestUserRepository(t *testing.T) {
 		JoinedAt:                time.Now().Unix(),
 	}
 
-	if err := repo.Save("mackerel-api", &user); err != nil {
+	if err := repo.Save(orgID, &user); err != nil {
 		t.Fatal(err)
 	}
 
@@ -43,4 +47,44 @@ func TestUserRepository(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	rows := sqlmock.NewRows(
+		[]string{
+			"org_id",
+			"id",
+			"screen_name",
+			"email",
+			"authority",
+			"is_in_registration_process",
+			"is_mfa_enabled",
+			"authentication_methods",
+			"joined_at",
+		}).
+		AddRow(
+			orgID,
+			user.ID,
+			user.ScreenName,
+			user.Email,
+			user.Authority,
+			user.IsInRegistrationProcess,
+			user.IsMFAEnabled,
+			strings.Join(user.AuthenticationMethods, ","),
+			user.JoinedAt,
+		)
+
+	mock.ExpectBegin()
+	mock.ExpectQuery(regexp.QuoteMeta(`select * from users where org_id=? and id=?`)).
+		WithArgs(orgID, user.ID).
+		WillReturnRows(rows)
+	mock.ExpectExec(regexp.QuoteMeta(`delete from users where org_id=? and id=?`)).
+		WithArgs(orgID, user.ID).
+		WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectCommit()
+
+	if _, err := repo.Delete(orgID, user.ID); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatal(err)
+	}
 }
