@@ -42,4 +42,5 @@ func TestUserRepository(t *testing.T) {
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Fatal(err)
 	}
+
 }

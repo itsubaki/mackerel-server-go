@@ -128,7 +128,6 @@ func (repo *UserRepository) Save(orgID string, user *domain.User) error {
 
 func (repo *UserRepository) Delete(orgID, userID string) (*domain.User, error) {
 	var user domain.User
-
 	if err := repo.Transact(func(tx Tx) error {
 		row := tx.QueryRow("select * from users where org_id=? and id=?", orgID, userID)
 		var trash, method string
