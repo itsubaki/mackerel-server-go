@@ -50,7 +50,6 @@ func NewUserRepository(handler SQLHandler) *UserRepository {
 // 1 row in set, 1 warning (0.01 sec)
 func (repo *UserRepository) List(orgID string) (*domain.Users, error) {
 	users := make([]domain.User, 0)
-
 	if err := repo.Transact(func(tx Tx) error {
 		rows, err := tx.Query("select * from users where org_id=?", orgID)
 		if err != nil {
