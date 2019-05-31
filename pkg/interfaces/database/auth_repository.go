@@ -61,6 +61,42 @@ func NewAuthRepository(handler SQLHandler) *AuthRepository {
 	}
 }
 
+func (repo *AuthRepository) Save(orgID, name string, write bool) (*domain.XAPIKey, error) {
+	xapikey := domain.NewXAPIKey()
+	if err := repo.Transact(func(tx Tx) error {
+		if _, err := tx.Exec(
+			`
+			insert into xapikey (
+				org_id,
+				name,
+				x_api_key,
+				xread,
+				xwrite
+			) values (?, ?, ?, ?, ?)
+		`,
+			orgID,
+			name,
+			xapikey,
+			true,
+			write,
+		); err != nil {
+			return fmt.Errorf("insert into xapikey: %v", err)
+		}
+
+		return nil
+	}); err != nil {
+		return nil, fmt.Errorf("transaction: %v", err)
+	}
+
+	return &domain.XAPIKey{
+		OrgID:   orgID,
+		Name:    name,
+		XAPIKey: xapikey,
+		Read:    true,
+		Write:   write,
+	}, nil
+}
+
 func (repo *AuthRepository) XAPIKey(xapikey string) (*domain.XAPIKey, error) {
 	var key domain.XAPIKey
 	if err := repo.Transact(func(tx Tx) error {
