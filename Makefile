@@ -32,7 +32,7 @@ test:
 	set -x
 	go test -cover $(shell go list ./... | grep -v /vendor/ | grep -v /build/) -v
 
-testcurl:
+curl:
 	set -x
 	curl -s localhost:8080/api/v0/alerts -H "X-Api-Key: ${XAPIKEY}" | jq .
 	$(eval MONITORID := $(shell curl -s localhost:8080/api/v0/monitors -X POST -H "X-Api-Key: ${XAPIKEY}" -H "Content-Type: application/json" -d '{ "type": "host", "name": "disk.aa-00.writes.delta", "memo": "This monitor is for Hatena Blog.", "duration": 3, "metric": "disk.aa-00.writes.delta", "operator": ">", "warning": 20000.0, "critical": 400000.0, "maxCheckAttempts": 3, "notificationInterval": 60, "scopes": [ "Hatena-Blog" ], "excludeScopes": [ "Hatena-Bookmark: db-master" ] }' | jq -r .id))

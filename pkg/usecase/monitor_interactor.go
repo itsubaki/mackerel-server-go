@@ -14,6 +14,7 @@ func (s *MonitorInteractor) List(orgID string) (*domain.Monitors, error) {
 
 func (s *MonitorInteractor) Save(orgID string, monitor *domain.Monitoring) (interface{}, error) {
 	monitor.ID = domain.NewMonitorID(monitor.Name)
+	monitor.Method = "GET"
 	return s.MonitorRepository.Save(orgID, monitor)
 }
 

@@ -457,7 +457,7 @@ func (repo *MonitorRepository) Delete(orgID, monitorID string) (interface{}, err
 			return fmt.Errorf("unmarshal monitor.RequestBody: %v", err)
 		}
 
-		if _, err := tx.Exec("delete from monitors where org=? and id=?", orgID, monitorID); err != nil {
+		if _, err := tx.Exec("delete from monitors where org_id=? and id=?", orgID, monitorID); err != nil {
 			return fmt.Errorf("delete from monitors: %v", err)
 		}
 
