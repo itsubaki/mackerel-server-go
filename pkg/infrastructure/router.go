@@ -8,10 +8,6 @@ import (
 	"github.com/itsubaki/mackerel-api/pkg/interfaces/database"
 )
 
-func Default() *gin.Engine {
-	return Router(nil)
-}
-
 func Router(handler database.SQLHandler) *gin.Engine {
 	g := gin.Default()
 

@@ -19,7 +19,7 @@ func NewAlertRepository(handler SQLHandler) *AlertRepository {
 				org_id     varchar(64) not null,
 				id         varchar(16) not null primary key,
 				status     enum('OK', 'CRITICAL', 'WARNING', 'UNKNOWN') not null,
-				monitor_id varchar(16) not null,
+				monitor_id varchar(16) not null unique,
 				type       enum('connectivity', 'host', 'service', 'external', 'check', 'expression') not null,
 				host_id    varchar(16),
 				value      double,
