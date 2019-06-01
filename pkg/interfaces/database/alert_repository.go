@@ -33,6 +33,22 @@ func NewAlertRepository(handler SQLHandler) *AlertRepository {
 			return fmt.Errorf("create table alerts: %v", err)
 		}
 
+		if _, err := tx.Exec(
+			`
+			create table if not exists alert_history (
+				org_id     varchar(64) not null,
+				monitor_id varchar(16) not null,
+				alert_id   varchar(16) not null,
+				time       bigint      not null,
+				status     enum('OK', 'CRITICAL', 'WARNING', 'UNKNOWN') not null,
+				message    text,
+				primary key(monitor_id, alert_id, time desc)
+			)
+			`,
+		); err != nil {
+			return fmt.Errorf("create table alert_history: %v", err)
+		}
+
 		return nil
 	}); err != nil {
 		panic(fmt.Errorf("transaction: %v", err))

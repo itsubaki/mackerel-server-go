@@ -21,7 +21,6 @@ runclient:
 	cd $(shell go env GOPATH)/src/github.com/mackerelio/go-check-plugins/check-tcp; go install
 	cp mackerel-agent.conf /usr/local/etc/mackerel-agent.conf
 	-rm ~/Library/mackerel-agent/id
-	-killall mackerel-agent
 	mackerel-agent -conf /usr/local/etc/mackerel-agent.conf -apibase=http://localhost:8080
 
 runmysql:
