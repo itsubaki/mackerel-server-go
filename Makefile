@@ -25,8 +25,7 @@ runclient:
 
 runmysql:
 	set -x
-	docker pull mysql
-
+	-docker pull mysql
 	-docker stop mysqld
 	-docker rm mysqld
 	docker run --name mysqld -e MYSQL_ROOT_PASSWORD=secret -p 3307:3306 -d mysql

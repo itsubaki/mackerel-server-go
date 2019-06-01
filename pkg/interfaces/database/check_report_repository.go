@@ -128,7 +128,7 @@ func (repo *CheckReportRepository) Save(orgID string, reports *domain.CheckRepor
 		for i := range reports.Reports {
 			row := tx.QueryRow(
 				`
-				select status from alert_history
+				select alert_id, status from alert_history
 				where org_id=? and host_id=? and monitor_id=?
 				order by time desc limit 1`,
 				orgID,
@@ -141,8 +141,8 @@ func (repo *CheckReportRepository) Save(orgID string, reports *domain.CheckRepor
 				),
 			)
 
-			var status string
-			if err := row.Scan(&status); err != nil && reports.Reports[i].Status == "OK" {
+			var alertID, status string
+			if err := row.Scan(&alertID, &status); err != nil && reports.Reports[i].Status == "OK" {
 				// no record and no alert
 				continue
 			}
@@ -169,7 +169,7 @@ func (repo *CheckReportRepository) Save(orgID string, reports *domain.CheckRepor
 					host_id,
 					time,
 					message
-				) values (?, ?, ?, ?, ?, ?)
+				) values (?, ?, ?, ?, ?, ?, ?)
 				`,
 				orgID,
 				domain.NewAlertID(
