@@ -152,8 +152,16 @@ func (repo *CheckReportRepository) Save(orgID string, reports *domain.CheckRepor
 				continue
 			}
 
-			// status == "OK" && reports.Reports[i].Status != "OK"
-			// -> new alert
+			if (len(status) < 1 || status == "OK") && reports.Reports[i].Status != "OK" {
+				// new alert
+				alertID = domain.NewAlertID(
+					orgID,
+					reports.Reports[i].Source.HostID,
+					reports.Reports[i].Name,
+					strconv.FormatInt(reports.Reports[i].OccurredAt, 10),
+				)
+			}
+
 			// status != "OK" && reports.Reports[i].Status != "OK"
 			// -> continuous alert
 			// status != "OK" && reports.Reports[i].Status == "OK"
@@ -172,12 +180,7 @@ func (repo *CheckReportRepository) Save(orgID string, reports *domain.CheckRepor
 				) values (?, ?, ?, ?, ?, ?, ?)
 				`,
 				orgID,
-				domain.NewAlertID(
-					orgID,
-					reports.Reports[i].Source.HostID,
-					reports.Reports[i].Name,
-					strconv.FormatInt(reports.Reports[i].OccurredAt, 10),
-				),
+				alertID,
 				reports.Reports[i].Status,
 				domain.NewMonitorID(
 					orgID,
@@ -201,53 +204,27 @@ func (repo *CheckReportRepository) Save(orgID string, reports *domain.CheckRepor
 
 	if err := repo.Transact(func(tx Tx) error {
 		for i := range reports.Reports {
-			var alertID string
-			var time int64
-			{
-				row := tx.QueryRow(
-					`
-				select alert_id, time from alert_history
-				where org_id=? and monitor_id=? and host_id=?
-				order by time limit 1
-				`,
-					orgID,
-					domain.NewMonitorID(
-						orgID,
-						reports.Reports[i].Source.HostID,
-						reports.Reports[i].Source.Type,
-						reports.Reports[i].Name,
-					),
-					reports.Reports[i].Source.HostID,
-				)
-
-				if err := row.Scan(&alertID, &time); err != nil {
-					// no record
-					continue
-				}
-			}
-
-			var status string
-			{
-				row := tx.QueryRow(
-					`
-				select status from alert_history
+			row := tx.QueryRow(
+				`
+				select alert_id, status, monitor_id, host_id, message, time from alert_history
 				where org_id=? and monitor_id=? and host_id=?
 				order by time desc limit 1
 				`,
+				orgID,
+				domain.NewMonitorID(
 					orgID,
-					domain.NewMonitorID(
-						orgID,
-						reports.Reports[i].Source.HostID,
-						reports.Reports[i].Source.Type,
-						reports.Reports[i].Name,
-					),
 					reports.Reports[i].Source.HostID,
-				)
+					reports.Reports[i].Source.Type,
+					reports.Reports[i].Name,
+				),
+				reports.Reports[i].Source.HostID,
+			)
 
-				if err := row.Scan(&status); err != nil {
-					// no record
-					continue
-				}
+			var alertID, status, monitorID, hostID, message string
+			var time int64
+			if err := row.Scan(&alertID, &status, &monitorID, &hostID, &message, &time); err != nil {
+				// no record
+				continue
 			}
 
 			var closedAt int64
@@ -278,17 +255,12 @@ func (repo *CheckReportRepository) Save(orgID string, reports *domain.CheckRepor
 				`,
 				orgID,
 				alertID,
-				reports.Reports[i].Status,
-				domain.NewMonitorID(
-					orgID,
-					reports.Reports[i].Source.HostID,
-					reports.Reports[i].Source.Type,
-					reports.Reports[i].Name,
-				),
+				status,
+				monitorID,
 				"check",
-				reports.Reports[i].Source.HostID,
+				hostID,
 				0,
-				reports.Reports[i].Message,
+				message,
 				"",
 				time,
 				closedAt,

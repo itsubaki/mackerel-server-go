@@ -181,7 +181,7 @@ func (repo *AlertRepository) Close(orgID, alertID, reason string) (*domain.Alert
 				) values (?, ?, ?, ?, ?, ?, ?)
 				`,
 			orgID,
-			alert.ID,
+			alertID,
 			"OK",
 			alert.MonitorID,
 			alert.HostID,
