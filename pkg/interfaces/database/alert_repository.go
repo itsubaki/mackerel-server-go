@@ -43,7 +43,7 @@ func NewAlertRepository(handler SQLHandler) *AlertRepository {
 				time       bigint      not null,
 				status     enum('OK', 'CRITICAL', 'WARNING', 'UNKNOWN') not null,
 				message    text,
-				index(monitor_id)
+				index(org_id, monitor_id, time desc)
 			)
 			`,
 		); err != nil {

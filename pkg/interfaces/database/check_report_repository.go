@@ -129,7 +129,7 @@ func (repo *CheckReportRepository) Save(orgID string, reports *domain.CheckRepor
 		for i := range reports.Reports {
 			row := tx.QueryRow(
 				`
-				select status from alerts where org_id=? and monitor_id=? order by opened_at desc limit 1
+				select status from alert_history where org_id=? and monitor_id=? order by time desc limit 1
 				`,
 				orgID,
 				domain.NewMonitorID(
@@ -174,7 +174,7 @@ func (repo *CheckReportRepository) Save(orgID string, reports *domain.CheckRepor
 						reports.Reports[i].Source.HostID,
 						reports.Reports[i].Name,
 					),
-					reports.Reports[i].Source.Type,
+					"check",
 					reports.Reports[i].Source.HostID,
 					0,
 					reports.Reports[i].Message,
