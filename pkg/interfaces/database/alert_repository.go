@@ -19,15 +19,14 @@ func NewAlertRepository(handler SQLHandler) *AlertRepository {
 				org_id     varchar(64) not null,
 				id         varchar(16) not null primary key,
 				status     enum('OK', 'CRITICAL', 'WARNING', 'UNKNOWN') not null,
-				monitor_id varchar(16) not null unique,
+				monitor_id varchar(16) not null,
 				type       enum('connectivity', 'host', 'service', 'external', 'check', 'expression') not null,
 				host_id    varchar(16),
 				value      double,
 				message    text,
 				reason     text,
 				opened_at  bigint,
-				closed_at  bigint,
-				index(monitor_id)
+				closed_at  bigint
 			)
 			`,
 		); err != nil {
@@ -121,7 +120,7 @@ func (repo *AlertRepository) Close(orgID, alertID, reason string) (*domain.Alert
 	if err := repo.Transact(func(tx Tx) error {
 		if _, err := tx.Exec(
 			`
-			update alerts set reason=?, closed_at=? where org_id=? and id=?
+			update alerts set status='OK', reason=?, closed_at=? where org_id=? and id=?
 			`,
 			reason,
 			time.Now().Unix(),

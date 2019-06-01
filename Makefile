@@ -4,6 +4,11 @@ HASH := $(shell git rev-parse HEAD)
 XAPIKEY := 2684d06cfedbee8499f326037bb6fb7e8c22e73b16bb
 CONTENTTYPE := application/json
 
+install:
+	set -x
+	-rm $(shell go env GOPATH)/bin/mackerel-api
+	go install
+
 runserver:
 	set -x
 	-rm $(shell go env GOPATH)/bin/mackerel-api
@@ -16,6 +21,7 @@ runclient:
 	cd $(shell go env GOPATH)/src/github.com/mackerelio/go-check-plugins/check-tcp; go install
 	cp mackerel-agent.conf /usr/local/etc/mackerel-agent.conf
 	-rm ~/Library/mackerel-agent/id
+	-killall mackerel-agent
 	mackerel-agent -conf /usr/local/etc/mackerel-agent.conf -apibase=http://localhost:8080
 
 runmysql:
@@ -35,6 +41,8 @@ test:
 curl:
 	set -x
 	curl -s localhost:8080/api/v0/alerts -H "X-Api-Key: ${XAPIKEY}" | jq .
+	$(eval ALERTID := $(shell curl -s localhost:8080/api/v0/alerts -H "X-Api-Key: ${XAPIKEY}" | jq '.alerts[0].id' -r ))
+	curl -s localhost:8080/api/v0/alerts/${ALERTID}/close -X POST -H "X-Api-Key: ${XAPIKEY}" -d '{ "reason": "manual" }' | jq .
 	$(eval MONITORID := $(shell curl -s localhost:8080/api/v0/monitors -X POST -H "X-Api-Key: ${XAPIKEY}" -H "Content-Type: application/json" -d '{ "type": "host", "name": "disk.aa-00.writes.delta", "memo": "This monitor is for Hatena Blog.", "duration": 3, "metric": "disk.aa-00.writes.delta", "operator": ">", "warning": 20000.0, "critical": 400000.0, "maxCheckAttempts": 3, "notificationInterval": 60, "scopes": [ "Hatena-Blog" ], "excludeScopes": [ "Hatena-Bookmark: db-master" ] }' | jq -r .id))
 	curl -s localhost:8080/api/v0/monitors/${MONITORID} -H "X-Api-Key: ${XAPIKEY}" | jq .
 	curl -s localhost:8080/api/v0/monitors/${MONITORID} -X DELETE -H "X-Api-Key: ${XAPIKEY}" | jq .
