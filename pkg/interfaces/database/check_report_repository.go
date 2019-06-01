@@ -199,5 +199,109 @@ func (repo *CheckReportRepository) Save(orgID string, reports *domain.CheckRepor
 		return &domain.Success{Success: false}, nil
 	}
 
+	if err := repo.Transact(func(tx Tx) error {
+		for i := range reports.Reports {
+			var alertID string
+			var time int64
+			{
+				row := tx.QueryRow(
+					`
+				select alert_id, time from alert_history
+				where org_id=? and monitor_id=? and host_id=?
+				order by time limit 1
+				`,
+					orgID,
+					domain.NewMonitorID(
+						orgID,
+						reports.Reports[i].Source.HostID,
+						reports.Reports[i].Source.Type,
+						reports.Reports[i].Name,
+					),
+					reports.Reports[i].Source.HostID,
+				)
+
+				if err := row.Scan(&alertID, &time); err != nil {
+					// no record
+					continue
+				}
+			}
+
+			var status string
+			{
+				row := tx.QueryRow(
+					`
+				select status from alert_history
+				where org_id=? and monitor_id=? and host_id=?
+				order by time desc limit 1
+				`,
+					orgID,
+					domain.NewMonitorID(
+						orgID,
+						reports.Reports[i].Source.HostID,
+						reports.Reports[i].Source.Type,
+						reports.Reports[i].Name,
+					),
+					reports.Reports[i].Source.HostID,
+				)
+
+				if err := row.Scan(&status); err != nil {
+					// no record
+					continue
+				}
+			}
+
+			var closedAt int64
+			if reports.Reports[i].Status == "OK" {
+				closedAt = reports.Reports[i].OccurredAt
+			}
+
+			if _, err := tx.Exec(
+				`
+				insert into alerts (
+					org_id,
+					id,
+					status,
+					monitor_id,
+					type,
+					host_id,
+					value,
+					message,
+					reason,
+					opened_at,
+					closed_at
+				)
+				values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+				on duplicate key update
+					status = values(status),
+					message = values(message),
+					closed_at = values(closed_at)
+				`,
+				orgID,
+				alertID,
+				reports.Reports[i].Status,
+				domain.NewMonitorID(
+					orgID,
+					reports.Reports[i].Source.HostID,
+					reports.Reports[i].Source.Type,
+					reports.Reports[i].Name,
+				),
+				"check",
+				reports.Reports[i].Source.HostID,
+				0,
+				reports.Reports[i].Message,
+				"",
+				time,
+				closedAt,
+			); err != nil {
+				return fmt.Errorf("insert into alerts: %v", err)
+			}
+		}
+
+		return nil
+	}); err != nil {
+		log.Printf("transaction: %v\n", err)
+		return &domain.Success{Success: false}, nil
+	}
+
 	return &domain.Success{Success: true}, nil
 }
