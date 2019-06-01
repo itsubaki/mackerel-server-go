@@ -3,6 +3,8 @@ package database
 import (
 	"fmt"
 	"log"
+	"strconv"
+	"time"
 
 	"github.com/itsubaki/mackerel-api/pkg/domain"
 )
@@ -108,12 +110,123 @@ func (repo *CheckReportRepository) Save(orgID string, reports *domain.CheckRepor
 				reports.Reports[i].Source.Type,
 				reports.Reports[i].Name,
 				reports.Reports[i].Status,
-				reports.Reports[i].Message[:len(reports.Reports[i].Message)-1], // remove \n
+				reports.Reports[i].Message,
 				reports.Reports[i].OccurredAt,
 				reports.Reports[i].NotificationInterval,
 				reports.Reports[i].MaxCheckAttempts,
 			); err != nil {
 				return fmt.Errorf("insert into check_reports: %v", err)
+			}
+		}
+
+		return nil
+	}); err != nil {
+		log.Printf("transaction: %v\n", err)
+		return &domain.Success{Success: false}, nil
+	}
+
+	if err := repo.Transact(func(tx Tx) error {
+		for i := range reports.Reports {
+			row := tx.QueryRow(
+				`
+				select status from alerts where org_id=? and monitor_id=? order by opened_at desc limit 1
+				`,
+				orgID,
+				domain.NewMonitorID(
+					reports.Reports[i].Source.HostID,
+					reports.Reports[i].Name,
+				),
+			)
+
+			var status string
+			err := row.Scan(&status)
+			if (err != nil || status == "OK") && reports.Reports[i].Status == "OK" {
+				// no alerts
+				continue
+			}
+
+			if (err != nil || status == "OK") && reports.Reports[i].Status != "OK" {
+				// first alert
+				if _, err := tx.Exec(
+					`
+					insert into alerts (
+						org_id,
+						id,
+						status,
+						monitor_id,
+						type,
+						host_id,
+						value,
+						message,
+						reason,
+						opened_at,
+						closed_at
+					) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+				`,
+					orgID,
+					domain.NewAlertID(
+						reports.Reports[i].Source.HostID,
+						reports.Reports[i].Name,
+						strconv.FormatInt(reports.Reports[i].OccurredAt, 10),
+					),
+					reports.Reports[i].Status,
+					domain.NewMonitorID(
+						reports.Reports[i].Source.HostID,
+						reports.Reports[i].Name,
+					),
+					reports.Reports[i].Source.Type,
+					reports.Reports[i].Source.HostID,
+					0,
+					reports.Reports[i].Message,
+					"",
+					reports.Reports[i].OccurredAt,
+					0,
+				); err != nil {
+					return fmt.Errorf("insert into alerts: %v", err)
+				}
+			}
+
+			if status != "OK" && reports.Reports[i].Status == "OK" {
+				// close alert
+				if _, err := tx.Exec(
+					`update alerts set status='OK', closed_at=? where org_id=? and monitor_id=?`,
+					time.Now().Unix(),
+					orgID,
+					domain.NewMonitorID(
+						reports.Reports[i].Source.HostID,
+						reports.Reports[i].Name,
+					),
+				); err != nil {
+					return fmt.Errorf("update alerts: %v", err)
+				}
+			}
+
+			if _, err := tx.Exec(
+				`
+				insert into alert_history (
+					org_id,
+					monitor_id,
+					alert_id,
+					time,
+					status,
+					message
+				) values (?, ?, ?, ?, ?, ?)
+				`,
+				orgID,
+				domain.NewMonitorID(
+					reports.Reports[i].Source.HostID,
+					reports.Reports[i].Name,
+				),
+				domain.NewAlertID(
+					reports.Reports[i].Source.HostID,
+					reports.Reports[i].Name,
+					strconv.FormatInt(reports.Reports[i].OccurredAt, 10),
+				),
+				reports.Reports[i].OccurredAt,
+				reports.Reports[i].Status,
+				reports.Reports[i].Message,
+			); err != nil {
+				return fmt.Errorf("insert into alert_history: %v", err)
 			}
 		}
 
