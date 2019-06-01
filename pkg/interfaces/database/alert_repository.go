@@ -38,12 +38,14 @@ func NewAlertRepository(handler SQLHandler) *AlertRepository {
 			`
 			create table if not exists alert_history (
 				org_id     varchar(64) not null,
-				monitor_id varchar(16) not null,
 				alert_id   varchar(16) not null primary key,
-				time       bigint      not null,
 				status     enum('OK', 'CRITICAL', 'WARNING', 'UNKNOWN') not null,
+				monitor_id varchar(16) not null,
+				host_id    varchar(16),
+				time       bigint      not null,
 				message    text,
-				index(org_id, monitor_id, time desc)
+				index(org_id, alert_id, time),
+				index(org_id, monitor_id, time)
 			)
 			`,
 		); err != nil {
