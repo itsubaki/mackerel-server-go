@@ -34,6 +34,25 @@ func NewAlertRepository(handler SQLHandler) *AlertRepository {
 			return fmt.Errorf("create table alerts: %v", err)
 		}
 
+		if _, err := tx.Exec(
+			`
+			create table if not exists alert_history (
+				org_id     varchar(64) not null,
+				alert_id   varchar(16) not null,
+				status     enum('OK', 'CRITICAL', 'WARNING', 'UNKNOWN') not null,
+				monitor_id varchar(16) not null,
+				host_id    varchar(16),
+				time       bigint      not null,
+				message    text,
+				primary key(alert_id, time),
+				index(org_id, alert_id, time),
+				index(org_id, monitor_id, time)
+			)
+			`,
+		); err != nil {
+			return fmt.Errorf("create table alert_history: %v", err)
+		}
+
 		return nil
 	}); err != nil {
 		panic(fmt.Errorf("transaction: %v", err))
@@ -147,6 +166,29 @@ func (repo *AlertRepository) Close(orgID, alertID, reason string) (*domain.Alert
 			&alert.ClosedAt,
 		); err != nil {
 			return fmt.Errorf("scan: %v", err)
+		}
+
+		if _, err := tx.Exec(
+			`
+				insert into alert_history (
+					org_id,
+					alert_id,
+					status,
+					monitor_id,
+					host_id,
+					time,
+					message
+				) values (?, ?, ?, ?, ?, ?, ?)
+				`,
+			orgID,
+			alert.ID,
+			"OK",
+			alert.MonitorID,
+			alert.HostID,
+			alert.ClosedAt,
+			alert.Message,
+		); err != nil {
+			return fmt.Errorf("insert into alert_history: %v", err)
 		}
 
 		return nil
