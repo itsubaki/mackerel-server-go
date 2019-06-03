@@ -80,7 +80,7 @@ func NewAlertRepository(handler SQLHandler) *AlertRepository {
 }
 
 func (repo *AlertRepository) Exists(orgID, alertID string) bool {
-	rows, err := repo.Query("select * from alerts where org_id=? and id=? limit 1", orgID, alertID)
+	rows, err := repo.Query("select 1 from alerts where org_id=? and id=?", orgID, alertID)
 	if err != nil {
 		panic(err)
 	}
@@ -101,13 +101,7 @@ func (repo *AlertRepository) List(orgID string, withClosed bool, nextID string, 
 
 	rows, err := repo.Query(
 		`
-		select * from alerts
-		where
-			org_id=? and 
-			status in ('CRITICAL', 'WARNING', 'UNKNOWN', ?)
-		order by
-			opened_at
-		limit ?
+		select * from alerts where org_id=? and status in ('CRITICAL', 'WARNING', 'UNKNOWN', ?) order by opened_at desc limit ?
 		`,
 		orgID,
 		status,
