@@ -27,7 +27,7 @@ func NewAlertRepository(handler SQLHandler) *AlertRepository {
 				reason     text,
 				opened_at  bigint,
 				closed_at  bigint,
-				index(opened_at desc, monitor_id)
+				index(org_id, opened_at desc)
 			)
 			`,
 		); err != nil {
@@ -44,8 +44,7 @@ func NewAlertRepository(handler SQLHandler) *AlertRepository {
 				host_id    varchar(16),
 				time       bigint      not null,
 				message    text,
-				primary key(alert_id, time desc),
-				index(time desc, monitor_id)
+				primary key(alert_id, monitor_id, time desc)
 			)
 			`,
 		); err != nil {

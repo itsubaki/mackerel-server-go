@@ -26,8 +26,7 @@ func NewCheckReportRepository(handler SQLHandler) *CheckReportRepository {
 				occurred_at           bigint,
 				notification_interval bigint,
 				max_check_attempts    bigint,
-				primary key(host_id, name),
-				index (status, org_id)
+				primary key(host_id, name)
 			)
 			`,
 		); err != nil {
@@ -205,7 +204,7 @@ func (repo *CheckReportRepository) Save(orgID string, reports *domain.CheckRepor
 		for i := range reports.Reports {
 			row := tx.QueryRow(
 				`
-				select alert_id, status, monitor_id, host_id, message, time from alert_history where org_id=? and monitor_id=? and host_id=? order by time desc limit 1
+				select alert_id, status, monitor_id, host_id, message, time from alert_history where org_id=? and host_id=? and monitor_id=? order by time desc limit 1
 				`,
 				orgID,
 				domain.NewMonitorID(
