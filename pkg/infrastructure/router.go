@@ -101,6 +101,15 @@ func Router(handler database.SQLHandler) *gin.Engine {
 	}
 
 	{
+		channels := controllers.NewChannelController(handler)
+
+		c := v0.Group("/channels")
+		c.GET("", func(c *gin.Context) { channels.List(c) })
+		c.POST("", func(c *gin.Context) { channels.Save(c) })
+		c.DELETE("/:channelId", func(c *gin.Context) { channels.Delete(c) })
+	}
+
+	{
 		graphs := controllers.NewGraphController(handler)
 
 		d := v0.Group("/graph-defs")
