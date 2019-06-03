@@ -2,6 +2,7 @@ package database
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/itsubaki/mackerel-api/pkg/domain"
@@ -49,6 +50,23 @@ func NewAlertRepository(handler SQLHandler) *AlertRepository {
 			`,
 		); err != nil {
 			return fmt.Errorf("create table alert_history: %v", err)
+		}
+
+		if _, err := tx.Exec(
+			`
+			create table if not exists alert_history_latest (
+				org_id     varchar(64) not null,
+				alert_id   varchar(16) not null,
+				status     enum('OK', 'CRITICAL', 'WARNING', 'UNKNOWN') not null,
+				monitor_id varchar(16) not null,
+				host_id    varchar(16),
+				time       bigint      not null,
+				message    text,
+				primary key(alert_id, monitor_id)
+			)
+			`,
+		); err != nil {
+			return fmt.Errorf("create table alert_history_latest: %v", err)
 		}
 
 		return nil
@@ -189,8 +207,36 @@ func (repo *AlertRepository) Close(orgID, alertID, reason string) (*domain.Alert
 			return fmt.Errorf("insert into alert_history: %v", err)
 		}
 
+		if _, err := tx.Exec(
+			`
+				insert into alert_history_latest (
+					org_id,
+					alert_id,
+					status,
+					monitor_id,
+					host_id,
+					time,
+					message
+				) values (?, ?, ?, ?, ?, ?, ?)
+				on duplicate key update
+					status = values(status),
+					time = values(time),
+					message = values(message)
+				`,
+			orgID,
+			alertID,
+			"OK",
+			alert.MonitorID,
+			alert.HostID,
+			alert.ClosedAt,
+			alert.Message,
+		); err != nil {
+			return fmt.Errorf("insert into alert_history_latest: %v", err)
+		}
+
 		return nil
 	}); err != nil {
+		log.Printf("transaction: %v\n", err)
 		return nil, fmt.Errorf("transaction: %v", err)
 	}
 

@@ -127,7 +127,7 @@ func (repo *CheckReportRepository) Save(orgID string, reports *domain.CheckRepor
 		for i := range reports.Reports {
 			row := tx.QueryRow(
 				`
-				select alert_id, status from alert_history where org_id=? and host_id=? and monitor_id=? order by time desc limit 1
+				select alert_id, status from alert_history_latest where org_id=? and host_id=? and monitor_id=?
 				`,
 				orgID,
 				reports.Reports[i].Source.HostID,
@@ -192,6 +192,38 @@ func (repo *CheckReportRepository) Save(orgID string, reports *domain.CheckRepor
 			); err != nil {
 				return fmt.Errorf("insert into alert_history: %v", err)
 			}
+
+			if _, err := tx.Exec(
+				`
+				insert into alert_history_latest (
+					org_id,
+					alert_id,
+					status,
+					monitor_id,
+					host_id,
+					time,
+					message
+				) values (?, ?, ?, ?, ?, ?, ?)
+				on duplicate key update
+					status = values(status),
+					time = values(time),
+					message = values(message)
+				`,
+				orgID,
+				alertID,
+				reports.Reports[i].Status,
+				domain.NewMonitorID(
+					orgID,
+					reports.Reports[i].Source.HostID,
+					reports.Reports[i].Source.Type,
+					reports.Reports[i].Name,
+				),
+				reports.Reports[i].Source.HostID,
+				reports.Reports[i].OccurredAt,
+				reports.Reports[i].Message,
+			); err != nil {
+				return fmt.Errorf("insert into alert_history_latest: %v", err)
+			}
 		}
 
 		return nil
@@ -204,16 +236,16 @@ func (repo *CheckReportRepository) Save(orgID string, reports *domain.CheckRepor
 		for i := range reports.Reports {
 			row := tx.QueryRow(
 				`
-				select alert_id, status, monitor_id, host_id, message, time from alert_history where org_id=? and host_id=? and monitor_id=? order by time desc limit 1
+				select alert_id, status, monitor_id, host_id, message, time from alert_history_latest where org_id=? and host_id=? and monitor_id=?
 				`,
 				orgID,
+				reports.Reports[i].Source.HostID,
 				domain.NewMonitorID(
 					orgID,
 					reports.Reports[i].Source.HostID,
 					reports.Reports[i].Source.Type,
 					reports.Reports[i].Name,
 				),
-				reports.Reports[i].Source.HostID,
 			)
 
 			var alertID, status, monitorID, hostID, message string
