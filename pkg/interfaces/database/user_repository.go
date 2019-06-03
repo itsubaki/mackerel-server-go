@@ -16,11 +16,11 @@ func NewUserRepository(handler SQLHandler) *UserRepository {
 		if _, err := tx.Exec(
 			`
 			create table if not exists users (
-				org_id      varchar(64)  not null,
-				id          varchar(128) not null primary key,
-				screen_name varchar(128),
-				email       varchar(128),
-				authority   enum('owner', 'manager', 'collaborator', 'viewer') not null,
+				org_id                     varchar(64)  not null,
+				id                         varchar(128) not null primary key,
+				screen_name                varchar(128),
+				email                      varchar(128),
+				authority                  enum('owner', 'manager', 'collaborator', 'viewer') not null,
 				is_in_registration_process boolean,
 				is_mfa_enabled             boolean,
 				authentication_methods     enum('password', 'github', 'idcf', ' google', 'nifty', ' yammer', 'kddi') not null,
