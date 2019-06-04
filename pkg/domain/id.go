@@ -7,10 +7,6 @@ import (
 	"github.com/google/uuid"
 )
 
-func NewXAPIKey() string {
-	return NewID()
-}
-
 func NewOrgID() string {
 	return NewID()
 }
@@ -25,6 +21,10 @@ func NewMonitorID(seed ...string) string {
 
 func NewAlertID(seed ...string) string {
 	return GenID(11, seed...)
+}
+
+func NewXAPIKey() string {
+	return GenID(44, uuid.Must(uuid.NewRandom()).String())
 }
 
 func NewID() string {
