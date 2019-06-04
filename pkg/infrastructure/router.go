@@ -148,6 +148,17 @@ func Router(handler database.SQLHandler) *gin.Engine {
 	}
 
 	{
+		dashboard := controllers.NewDashboardController(handler)
+
+		d := v0.Group("/dashboards")
+		d.GET("", func(c *gin.Context) { dashboard.List(c) })
+		d.POST("", func(c *gin.Context) { dashboard.Save(c) })
+		d.GET("/:dashboardId", func(c *gin.Context) { dashboard.Dashboard(c) })
+		d.PUT("/:dashboardId", func(c *gin.Context) { dashboard.Update(c) })
+		d.DELETE("/:dashboardId", func(c *gin.Context) { dashboard.Delete(c) })
+	}
+
+	{
 		invitations := controllers.NewInvitationController(handler)
 
 		i := v0.Group("/invitations")

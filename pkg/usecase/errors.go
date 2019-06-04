@@ -70,6 +70,10 @@ type NotificationGroupNotFound struct {
 	Err
 }
 
+type DashboardNotFound struct {
+	Err
+}
+
 type InvalidServiceName struct {
 	Err
 }

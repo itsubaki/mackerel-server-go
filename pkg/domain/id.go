@@ -8,15 +8,15 @@ import (
 )
 
 func NewXAPIKey() string {
-	return GenID(44, uuid.Must(uuid.NewRandom()).String())
+	return NewID()
 }
 
 func NewOrgID() string {
-	return GenID(11, uuid.Must(uuid.NewRandom()).String())
+	return NewID()
 }
 
 func NewHostID() string {
-	return GenID(11, uuid.Must(uuid.NewRandom()).String())
+	return NewID()
 }
 
 func NewMonitorID(seed ...string) string {
@@ -25,6 +25,10 @@ func NewMonitorID(seed ...string) string {
 
 func NewAlertID(seed ...string) string {
 	return GenID(11, seed...)
+}
+
+func NewID() string {
+	return GenID(11, uuid.Must(uuid.NewRandom()).String())
 }
 
 func GenID(digit int, seed ...string) string {

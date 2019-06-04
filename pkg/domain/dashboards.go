@@ -1,5 +1,9 @@
 package domain
 
+type Dashboards struct {
+	Dashboards []Dashboard `json:"dashboards,omitempty"`
+}
+
 type Dashboard struct {
 	ID        string   `json:"id,omitempty"`
 	Title     string   `json:"title"`
