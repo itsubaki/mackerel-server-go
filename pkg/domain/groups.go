@@ -5,6 +5,7 @@ type NotificationGroups struct {
 }
 
 type NotificationGroup struct {
+	ID                        string     `json:"id,omitempty"`
 	Name                      string     `json:"name"`
 	NotificationLevel         string     `json:"notificationLevel"` // all or critical
 	ChildNotificationGroupIDs []string   `json:"childNotificationGroupIds"`

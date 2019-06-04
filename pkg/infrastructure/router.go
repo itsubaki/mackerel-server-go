@@ -110,6 +110,16 @@ func Router(handler database.SQLHandler) *gin.Engine {
 	}
 
 	{
+		groups := controllers.NewNotificationGroupController(handler)
+
+		g := v0.Group("/notification-groups")
+		g.GET("", func(c *gin.Context) { groups.List(c) })
+		g.POST("", func(c *gin.Context) { groups.Save(c) })
+		g.PUT("/:notificationGroupId", func(c *gin.Context) { groups.Update(c) })
+		g.DELETE("/:notificationGroupId", func(c *gin.Context) { groups.Delete(c) })
+	}
+
+	{
 		graphs := controllers.NewGraphController(handler)
 
 		d := v0.Group("/graph-defs")

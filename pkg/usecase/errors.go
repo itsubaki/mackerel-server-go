@@ -62,6 +62,14 @@ type InvitationNotFound struct {
 	Err
 }
 
+type ChannelNotFound struct {
+	Err
+}
+
+type NotificationGroupNotFound struct {
+	Err
+}
+
 type InvalidServiceName struct {
 	Err
 }

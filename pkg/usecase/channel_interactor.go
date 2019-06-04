@@ -1,6 +1,10 @@
 package usecase
 
-import "github.com/itsubaki/mackerel-api/pkg/domain"
+import (
+	"errors"
+
+	"github.com/itsubaki/mackerel-api/pkg/domain"
+)
 
 type ChannelInteractor struct {
 	ChannelRepository ChannelRepository
@@ -19,5 +23,9 @@ func (s *ChannelInteractor) Exists(orgID, channelID string) bool {
 }
 
 func (s *ChannelInteractor) Delete(orgID, channelID string) (*domain.Channel, error) {
+	if !s.ChannelRepository.Exists(orgID, channelID) {
+		return nil, &ChannelNotFound{Err{errors.New("when the supported channel can not be found in <channelId>")}}
+	}
+
 	return s.ChannelRepository.Delete(orgID, channelID)
 }

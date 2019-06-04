@@ -12,7 +12,6 @@ func doResponse(c Context, out interface{}, err error) {
 		c.JSON(http.StatusOK, out)
 		return
 	}
-
 	log.Println(err)
 
 	switch err.(type) {
@@ -27,7 +26,9 @@ func doResponse(c Context, out interface{}, err error) {
 		*usecase.ServiceMetadataNotFound,
 		*usecase.AlertNotFound,
 		*usecase.InvitationNotFound,
-		*usecase.UserNotFound:
+		*usecase.UserNotFound,
+		*usecase.ChannelNotFound,
+		*usecase.NotificationGroupNotFound:
 		c.Status(http.StatusNotFound)
 		return
 	case
