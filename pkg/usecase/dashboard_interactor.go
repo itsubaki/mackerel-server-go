@@ -15,7 +15,7 @@ func (s *DashboardInteractor) List(orgID string) (*domain.Dashboards, error) {
 }
 
 func (s *DashboardInteractor) Save(orgID string, dashboard *domain.Dashboard) (*domain.Dashboard, error) {
-	dashboard.ID = domain.NewID()
+	dashboard.ID = domain.NewRandomID(11)
 	return s.DashboardRepository.Save(orgID, dashboard)
 }
 
