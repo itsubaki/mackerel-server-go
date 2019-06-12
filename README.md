@@ -18,7 +18,7 @@ mackerel compatible monitoring service
    - [x] Monitors
    - [x] Alerts
    - [x] Notification Channels
-   - [ ] Notification Groups
+   - [x] Notification Groups
    - [ ] Dashboards
    - [x] Graph Annotations
    - [x] Users

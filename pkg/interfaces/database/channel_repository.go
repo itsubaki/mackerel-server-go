@@ -34,7 +34,8 @@ func NewChannelRepository(handler SQLHandler) *ChannelRepository {
 				channel_id varchar(16) not null,
 				status     enum('ok', 'warning', 'critical') not null,
 				message    text,
-				primary key(channel_id, status)
+				primary key(channel_id, status),
+				foreign key fk_group(channel_id) references channels(id) on delete cascade on update cascade
 			)
 			`,
 		); err != nil {
@@ -47,7 +48,8 @@ func NewChannelRepository(handler SQLHandler) *ChannelRepository {
 				org_id     varchar(64) not null,
 				channel_id varchar(16) not null,
 				event      varchar(16) not null,
-				primary key(channel_id, event)
+				primary key(channel_id, event),
+				foreign key fk_group(channel_id) references channels(id) on delete cascade on update cascade
 			)
 			`,
 		); err != nil {
@@ -60,7 +62,8 @@ func NewChannelRepository(handler SQLHandler) *ChannelRepository {
 				org_id     varchar(64) not null,
 				channel_id varchar(16) not null,
 				email      varchar(16) not null,
-				primary key(channel_id, email)
+				primary key(channel_id, email),
+				foreign key fk_group(channel_id) references channels(id) on delete cascade on update cascade
 			)
 			`,
 		); err != nil {
@@ -73,7 +76,8 @@ func NewChannelRepository(handler SQLHandler) *ChannelRepository {
 				org_id     varchar(64) not null,
 				channel_id varchar(16) not null,
 				user_id    varchar(16) not null,
-				primary key(channel_id, user_id)
+				primary key(channel_id, user_id),
+				foreign key fk_group(channel_id) references channels(id) on delete cascade on update cascade
 			)
 			`,
 		); err != nil {
@@ -402,22 +406,6 @@ func (repo *ChannelRepository) Delete(orgID, channelID string) (interface{}, err
 
 		if _, err := tx.Exec("delete from channels where org_id=? and id=?", orgID, channelID); err != nil {
 			return fmt.Errorf("delete from channels: %v", err)
-		}
-
-		if _, err := tx.Exec("delete from channel_mentions where org_id=? and channel_id=?", orgID, channelID); err != nil {
-			return fmt.Errorf("delete from channel_mentions: %v", err)
-		}
-
-		if _, err := tx.Exec("delete from channel_events where org_id=? and channel_id=?", orgID, channelID); err != nil {
-			return fmt.Errorf("delete from channel_events: %v", err)
-		}
-
-		if _, err := tx.Exec("delete from channel_emails where org_id=? and channel_id=?", orgID, channelID); err != nil {
-			return fmt.Errorf("delete from channel_emails: %v", err)
-		}
-
-		if _, err := tx.Exec("delete from channel_user_ids where org_id=? and channel_id=?", orgID, channelID); err != nil {
-			return fmt.Errorf("delete from channel_user_ids: %v", err)
 		}
 
 		return nil
