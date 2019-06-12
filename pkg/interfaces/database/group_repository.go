@@ -32,7 +32,7 @@ func NewNotificationGroupRepository(handler SQLHandler) *NotificationGroupReposi
 				group_id varchar(16) not null,
 				child_id varchar(16) not null,
 				primary key(group_id, child_id),
-				foreign key fk_group(org_id, group_id) references notification_groups(org_id, id) on delete cascade on update cascade
+				foreign key fk_group(group_id) references notification_groups(id) on delete cascade on update cascade
 			)
 			`,
 		); err != nil {
@@ -46,7 +46,7 @@ func NewNotificationGroupRepository(handler SQLHandler) *NotificationGroupReposi
 				group_id   varchar(16) not null,
 				channel_id varchar(16) not null,
 				primary key(group_id, channel_id),
-				foreign key fk_group(org_id, group_id) references notification_groups(org_id, id) on delete cascade on update cascade
+				foreign key fk_group(group_id) references notification_groups(id) on delete cascade on update cascade
 			)
 			`,
 		); err != nil {
@@ -60,7 +60,7 @@ func NewNotificationGroupRepository(handler SQLHandler) *NotificationGroupReposi
 				group_id   varchar(16) not null,
 				monitor_id varchar(16) not null,
 				primary key(group_id, monitor_id),
-				foreign key fk_group(org_id, group_id) references notification_groups(org_id, id) on delete cascade on update cascade
+				foreign key fk_group(group_id) references notification_groups(id) on delete cascade on update cascade
 			)
 			`,
 		); err != nil {
@@ -74,7 +74,7 @@ func NewNotificationGroupRepository(handler SQLHandler) *NotificationGroupReposi
 				group_id     varchar(16) not null,
 				service_name varchar(16) not null,
 				primary key(group_id, service_name),
-				foreign key fk_group(org_id, group_id) references notification_groups(org_id, id) on delete cascade on update cascade
+				foreign key fk_group(group_id) references notification_groups(id) on delete cascade on update cascade
 			)
 			`,
 		); err != nil {
