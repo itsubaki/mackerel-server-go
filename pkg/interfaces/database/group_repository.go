@@ -31,7 +31,8 @@ func NewNotificationGroupRepository(handler SQLHandler) *NotificationGroupReposi
 				org_id   varchar(64) not null,
 				group_id varchar(16) not null,
 				child_id varchar(16) not null,
-				primary key(group_id, child_id)
+				primary key(group_id, child_id),
+				foreign key fk_group(org_id, group_id) references notification_groups(org_id, id) on delete cascade on update cascade
 			)
 			`,
 		); err != nil {
@@ -44,7 +45,8 @@ func NewNotificationGroupRepository(handler SQLHandler) *NotificationGroupReposi
 				org_id     varchar(64) not null,
 				group_id   varchar(16) not null,
 				channel_id varchar(16) not null,
-				primary key(group_id, channel_id)
+				primary key(group_id, channel_id),
+				foreign key fk_group(org_id, group_id) references notification_groups(org_id, id) on delete cascade on update cascade
 			)
 			`,
 		); err != nil {
@@ -57,7 +59,8 @@ func NewNotificationGroupRepository(handler SQLHandler) *NotificationGroupReposi
 				org_id     varchar(64) not null,
 				group_id   varchar(16) not null,
 				monitor_id varchar(16) not null,
-				primary key(group_id, monitor_id)
+				primary key(group_id, monitor_id),
+				foreign key fk_group(org_id, group_id) references notification_groups(org_id, id) on delete cascade on update cascade
 			)
 			`,
 		); err != nil {
@@ -70,7 +73,8 @@ func NewNotificationGroupRepository(handler SQLHandler) *NotificationGroupReposi
 				org_id       varchar(64) not null,
 				group_id     varchar(16) not null,
 				service_name varchar(16) not null,
-				primary key(group_id, service_name)
+				primary key(group_id, service_name),
+				foreign key fk_group(org_id, group_id) references notification_groups(org_id, id) on delete cascade on update cascade
 			)
 			`,
 		); err != nil {
@@ -96,7 +100,17 @@ func (repo *NotificationGroupRepository) Save(orgID string, group *domain.Notifi
 }
 
 func (repo *NotificationGroupRepository) Exists(orgID, groupID string) bool {
-	return true
+	rows, err := repo.Query("select 1 from notification_groups where org_id=? and id=?", orgID, groupID)
+	if err != nil {
+		panic(err)
+	}
+	defer rows.Close()
+
+	if rows.Next() {
+		return true
+	}
+
+	return false
 }
 
 func (repo *NotificationGroupRepository) Update(orgID string, group *domain.NotificationGroup) (*domain.NotificationGroup, error) {

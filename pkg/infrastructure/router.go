@@ -126,10 +126,10 @@ func Router(handler database.SQLHandler) *gin.Engine {
 		d.POST("/create", func(c *gin.Context) { graphs.SaveDef(c) })
 
 		a := v0.Group("/graph-annotations")
-		a.GET("", func(c *gin.Context) {})
-		a.POST("", func(c *gin.Context) {})
-		a.PUT("/:annotationId", func(c *gin.Context) {})
-		a.DELETE("/:annotationId", func(c *gin.Context) {})
+		a.GET("", func(c *gin.Context) { graphs.List(c) })
+		a.POST("", func(c *gin.Context) { graphs.Save(c) })
+		a.PUT("/:annotationId", func(c *gin.Context) { graphs.Update(c) })
+		a.DELETE("/:annotationId", func(c *gin.Context) { graphs.Delete(c) })
 	}
 
 	{
