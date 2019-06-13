@@ -15,10 +15,7 @@ func (s *NotificationGroupInteractor) List(orgID string) (*domain.NotificationGr
 }
 
 func (s *NotificationGroupInteractor) Save(orgID string, group *domain.NotificationGroup) (*domain.NotificationGroup, error) {
-	if !s.NotificationGroupRepository.Exists(orgID, group.ID) {
-		return nil, &NotificationGroupNotFound{Err{errors.New("when the specified notification group does not exist")}}
-	}
-
+	group.ID = domain.NewRandomID(11)
 	return s.NotificationGroupRepository.Save(orgID, group)
 }
 

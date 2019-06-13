@@ -177,7 +177,7 @@ func (repo *GraphRepository) Update(orgID string, annotation *domain.GraphAnnota
 				title=?,
 				description=?,
 				time_from=?,
-				time_to=?
+				time_to=?,
 				service=?,
 				roles=?
 			where org_id=? and id=?
@@ -191,7 +191,7 @@ func (repo *GraphRepository) Update(orgID string, annotation *domain.GraphAnnota
 			orgID,
 			annotation.ID,
 		); err != nil {
-			return fmt.Errorf("insert into graph_annotations: %v", err)
+			return fmt.Errorf("update graph_annotations: %v", err)
 		}
 
 		return nil

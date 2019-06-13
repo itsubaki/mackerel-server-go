@@ -17,7 +17,7 @@ func NewNotificationGroupRepository(handler SQLHandler) *NotificationGroupReposi
 			create table if not exists notification_groups (
 				org_id varchar(64) not null,
 				id     varchar(16) not null primary key,
-				name   varchar(16) not null,
+				name   varchar(128) not null,
 				level  enum('all', 'critical') not null default 'all'
 			)
 			`,
@@ -73,7 +73,7 @@ func NewNotificationGroupRepository(handler SQLHandler) *NotificationGroupReposi
 			create table if not exists notification_group_services (
 				org_id       varchar(64) not null,
 				group_id     varchar(16) not null,
-				service_name varchar(16) not null,
+				service_name varchar(128) not null,
 				primary key(group_id, service_name),
 				foreign key fk_group(group_id) references notification_groups(id) on delete cascade on update cascade
 			)
@@ -160,7 +160,7 @@ func (repo *NotificationGroupRepository) monitors(tx Tx, orgID, groupID string) 
 }
 
 func (repo *NotificationGroupRepository) services(tx Tx, orgID, groupID string) ([]domain.NService, error) {
-	rows, err := tx.Query(`select name from notification_group_services where org_id=? and group_id=?`, orgID, groupID)
+	rows, err := tx.Query(`select service_name from notification_group_services where org_id=? and group_id=?`, orgID, groupID)
 	if err != nil {
 		return nil, fmt.Errorf("select * from notification_group_services: %v", err)
 	}

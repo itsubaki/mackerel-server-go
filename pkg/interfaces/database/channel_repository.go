@@ -61,7 +61,7 @@ func NewChannelRepository(handler SQLHandler) *ChannelRepository {
 			create table if not exists channel_emails (
 				org_id     varchar(64) not null,
 				channel_id varchar(16) not null,
-				email      varchar(16) not null,
+				email      varchar(128) not null,
 				primary key(channel_id, email),
 				foreign key fk_group(channel_id) references channels(id) on delete cascade on update cascade
 			)
@@ -296,7 +296,7 @@ func (repo *ChannelRepository) Save(orgID string, channel *domain.Channel) (inte
 				insert into channel_events (
 					org_id,
 					channel_id,
-					event,
+					event
 				) values (?, ?, ?)
 				`,
 				orgID,
@@ -313,7 +313,7 @@ func (repo *ChannelRepository) Save(orgID string, channel *domain.Channel) (inte
 				insert into channel_emails (
 					org_id,
 					channel_id,
-					email,
+					email
 				) values (?, ?, ?)
 				`,
 				orgID,
@@ -330,7 +330,7 @@ func (repo *ChannelRepository) Save(orgID string, channel *domain.Channel) (inte
 				insert into channel_user_ids (
 					org_id,
 					channel_id,
-					user_id,
+					user_id
 				) values (?, ?, ?)
 				`,
 				orgID,
