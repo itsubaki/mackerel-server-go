@@ -31,8 +31,8 @@ type Monitoring struct {
 	CertificationExpirationWarning  int                 `json:"certificationExpirationWarning,omitempty"`  // External
 	CertificationExpirationCritical int                 `json:"certificationExpirationCritical,omitempty"` // External
 	SkipCertificateVerification     bool                `json:"skipCertificateVerification,omitempty"`     // External
-	Headers                         []map[string]string `json:"notificationInterval,omitempty"`            // External
-	RequestBody                     string              `json:"notificationInterval,omitempty"`            // External
+	Headers                         []map[string]string `json:"headers,omitempty"`                         // External
+	RequestBody                     string              `json:"requestBody,omitempty"`                     // External
 	Expression                      string              `json:"expression,omitempty"`                      // Expression
 }
 
@@ -107,9 +107,9 @@ func (m *Monitoring) Cast() interface{} {
 			MaxCheckAttempts:                m.MaxCheckAttempts,
 			CertificationExpirationWarning:  m.CertificationExpirationWarning,
 			CertificationExpirationCritical: m.CertificationExpirationCritical,
-			IsMute:      m.IsMute,
-			Headers:     m.Headers,
-			RequestBody: m.RequestBody,
+			IsMute:                          m.IsMute,
+			Headers:                         m.Headers,
+			RequestBody:                     m.RequestBody,
 		}
 	}
 
@@ -196,8 +196,8 @@ type ExternalMonitoring struct {
 	CertificationExpirationCritical int                 `json:"certificationExpirationCritical,omitempty"`
 	SkipCertificateVerification     bool                `json:"skipCertificateVerification,omitempty"`
 	IsMute                          bool                `json:"isMute,omitempty"`
-	Headers                         []map[string]string `json:"notificationInterval,omitempty"`
-	RequestBody                     string              `json:"notificationInterval,omitempty"`
+	Headers                         []map[string]string `json:"headers,omitempty"`
+	RequestBody                     string              `json:"requestBody,omitempty"`
 }
 
 type ExpressionMonitoring struct {
