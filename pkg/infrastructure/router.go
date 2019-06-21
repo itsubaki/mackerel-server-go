@@ -8,8 +8,16 @@ import (
 	"github.com/itsubaki/mackerel-api/pkg/interfaces/database"
 )
 
+func Default(handler database.SQLHandler) *gin.Engine {
+	g := Router(handler)
+	g.Use(gin.Logger())
+	g.Use(gin.Recovery())
+
+	return g
+}
+
 func Router(handler database.SQLHandler) *gin.Engine {
-	g := gin.Default()
+	g := gin.New()
 
 	auth := controllers.NewAuthController(handler)
 	g.Use(func(c *gin.Context) {

@@ -5,9 +5,10 @@ type Services struct {
 }
 
 type Service struct {
-	Name  string   `json:"name"`
+	OrgID string   `json:"-"     gorm:"primary_key"`
+	Name  string   `json:"name   gorm:"primary_key""`
 	Memo  string   `json:"memo"`
-	Roles []string `json:"roles"`
+	Roles []string `json:"roles" gorm:"-"`
 }
 
 type ServiceMetadataList struct {
@@ -34,8 +35,9 @@ func (r Roles) Array() []string {
 }
 
 type Role struct {
-	ServiceName string `json:"-"`
-	Name        string `json:"name"`
+	OrgID       string `json:"-"    gorm:"primary_key"`
+	ServiceName string `json:"-"    gorm:"primary_key"`
+	Name        string `json:"name" gorm:"primary_key"`
 	Memo        string `json:"memo"`
 }
 

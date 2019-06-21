@@ -11,5 +11,5 @@ import (
 // GoogleAppEngine endpoint
 func init() {
 	handler := infrastructure.NewSQLHandler()
-	http.Handle("/", infrastructure.Router(handler))
+	http.Handle("/", infrastructure.Default(handler))
 }
