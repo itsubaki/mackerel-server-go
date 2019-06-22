@@ -11,6 +11,7 @@ var xapikey = "2684d06cfedbee8499f326037bb6fb7e8c22e73b16bb"
 
 func TestIntegrationRouter(t *testing.T) {
 	gin.SetMode(gin.ReleaseMode)
+
 	handler := NewSQLHandler()
 	router := Router(handler)
 
@@ -26,6 +27,7 @@ func TestIntegrationRouter(t *testing.T) {
 
 func TestIntegrationRouterHosts(t *testing.T) {
 	gin.SetMode(gin.ReleaseMode)
+
 	handler := NewSQLHandler()
 	router := Router(handler)
 

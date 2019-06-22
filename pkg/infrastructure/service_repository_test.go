@@ -1,33 +1,47 @@
 package infrastructure
 
 import (
-	"fmt"
-	"os"
+	"log"
+	"regexp"
 	"testing"
 
+	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/itsubaki/mackerel-api/pkg/domain"
-
 	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/sqlite"
 )
 
 func TestServiceRepository(t *testing.T) {
-	dbfile := "mackerel.db"
-	if _, err := os.Stat(dbfile); !os.IsNotExist(err) {
-		os.Remove(dbfile)
+	mdb, mock, err := sqlmock.New()
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	db, err := gorm.Open("sqlite3", dbfile)
+	mock.ExpectExec("CREATE TABLE .*").
+		WillReturnResult(
+			sqlmock.NewResult(1, 1),
+		)
+
+	mock.ExpectExec("INSERT INTO").
+		WillReturnResult(
+			sqlmock.NewResult(1, 1),
+		)
+
+	mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `services` WHERE (`services`.`org_id` = ?) AND (`services`.`name` = ?)")).
+		WithArgs("Example-Org", "Example-Service").
+		WillReturnRows(
+			sqlmock.NewRows(
+				[]string{"org_id", "name", "memo"}).
+				AddRow("Example-Org", "Example-Service", "Example-Memo"),
+		)
+
+	db, err := gorm.Open("mysql", mdb)
 	if err != nil {
 		panic("failed to connect database")
 	}
 	defer db.Close()
+	db.LogMode(true)
 
 	if err := db.AutoMigrate(&domain.Service{}).Error; err != nil {
-		panic(err)
-	}
-
-	if err := db.AutoMigrate(&domain.Role{}).Error; err != nil {
 		panic(err)
 	}
 
@@ -35,14 +49,6 @@ func TestServiceRepository(t *testing.T) {
 		OrgID: "Example-Org",
 		Name:  "Example-Service",
 		Memo:  "Example-Memo",
-		Roles: []string{"app", "db"},
-	})
-
-	db.Create(&domain.Role{
-		OrgID:       "Example-Org",
-		ServiceName: "Example-Service",
-		Name:        "app",
-		Memo:        "Example-Memo",
 	})
 
 	var service domain.Service
@@ -51,12 +57,15 @@ func TestServiceRepository(t *testing.T) {
 		Name:  "Example-Service",
 	})
 
-	var role domain.Role
-	db.Find(&role, domain.Role{
-		OrgID:       "Example-Org",
-		ServiceName: "Example-Service",
-	})
+	if service.OrgID != "Example-Org" {
+		panic(service.OrgID)
+	}
 
-	fmt.Println(service)
-	fmt.Println(role)
+	if service.Name != "Example-Service" {
+		panic(service.Name)
+	}
+
+	if service.Memo != "Example-Memo" {
+		panic(service.Memo)
+	}
 }
