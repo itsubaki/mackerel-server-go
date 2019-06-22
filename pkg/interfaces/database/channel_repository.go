@@ -194,9 +194,8 @@ func (repo *ChannelRepository) List(orgID string) (*domain.Channels, error) {
 
 		for rows.Next() {
 			var channel domain.Channel
-			var trash string
 			if err := rows.Scan(
-				&trash,
+				&channel.OrgID,
 				&channel.ID,
 				&channel.Name,
 				&channel.Type,
@@ -367,10 +366,8 @@ func (repo *ChannelRepository) Delete(orgID, channelID string) (interface{}, err
 	var channel domain.Channel
 	if err := repo.Transact(func(tx Tx) error {
 		row := tx.QueryRow("select * from channels where org_id=? and id=?", orgID, channelID)
-
-		var trash string
 		if err := row.Scan(
-			&trash,
+			&channel.OrgID,
 			&channel.ID,
 			&channel.Name,
 			&channel.Type,

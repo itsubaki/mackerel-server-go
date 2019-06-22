@@ -5,6 +5,7 @@ type NotificationGroups struct {
 }
 
 type NotificationGroup struct {
+	OrgID                     string     `json:"-"`
 	ID                        string     `json:"id,omitempty"`
 	Name                      string     `json:"name"`
 	NotificationLevel         string     `json:"notificationLevel"` // all or critical
@@ -15,10 +16,12 @@ type NotificationGroup struct {
 }
 
 type NMonitor struct {
+	OrgID       string `json:"-"`
 	ID          string `json:"id"`
 	SkipDefault bool   `json:"skipDefault"`
 }
 
 type NService struct {
-	Name string `json:"name"`
+	OrgID string `json:"-"`
+	Name  string `json:"name"`
 }

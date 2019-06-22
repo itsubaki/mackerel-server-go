@@ -53,9 +53,8 @@ func (repo *CheckReportRepository) CheckReport(orgID string) (*domain.CheckRepor
 
 		for rows.Next() {
 			var report domain.CheckReport
-			var trash string
 			if err := rows.Scan(
-				&trash,
+				&report.OrgID,
 				&report.Source.HostID,
 				&report.Source.Type,
 				&report.Name,

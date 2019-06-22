@@ -5,6 +5,7 @@ type Monitors struct {
 }
 
 type Monitoring struct {
+	OrgID                           string              `json:"-"`
 	ID                              string              `json:"id,omitempty"`
 	Type                            string              `json:"type"` // host, connectivity, service, external, expression
 	Name                            string              `json:"name"`
@@ -107,9 +108,9 @@ func (m *Monitoring) Cast() interface{} {
 			MaxCheckAttempts:                m.MaxCheckAttempts,
 			CertificationExpirationWarning:  m.CertificationExpirationWarning,
 			CertificationExpirationCritical: m.CertificationExpirationCritical,
-			IsMute:                          m.IsMute,
-			Headers:                         m.Headers,
-			RequestBody:                     m.RequestBody,
+			IsMute:      m.IsMute,
+			Headers:     m.Headers,
+			RequestBody: m.RequestBody,
 		}
 	}
 

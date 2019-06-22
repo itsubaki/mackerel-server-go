@@ -1,6 +1,7 @@
 package domain
 
 type GraphDef struct {
+	OrgID       string   `json:"-"`
 	Name        string   `json:"name"`
 	DisplayName string   `json:"displayName,omitempty"`
 	Unit        string   `json:"unit,omitempty"`
@@ -18,6 +19,7 @@ type GraphAnnotations struct {
 }
 
 type GraphAnnotation struct {
+	OrgID       string   `json:"-"`
 	ID          string   `json:"id"`
 	Title       string   `json:"title"`
 	Description string   `json:"description,omitempty"`

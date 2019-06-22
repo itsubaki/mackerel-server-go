@@ -108,9 +108,9 @@ func (repo *GraphRepository) List(orgID string) (*domain.GraphAnnotations, error
 
 		for rows.Next() {
 			var annotation domain.GraphAnnotation
-			var trash, roles string
+			var roles string
 			if err := rows.Scan(
-				&trash,
+				&annotation.OrgID,
 				&annotation.ID,
 				&annotation.Title,
 				&annotation.Description,
@@ -207,9 +207,9 @@ func (repo *GraphRepository) Delete(orgID, annotationID string) (*domain.GraphAn
 	if err := repo.Transact(func(tx Tx) error {
 		row := tx.QueryRow("select * from graph_annotations where org_id=? and id=?", orgID, annotationID)
 
-		var trash, roles string
+		var roles string
 		if err := row.Scan(
-			&trash,
+			&annotation.OrgID,
 			&annotation.ID,
 			&annotation.Title,
 			&annotation.Description,

@@ -27,7 +27,7 @@ func main() {
 		os.Exit(0)
 	}()
 
-	if err := infrastructure.Default(handler).Run(":8080"); err != nil {
+	if err := infrastructure.Router(handler).Run(":8080"); err != nil {
 		log.Fatalf("run mackerel-api: %v", err)
 	}
 }

@@ -513,7 +513,7 @@ func (repo *ServiceRepository) ExistsMetadata(orgID, serviceName, namespace stri
 	return false
 }
 
-// select namespacee from service_metadata where service_name=${serviceName}
+// select namespace from service_metadata where service_name=${serviceName}
 func (repo *ServiceRepository) MetadataList(orgID, serviceName string) (*domain.ServiceMetadataList, error) {
 	values := make([]domain.ServiceMetadata, 0)
 	if err := repo.Transact(func(tx Tx) error {
@@ -682,7 +682,7 @@ func (repo *ServiceRepository) RoleMetadata(orgID, serviceName, roleName, namesp
 	return out, nil
 }
 
-// insert into role_metadata values(${serviveName}, ${roleName}, ${namespace}, ${metadata})
+// insert into role_metadata values(${serviceName}, ${roleName}, ${namespace}, ${metadata})
 func (repo *ServiceRepository) SaveRoleMetadata(orgID, serviceName, roleName, namespace string, metadata interface{}) (*domain.Success, error) {
 	meta, err := json.Marshal(metadata)
 	if err != nil {

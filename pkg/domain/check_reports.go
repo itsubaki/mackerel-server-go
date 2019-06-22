@@ -5,6 +5,7 @@ type CheckReports struct {
 }
 
 type CheckReport struct {
+	OrgID                string `json:"-"`
 	Source               Source `json:"source"`
 	Name                 string `json:"name"`
 	Status               string `json:"status"` // OK, CRITICAL, WARNING, UNKNOWN

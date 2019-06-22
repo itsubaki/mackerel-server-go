@@ -5,6 +5,7 @@ type Users struct {
 }
 
 type User struct {
+	OrgID                   string   `json:"-"`
 	ID                      string   `json:"id"`
 	ScreenName              string   `json:"screenName"`
 	Email                   string   `json:"email"`

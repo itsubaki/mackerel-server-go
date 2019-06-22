@@ -48,9 +48,8 @@ func (repo *InvitationRepository) List(orgID string) (*domain.Invitations, error
 
 		for rows.Next() {
 			var in domain.Invitation
-			var trash string
 			if err := rows.Scan(
-				&trash,
+				&in.OrgID,
 				&in.EMail,
 				&in.Authority,
 				&in.ExpiresAt,

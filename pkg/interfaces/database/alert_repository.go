@@ -115,9 +115,8 @@ func (repo *AlertRepository) List(orgID string, withClosed bool, nextID string, 
 	alerts := make([]domain.Alert, 0)
 	for rows.Next() {
 		var alert domain.Alert
-		var trash string
 		if err := rows.Scan(
-			&trash,
+			&alert.OrgID,
 			&alert.ID,
 			&alert.Status,
 			&alert.MonitorID,
@@ -161,9 +160,8 @@ func (repo *AlertRepository) Close(orgID, alertID, reason string) (*domain.Alert
 		}
 
 		row := tx.QueryRow("select * from alerts where org_id=? and id=?", orgID, alertID)
-		var trash string
 		if err := row.Scan(
-			&trash,
+			&alert.OrgID,
 			&alert.ID,
 			&alert.Status,
 			&alert.MonitorID,

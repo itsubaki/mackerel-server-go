@@ -193,9 +193,8 @@ func (repo *NotificationGroupRepository) List(orgID string) (*domain.Notificatio
 
 		for rows.Next() {
 			var group domain.NotificationGroup
-			var trash string
 			if err := rows.Scan(
-				&trash,
+				&group.OrgID,
 				&group.ID,
 				&group.Name,
 				&group.NotificationLevel,
@@ -457,10 +456,8 @@ func (repo *NotificationGroupRepository) Delete(orgID, groupID string) (*domain.
 
 	if err := repo.Transact(func(tx Tx) error {
 		row := tx.QueryRow(`select * from notification_groups where org_id=? and id=?`, orgID, groupID)
-
-		var trash string
 		if err := row.Scan(
-			&trash,
+			&group.OrgID,
 			&group.ID,
 			&group.Name,
 			&group.NotificationLevel,

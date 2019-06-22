@@ -59,9 +59,9 @@ func (repo *UserRepository) List(orgID string) (*domain.Users, error) {
 
 		for rows.Next() {
 			var user domain.User
-			var trash, method string
+			var method string
 			if err := rows.Scan(
-				&trash,
+				&user.OrgID,
 				&user.ID,
 				&user.ScreenName,
 				&user.Email,
@@ -129,9 +129,9 @@ func (repo *UserRepository) Delete(orgID, userID string) (*domain.User, error) {
 	var user domain.User
 	if err := repo.Transact(func(tx Tx) error {
 		row := tx.QueryRow("select * from users where org_id=? and id=?", orgID, userID)
-		var trash, method string
+		var method string
 		if err := row.Scan(
-			&trash,
+			&user.OrgID,
 			&user.ID,
 			&user.ScreenName,
 			&user.Email,

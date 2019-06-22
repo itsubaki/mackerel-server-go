@@ -110,9 +110,9 @@ func (repo *HostRepository) List(orgID string) (*domain.Hosts, error) {
 
 		for rows.Next() {
 			var host domain.Host
-			var trash, roles, roleFullnames, interfaces, checks, meta string
+			var roles, roleFullnames, interfaces, checks, meta string
 			if err := rows.Scan(
-				&trash,
+				&host.OrgID,
 				&host.ID,
 				&host.Name,
 				&host.Status,
@@ -296,9 +296,9 @@ func (repo *HostRepository) Host(orgID, hostID string) (*domain.Host, error) {
 
 	if err := repo.Transact(func(tx Tx) error {
 		row := tx.QueryRow("select * from hosts where org_id=? and id=?", orgID, hostID)
-		var trash, roles, roleFullnames, interfaces, checks, meta string
+		var roles, roleFullnames, interfaces, checks, meta string
 		if err := row.Scan(
-			&trash,
+			&host.OrgID,
 			&host.ID,
 			&host.Name,
 			&host.Status,
@@ -630,9 +630,9 @@ func (repo *HostRepository) MetricValuesLatest(orgID string, hostID, name []stri
 		defer rows.Close()
 
 		for rows.Next() {
-			var hostID, name string
+			var orgID, hostID, name string
 			var value float64
-			if err := rows.Scan(&hostID, &name, &value); err != nil {
+			if err := rows.Scan(&orgID, &hostID, &name, &value); err != nil {
 				return fmt.Errorf("scan: %v", err)
 			}
 

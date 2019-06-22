@@ -5,6 +5,7 @@ type Dashboards struct {
 }
 
 type Dashboard struct {
+	OrgID     string   `json:"-"`
 	ID        string   `json:"id,omitempty"`
 	Title     string   `json:"title"`
 	Memo      string   `json:"memo"`

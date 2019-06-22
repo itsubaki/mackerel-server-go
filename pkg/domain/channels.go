@@ -5,6 +5,7 @@ type Channels struct {
 }
 
 type Channel struct {
+	OrgID             string            `json:"-"`
 	ID                string            `json:"id"`
 	Name              string            `json:"name"`
 	Type              string            `json:"type"`

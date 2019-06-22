@@ -1,7 +1,6 @@
 package infrastructure
 
 import (
-	"log"
 	"regexp"
 	"testing"
 
@@ -13,10 +12,10 @@ import (
 func TestServiceRepository(t *testing.T) {
 	mdb, mock, err := sqlmock.New()
 	if err != nil {
-		log.Fatal(err)
+		t.Fatal(err)
 	}
 
-	mock.ExpectExec("CREATE TABLE .*").
+	mock.ExpectExec("CREATE TABLE").
 		WillReturnResult(
 			sqlmock.NewResult(1, 1),
 		)
@@ -36,36 +35,35 @@ func TestServiceRepository(t *testing.T) {
 
 	db, err := gorm.Open("mysql", mdb)
 	if err != nil {
-		panic("failed to connect database")
+		t.Fatal("failed to connect database")
 	}
 	defer db.Close()
-	db.LogMode(true)
 
 	if err := db.AutoMigrate(&domain.Service{}).Error; err != nil {
-		panic(err)
+		t.Fatal(err)
 	}
 
-	db.Create(&domain.Service{
+	if err := db.Create(&domain.Service{
 		OrgID: "Example-Org",
 		Name:  "Example-Service",
 		Memo:  "Example-Memo",
-	})
-
-	var service domain.Service
-	db.Find(&service, domain.Service{
-		OrgID: "Example-Org",
-		Name:  "Example-Service",
-	})
-
-	if service.OrgID != "Example-Org" {
-		panic(service.OrgID)
+	}).Error; err != nil {
+		t.Fatal(err)
 	}
 
-	if service.Name != "Example-Service" {
-		panic(service.Name)
+	var service domain.Service
+	if err := db.Find(&service, domain.Service{
+		OrgID: "Example-Org",
+		Name:  "Example-Service",
+	}).Error; err != nil {
+		t.Fatal(err)
 	}
 
 	if service.Memo != "Example-Memo" {
-		panic(service.Memo)
+		t.Fatal(service.Memo)
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatal(err)
 	}
 }

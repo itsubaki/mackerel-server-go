@@ -73,9 +73,8 @@ func (repo *MonitorRepository) List(orgID string) (*domain.Monitors, error) {
 
 		for rows.Next() {
 			var monitor domain.Monitoring
-			var trash string
 			if err := rows.Scan(
-				&trash,
+				&monitor.OrgID,
 				&monitor.ID,
 				&monitor.Type,
 				&monitor.Name,
@@ -333,9 +332,9 @@ func (repo *MonitorRepository) Monitor(orgID, monitorID string) (interface{}, er
 	var monitor domain.Monitoring
 	if err := repo.Transact(func(tx Tx) error {
 		row := tx.QueryRow("select * from monitors where org_id=? and id=?", orgID, monitorID)
-		var trash, scopes, exclude, service, headers, body string
+		var scopes, exclude, service, headers, body string
 		if err := row.Scan(
-			&trash,
+			&monitor.OrgID,
 			&monitor.ID,
 			&monitor.Type,
 			&monitor.Name,
@@ -401,9 +400,9 @@ func (repo *MonitorRepository) Delete(orgID, monitorID string) (interface{}, err
 	var monitor domain.Monitoring
 	if err := repo.Transact(func(tx Tx) error {
 		row := tx.QueryRow("select * from monitors where org_id=? and id=?", orgID, monitorID)
-		var trash, scopes, exclude, service, headers, body string
+		var scopes, exclude, service, headers, body string
 		if err := row.Scan(
-			&trash,
+			&monitor.OrgID,
 			&monitor.ID,
 			&monitor.Type,
 			&monitor.Name,

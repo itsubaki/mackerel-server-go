@@ -6,7 +6,7 @@ type Services struct {
 
 type Service struct {
 	OrgID string   `json:"-"     gorm:"primary_key"`
-	Name  string   `json:"name   gorm:"primary_key""`
+	Name  string   `json:"name"   gorm:"primary_key"`
 	Memo  string   `json:"memo"`
 	Roles []string `json:"roles" gorm:"-"`
 }
@@ -16,6 +16,7 @@ type ServiceMetadataList struct {
 }
 
 type ServiceMetadata struct {
+	OrgID       string      `json:"-"`
 	ServiceName string      `json:"-"`
 	Namespace   string      `json:"namespace"`
 	Metadata    interface{} `json:"-"`
@@ -46,6 +47,7 @@ type RoleMetadataList struct {
 }
 
 type RoleMetadata struct {
+	OrgID       string      `json:"-"`
 	ServiceName string      `json:"-"`
 	RoleName    string      `json:"-"`
 	Namespace   string      `json:"namespace"`
@@ -57,6 +59,7 @@ type ServiceMetricValues struct {
 }
 
 type ServiceMetricValue struct {
+	OrgID       string  `json:"-"`
 	ServiceName string  `json:"-"`
 	Name        string  `json:"name"`
 	Time        int64   `json:"time"`

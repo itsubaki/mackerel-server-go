@@ -10,6 +10,7 @@ type Alerts struct {
 }
 
 type Alert struct {
+	OrgID     string  `json:"-"`
 	ID        string  `json:"id"`
 	Status    string  `json:"status"`
 	MonitorID string  `json:"monitorId"`

@@ -12,6 +12,7 @@ type TSDBLatest struct {
 type TSDBLatestValue map[string]map[string]float64
 
 type HostMetadata struct {
+	OrgID     string      `json:"-"`
 	HostID    string      `json:"-"`
 	Namespace string      `json:"-"`
 	Metadata  interface{} `json:"-"`
@@ -66,6 +67,7 @@ type HostInfo struct {
 }
 
 type Host struct {
+	OrgID            string              `json:"-"`
 	ID               string              `json:"id"`
 	Name             string              `json:"name"`
 	Status           string              `json:"status"`
@@ -112,6 +114,7 @@ type MetricValues struct {
 }
 
 type MetricValue struct {
+	OrgID  string  `json:"-"`
 	HostID string  `json:"hostId,omitempty"`
 	Name   string  `json:"name,omitempty"`
 	Time   int64   `json:"time"`
