@@ -56,33 +56,35 @@ func TestUserRepository(t *testing.T) {
 	)
 
 	mock.ExpectBegin()
-	mock.ExpectQuery(regexp.QuoteMeta(`select * from users where org_id=?`)).
-		WithArgs(user.OrgID).
-		WillReturnRows(
-			sqlmock.NewRows(
-				[]string{
-					"org_id",
-					"id",
-					"screen_name",
-					"email",
-					"authority",
-					"is_in_registration_process",
-					"is_mfa_enabled",
-					"authentication_methods",
-					"joined_at",
-				}).
-				AddRow(
-					user.OrgID,
-					user.ID,
-					user.ScreenName,
-					user.Email,
-					user.Authority,
-					user.IsInRegistrationProcess,
-					user.IsMFAEnabled,
-					strings.Join(user.AuthenticationMethods, ","),
-					user.JoinedAt,
-				),
-		)
+	mock.ExpectQuery(
+		regexp.QuoteMeta(`select * from users where org_id=?`),
+	).WithArgs(
+		user.OrgID,
+	).WillReturnRows(
+		sqlmock.NewRows(
+			[]string{
+				"org_id",
+				"id",
+				"screen_name",
+				"email",
+				"authority",
+				"is_in_registration_process",
+				"is_mfa_enabled",
+				"authentication_methods",
+				"joined_at",
+			},
+		).AddRow(
+			user.OrgID,
+			user.ID,
+			user.ScreenName,
+			user.Email,
+			user.Authority,
+			user.IsInRegistrationProcess,
+			user.IsMFAEnabled,
+			strings.Join(user.AuthenticationMethods, ","),
+			user.JoinedAt,
+		),
+	)
 	mock.ExpectCommit()
 
 	mock.ExpectBegin()
@@ -103,18 +105,18 @@ func TestUserRepository(t *testing.T) {
 				"is_mfa_enabled",
 				"authentication_methods",
 				"joined_at",
-			}).
-			AddRow(
-				user.OrgID,
-				user.ID,
-				user.ScreenName,
-				user.Email,
-				user.Authority,
-				user.IsInRegistrationProcess,
-				user.IsMFAEnabled,
-				strings.Join(user.AuthenticationMethods, ","),
-				user.JoinedAt,
-			),
+			},
+		).AddRow(
+			user.OrgID,
+			user.ID,
+			user.ScreenName,
+			user.Email,
+			user.Authority,
+			user.IsInRegistrationProcess,
+			user.IsMFAEnabled,
+			strings.Join(user.AuthenticationMethods, ","),
+			user.JoinedAt,
+		),
 	)
 
 	mock.ExpectExec(

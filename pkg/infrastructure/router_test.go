@@ -7,16 +7,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var xapikey = "2684d06cfedbee8499f326037bb6fb7e8c22e73b16bb"
-
-func TestIntegrationRouter(t *testing.T) {
+func TestRouter(t *testing.T) {
 	gin.SetMode(gin.ReleaseMode)
 
 	handler := NewSQLHandler()
 	router := Router(handler)
 
 	req := httptest.NewRequest("GET", "/", nil)
-	req.Header.Add("X-Api-key", xapikey)
+	req.Header.Add("X-Api-key", "2684d06cfedbee8499f326037bb6fb7e8c22e73b16bb")
 	rec := httptest.NewRecorder()
 	router.ServeHTTP(rec, req)
 
@@ -25,7 +23,7 @@ func TestIntegrationRouter(t *testing.T) {
 	}
 }
 
-func TestIntegrationRouterHosts(t *testing.T) {
+func TestRouterHosts(t *testing.T) {
 	gin.SetMode(gin.ReleaseMode)
 
 	handler := NewSQLHandler()
@@ -33,7 +31,7 @@ func TestIntegrationRouterHosts(t *testing.T) {
 
 	{
 		req := httptest.NewRequest("GET", "/api/v0/hosts", nil)
-		req.Header.Add("X-Api-key", xapikey)
+		req.Header.Add("X-Api-key", "2684d06cfedbee8499f326037bb6fb7e8c22e73b16bb")
 		rec := httptest.NewRecorder()
 		router.ServeHTTP(rec, req)
 

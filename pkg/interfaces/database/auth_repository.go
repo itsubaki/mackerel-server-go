@@ -103,8 +103,8 @@ func (repo *AuthRepository) XAPIKey(xapikey string) (*domain.XAPIKey, error) {
 		row := tx.QueryRow(`select * from xapikey where x_api_key=?`, xapikey)
 		if err := row.Scan(
 			&key.OrgID,
-			&key.XAPIKey,
 			&key.Name,
+			&key.XAPIKey,
 			&key.Read,
 			&key.Write,
 		); err != nil {
