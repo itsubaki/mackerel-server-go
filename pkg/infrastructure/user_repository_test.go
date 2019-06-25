@@ -35,10 +35,11 @@ func TestUserRepository(t *testing.T) {
 	}
 
 	mock.ExpectBegin()
-	mock.ExpectExec(`insert into users`).
-		WillReturnResult(
-			sqlmock.NewResult(1, 1),
-		)
+	mock.ExpectExec(
+		`insert into users`,
+	).WillReturnResult(
+		sqlmock.NewResult(1, 1),
+	)
 	mock.ExpectCommit()
 
 	mock.ExpectQuery(

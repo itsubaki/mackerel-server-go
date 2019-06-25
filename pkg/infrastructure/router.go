@@ -166,7 +166,6 @@ func Authentications(g *gin.Engine, handler database.SQLHandler) {
 		key, err := auth.XAPIKey(c)
 		if err != nil {
 			log.Println(err)
-
 			c.Status(http.StatusForbidden)
 			c.Abort()
 			return

@@ -119,5 +119,9 @@ func TestRouterHosts(t *testing.T) {
 		if rec.Body.String() != `{"hosts":[]}` {
 			t.Fatalf("body: %v", rec.Body.String())
 		}
+
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Fatal(err)
+		}
 	}
 }
