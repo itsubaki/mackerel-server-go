@@ -6,7 +6,7 @@ type Services struct {
 
 type Service struct {
 	OrgID string   `json:"-"     gorm:"primary_key"`
-	Name  string   `json:"name"   gorm:"primary_key"`
+	Name  string   `json:"name"  gorm:"primary_key"`
 	Memo  string   `json:"memo"`
 	Roles []string `json:"roles" gorm:"-"`
 }
