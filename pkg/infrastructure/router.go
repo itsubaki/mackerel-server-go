@@ -159,11 +159,11 @@ func Organizations(v0 *gin.RouterGroup, handler database.SQLHandler) {
 	o.GET("", func(c *gin.Context) { org.Org(c) })
 }
 
-func Authentications(g *gin.Engine, handler database.SQLHandler) {
-	auth := controllers.NewAuthController(handler)
+func UseAPIKey(g *gin.Engine, handler database.SQLHandler) {
+	apikey := controllers.NewAPIKeyController(handler)
 
 	g.Use(func(c *gin.Context) {
-		key, err := auth.XAPIKey(c)
+		key, err := apikey.APIKey(c)
 		if err != nil {
 			log.Println(err)
 			c.Status(http.StatusForbidden)
@@ -184,10 +184,9 @@ func Authentications(g *gin.Engine, handler database.SQLHandler) {
 
 func Router(handler database.SQLHandler) *gin.Engine {
 	g := gin.Default()
+	UseAPIKey(g, handler)
 
 	Root(g)
-	Authentications(g, handler)
-
 	v0 := g.Group("/api").Group("/v0")
 	Hosts(v0, handler)
 	Services(v0, handler)

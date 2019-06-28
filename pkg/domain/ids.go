@@ -15,7 +15,7 @@ func NewHostID() string {
 	return NewRandomID(11)
 }
 
-func NewXAPIKey() string {
+func NewAPIKey() string {
 	return NewRandomID(44)
 }
 

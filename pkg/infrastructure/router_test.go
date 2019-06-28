@@ -34,8 +34,8 @@ func TestRouterHosts(t *testing.T) {
 	}
 
 	mock.ExpectBegin()
-	mock.ExpectExec("create table if not exists xapikey").WillReturnResult(sqlmock.NewResult(1, 1))
-	mock.ExpectExec("insert into xapikey").WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectExec("create table if not exists apikeys").WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectExec("insert into apikeys").WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectCommit()
 
 	mock.ExpectBegin()
@@ -57,7 +57,7 @@ func TestRouterHosts(t *testing.T) {
 	{
 		mock.ExpectBegin()
 		mock.ExpectQuery(
-			regexp.QuoteMeta(`select * from xapikey where x_api_key=?`),
+			regexp.QuoteMeta(`select * from apikeys where x_api_key=?`),
 		).WithArgs(
 			"2684d06cfedbee8499f326037bb6fb7e8c22e73b16bb",
 		).WillReturnRows(
