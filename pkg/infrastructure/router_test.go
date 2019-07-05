@@ -47,7 +47,7 @@ func TestRouterHosts(t *testing.T) {
 
 	router := gin.New()
 	handler := &SQLHandler{DB: db}
-	Authentications(router, handler)
+	UseAPIKey(router, handler)
 	Hosts(router.Group("/api").Group("/v0"), handler)
 
 	if err := mock.ExpectationsWereMet(); err != nil {
@@ -57,7 +57,7 @@ func TestRouterHosts(t *testing.T) {
 	{
 		mock.ExpectBegin()
 		mock.ExpectQuery(
-			regexp.QuoteMeta(`select * from apikeys where x_api_key=?`),
+			regexp.QuoteMeta(`select * from apikeys where api_key=?`),
 		).WithArgs(
 			"2684d06cfedbee8499f326037bb6fb7e8c22e73b16bb",
 		).WillReturnRows(
