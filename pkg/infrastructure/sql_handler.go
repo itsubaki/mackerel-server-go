@@ -19,12 +19,12 @@ func NewSQLHandler(config *Config) database.SQLHandler {
 		}
 		defer db.Close()
 
-		if _, err := db.Exec("create database if not exists " + config.DatabaseName); err != nil {
+		if _, err := db.Exec(config.QueryCreateDatabase()); err != nil {
 			panic(err)
 		}
 	}
 
-	db, err := sql.Open(config.Driver, config.DataSourceName+config.DatabaseName)
+	db, err := sql.Open(config.Driver, config.DataSourceNameWithDatabaseName())
 	if err != nil {
 		panic(err)
 	}
