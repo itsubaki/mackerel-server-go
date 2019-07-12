@@ -11,20 +11,20 @@ type SQLHandler struct {
 	DB *sql.DB
 }
 
-func NewSQLHandler() database.SQLHandler {
+func NewSQLHandler(config *Config) database.SQLHandler {
 	{
-		db, err := sql.Open("mysql", "root:secret@tcp(127.0.0.1:3307)/")
+		db, err := sql.Open(config.Driver, config.DataSourceName)
 		if err != nil {
 			panic(err)
 		}
 		defer db.Close()
 
-		if _, err := db.Exec("create database if not exists mackerel"); err != nil {
+		if _, err := db.Exec("create database if not exists " + config.DatabaseName); err != nil {
 			panic(err)
 		}
 	}
 
-	db, err := sql.Open("mysql", "root:secret@tcp(127.0.0.1:3307)/mackerel")
+	db, err := sql.Open(config.Driver, config.DataSourceName+config.DatabaseName)
 	if err != nil {
 		panic(err)
 	}
