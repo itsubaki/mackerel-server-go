@@ -2,6 +2,7 @@ package infrastructure
 
 import (
 	"database/sql"
+	"fmt"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/itsubaki/mackerel-api/pkg/interfaces/database"
@@ -19,12 +20,14 @@ func NewSQLHandler(config *Config) database.SQLHandler {
 		}
 		defer db.Close()
 
-		if _, err := db.Exec(config.QueryCreateDatabase()); err != nil {
+		q := fmt.Sprintf("create database if not exists %s", config.DatabaseName)
+		if _, err := db.Exec(q); err != nil {
 			panic(err)
 		}
 	}
 
-	db, err := sql.Open(config.Driver, config.DataSourceNameWithDatabaseName())
+	source := fmt.Sprintf("%s%s", config.DataSourceName, config.DatabaseName)
+	db, err := sql.Open(config.Driver, source)
 	if err != nil {
 		panic(err)
 	}
