@@ -18,10 +18,13 @@ func NewSQLHandler(config *Config) database.SQLHandler {
 		if err != nil {
 			panic(err)
 		}
-		defer db.Close()
 
 		q := fmt.Sprintf("create database if not exists %s", config.DatabaseName)
 		if _, err := db.Exec(q); err != nil {
+			panic(err)
+		}
+
+		if err := db.Close(); err != nil {
 			panic(err)
 		}
 	}
