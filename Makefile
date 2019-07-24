@@ -28,13 +28,17 @@ runmysql:
 	-docker pull mysql
 	-docker stop mysqld
 	-docker rm mysqld
-	docker run --name mysqld -e MYSQL_ROOT_PASSWORD=secret -p 3307:3306 -d mysql
+	docker run --name mysqld -e MYSQL_ROOT_PASSWORD=secret -p 3306:3306 -d mysql
 	# mysql -h127.0.0.1 -P3307 -psecret -uroot mackerel
 	# mysql -h127.0.0.1 -P3307 -psecret -uroot -e'create database mackerel;'
 
 test:
 	set -x
 	go test -cover $(shell go list ./... | grep -v /vendor/ | grep -v /build/) -v
+
+build:
+	set -x
+	docker build -t mackerel-api .
 
 curl:
 	set -x
