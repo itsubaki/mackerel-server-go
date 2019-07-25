@@ -12,8 +12,6 @@ services:
     image: mackerel-api
     ports:
       - "8080:8080"
-    depends_on:
-      - mysql
     environment:
       - GIN_MODE=release
       - DATA_SOURCE_NAME=root:secret@tcp(mackerel-api_mysql_1:3306)/

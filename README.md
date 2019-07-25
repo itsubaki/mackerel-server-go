@@ -52,9 +52,9 @@ docker stop mysqld
 mysqld
 docker rm mysqld
 mysqld
-docker run --name mysqld -e MYSQL_ROOT_PASSWORD=secret -p 3307:3306 -d mysql
+docker run --name mysqld -e MYSQL_ROOT_PASSWORD=secret -p 3306:3306 -d mysql
 6521954a39afbd1aad14729da5ee0b898ad6f5721e0e71b3f5bd8f8746fdf7af
-# mysql -h127.0.0.1 -P3307 -psecret -uroot mackerel
+# mysql -h127.0.0.1 -P3306 -psecret -uroot mackerel
 ```
 
 ```

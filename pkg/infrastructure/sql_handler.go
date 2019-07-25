@@ -3,6 +3,8 @@ package infrastructure
 import (
 	"database/sql"
 	"fmt"
+	"log"
+	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/itsubaki/mackerel-api/pkg/interfaces/database"
@@ -18,6 +20,22 @@ func NewSQLHandler(config *Config) database.SQLHandler {
 		if err != nil {
 			panic(err)
 		}
+
+		start := time.Now()
+		for {
+			if time.Since(start) > 10*time.Minute {
+				panic("db ping time over")
+			}
+
+			if err := db.Ping(); err != nil {
+				log.Printf("db ping: %v", err)
+				time.Sleep(3 * time.Second)
+				continue
+			}
+
+			break
+		}
+		log.Printf("db connected")
 
 		q := fmt.Sprintf("create database if not exists %s", config.DatabaseName)
 		if _, err := db.Exec(q); err != nil {
