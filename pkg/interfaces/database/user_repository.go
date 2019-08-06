@@ -16,7 +16,7 @@ func NewUserRepository(handler SQLHandler) *UserRepository {
 		if _, err := tx.Exec(
 			`
 			create table if not exists users (
-				org_id                     varchar(64)  not null,
+				org_id                     varchar(16)  not null,
 				id                         varchar(128) not null primary key,
 				screen_name                varchar(128),
 				email                      varchar(128),

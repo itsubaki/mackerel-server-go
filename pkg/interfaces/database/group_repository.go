@@ -15,7 +15,7 @@ func NewNotificationGroupRepository(handler SQLHandler) *NotificationGroupReposi
 		if _, err := tx.Exec(
 			`
 			create table if not exists notification_groups (
-				org_id varchar(64) not null,
+				org_id varchar(16) not null,
 				id     varchar(16) not null primary key,
 				name   varchar(128) not null,
 				level  enum('all', 'critical') not null default 'all'
@@ -28,7 +28,7 @@ func NewNotificationGroupRepository(handler SQLHandler) *NotificationGroupReposi
 		if _, err := tx.Exec(
 			`
 			create table if not exists notification_group_children (
-				org_id   varchar(64) not null,
+				org_id   varchar(16) not null,
 				group_id varchar(16) not null,
 				child_id varchar(16) not null,
 				primary key(group_id, child_id),
@@ -42,7 +42,7 @@ func NewNotificationGroupRepository(handler SQLHandler) *NotificationGroupReposi
 		if _, err := tx.Exec(
 			`
 			create table if not exists notification_group_channels (
-				org_id     varchar(64) not null,
+				org_id     varchar(16) not null,
 				group_id   varchar(16) not null,
 				channel_id varchar(16) not null,
 				primary key(group_id, channel_id),
@@ -56,7 +56,7 @@ func NewNotificationGroupRepository(handler SQLHandler) *NotificationGroupReposi
 		if _, err := tx.Exec(
 			`
 			create table if not exists notification_group_monitors (
-				org_id       varchar(64) not null,
+				org_id       varchar(16) not null,
 				group_id     varchar(16) not null,
 				monitor_id   varchar(16) not null,
 				skip_default boolean     not null default '0',
@@ -71,7 +71,7 @@ func NewNotificationGroupRepository(handler SQLHandler) *NotificationGroupReposi
 		if _, err := tx.Exec(
 			`
 			create table if not exists notification_group_services (
-				org_id       varchar(64) not null,
+				org_id       varchar(16) not null,
 				group_id     varchar(16) not null,
 				service_name varchar(128) not null,
 				primary key(group_id, service_name),

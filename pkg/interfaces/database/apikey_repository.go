@@ -15,7 +15,7 @@ func NewAPIKeyRepository(handler SQLHandler) *APIKeyRepository {
 		if _, err := tx.Exec(
 			`
 			create table if not exists apikeys (
-				org_id  varchar(64) not null,
+				org_id  varchar(16) not null,
 				name    varchar(16) not null,
 				api_key varchar(45) not null primary key,
 				xread   boolean     not null default 1,

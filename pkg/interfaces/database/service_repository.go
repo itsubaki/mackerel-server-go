@@ -16,7 +16,7 @@ func NewServiceRepository(handler SQLHandler) *ServiceRepository {
 		if _, err := tx.Exec(
 			`
 			create table if not exists services (
-				org_id varchar(64)  not null,
+				org_id varchar(16)  not null,
 				name   varchar(128) not null,
 				memo   varchar(128) not null default '',
 				primary key(org_id, name)
@@ -29,7 +29,7 @@ func NewServiceRepository(handler SQLHandler) *ServiceRepository {
 		if _, err := tx.Exec(
 			`
 			create table if not exists roles (
-				org_id       varchar(64)  not null,
+				org_id       varchar(16)  not null,
 				service_name varchar(128) not null,
 				name         varchar(128) not null,
 				memo         varchar(128) not null default '',
@@ -44,7 +44,7 @@ func NewServiceRepository(handler SQLHandler) *ServiceRepository {
 		if _, err := tx.Exec(
 			`
 			create table if not exists service_metric_values (
-				org_id       varchar(64)  not null,
+				org_id       varchar(16)  not null,
 				service_name varchar(16)  not null,
 				name         varchar(128) not null,
 				time         bigint not null,
@@ -59,7 +59,7 @@ func NewServiceRepository(handler SQLHandler) *ServiceRepository {
 		if _, err := tx.Exec(
 			`
 			create table if not exists service_meta (
-				org_id       varchar(64)  not null,
+				org_id       varchar(16)  not null,
 				service_name varchar(16)  not null,
 				namespace    varchar(128) not null,
 				meta         text,
@@ -73,7 +73,7 @@ func NewServiceRepository(handler SQLHandler) *ServiceRepository {
 		if _, err := tx.Exec(
 			`
 			create table if not exists role_meta (
-				org_id       varchar(64)  not null,
+				org_id       varchar(16)  not null,
 				service_name varchar(16)  not null,
 				role_name    varchar(16)  not null,
 				namespace    varchar(128) not null,

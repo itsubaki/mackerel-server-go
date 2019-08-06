@@ -15,7 +15,7 @@ func NewDashboardRepository(handler SQLHandler) *DashboardRepository {
 		if _, err := tx.Exec(
 			`
 			create table if not exists dashboards (
-				org_id   varchar(64)  not null,
+				org_id   varchar(16)  not null,
 				id       varchar(128) not null primary key,
 				title    varchar(128) not null,
 				memo     varchar(128) not null default '',
@@ -31,7 +31,7 @@ func NewDashboardRepository(handler SQLHandler) *DashboardRepository {
 		if _, err := tx.Exec(
 			`
 			create table if not exists dashboard_widgets (
-				org_id       varchar(64)  not null,
+				org_id       varchar(16)  not null,
 				dashboard_id varchar(128) not null
 			)
 			`,

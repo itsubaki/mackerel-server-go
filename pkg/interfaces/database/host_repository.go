@@ -17,7 +17,7 @@ func NewHostRepository(handler SQLHandler) *HostRepository {
 		if _, err := tx.Exec(
 			`
 			create table if not exists hosts (
-				org_id            varchar(64)  not null,
+				org_id            varchar(16)  not null,
 				id                varchar(16)  not null primary key,
 				name              varchar(128) not null,
 				status            enum('working', 'standby', 'maintenance', 'poweroff') not null,
@@ -41,7 +41,7 @@ func NewHostRepository(handler SQLHandler) *HostRepository {
 		if _, err := tx.Exec(
 			`
 			create table if not exists host_meta (
-				org_id    varchar(64)  not null,
+				org_id    varchar(16)  not null,
 				host_id   varchar(16)  not null,
 				namespace varchar(128) not null,
 				meta      text,
@@ -55,7 +55,7 @@ func NewHostRepository(handler SQLHandler) *HostRepository {
 		if _, err := tx.Exec(
 			`
 			create table if not exists host_metric_values (
-				org_id  varchar(64)  not null,
+				org_id  varchar(16)  not null,
 				host_id varchar(16)  not null,
 				name    varchar(128) not null,
 				time    bigint not null,
@@ -70,7 +70,7 @@ func NewHostRepository(handler SQLHandler) *HostRepository {
 		if _, err := tx.Exec(
 			`
 			create table if not exists host_metric_values_latest (
-				org_id  varchar(64)  not null,
+				org_id  varchar(16)  not null,
 				host_id varchar(16)  not null,
 				name    varchar(128) not null,
 				value   double       not null,

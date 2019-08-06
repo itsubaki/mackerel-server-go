@@ -16,7 +16,7 @@ func NewMonitorRepository(handler SQLHandler) *MonitorRepository {
 		if _, err := tx.Exec(
 			`
 			create table if not exists monitors (
-				org_id                            varchar(64) not null,
+				org_id                            varchar(16) not null,
 				id                                varchar(16) not null primary key,
 				type                              enum('host', 'connectivity', 'service', 'external', 'expression'),
 				name                              varchar(128) not null,

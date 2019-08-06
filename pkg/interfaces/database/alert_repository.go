@@ -17,7 +17,7 @@ func NewAlertRepository(handler SQLHandler) *AlertRepository {
 		if _, err := tx.Exec(
 			`
 			create table if not exists alerts (
-				org_id     varchar(64) not null,
+				org_id     varchar(16) not null,
 				id         varchar(16) not null primary key,
 				status     enum('OK', 'CRITICAL', 'WARNING', 'UNKNOWN') not null,
 				monitor_id varchar(16) not null,
@@ -38,7 +38,7 @@ func NewAlertRepository(handler SQLHandler) *AlertRepository {
 		if _, err := tx.Exec(
 			`
 			create table if not exists alert_history (
-				org_id     varchar(64) not null,
+				org_id     varchar(16) not null,
 				alert_id   varchar(16) not null,
 				status     enum('OK', 'CRITICAL', 'WARNING', 'UNKNOWN') not null,
 				monitor_id varchar(16) not null,
@@ -55,7 +55,7 @@ func NewAlertRepository(handler SQLHandler) *AlertRepository {
 		if _, err := tx.Exec(
 			`
 			create table if not exists alert_history_latest (
-				org_id     varchar(64) not null,
+				org_id     varchar(16) not null,
 				alert_id   varchar(16) not null,
 				status     enum('OK', 'CRITICAL', 'WARNING', 'UNKNOWN') not null,
 				monitor_id varchar(16) not null,

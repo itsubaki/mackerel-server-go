@@ -15,7 +15,7 @@ func NewOrgRepository(handler SQLHandler) *OrgRepository {
 		if _, err := tx.Exec(
 			`
 			create table if not exists orgs (
-				id   varchar(64) not null primary key,
+				id   varchar(16) not null primary key,
 				name varchar(16) not null unique
 			)
 			`,

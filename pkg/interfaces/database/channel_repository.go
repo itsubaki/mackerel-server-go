@@ -15,7 +15,7 @@ func NewChannelRepository(handler SQLHandler) *ChannelRepository {
 		if _, err := tx.Exec(
 			`
 			create table if not exists channels (
-				org_id              varchar(64) not null,
+				org_id              varchar(16) not null,
 				id                  varchar(16) not null primary key,
 				name                varchar(16) not null,
 				type                enum('email', 'slack', 'webhook') not null,
@@ -30,7 +30,7 @@ func NewChannelRepository(handler SQLHandler) *ChannelRepository {
 		if _, err := tx.Exec(
 			`
 			create table if not exists channel_mentions (
-				org_id     varchar(64) not null,
+				org_id     varchar(16) not null,
 				channel_id varchar(16) not null,
 				status     enum('ok', 'warning', 'critical') not null,
 				message    text,
@@ -45,7 +45,7 @@ func NewChannelRepository(handler SQLHandler) *ChannelRepository {
 		if _, err := tx.Exec(
 			`
 			create table if not exists channel_events (
-				org_id     varchar(64) not null,
+				org_id     varchar(16) not null,
 				channel_id varchar(16) not null,
 				event      varchar(16) not null,
 				primary key(channel_id, event),
@@ -59,7 +59,7 @@ func NewChannelRepository(handler SQLHandler) *ChannelRepository {
 		if _, err := tx.Exec(
 			`
 			create table if not exists channel_emails (
-				org_id     varchar(64) not null,
+				org_id     varchar(16) not null,
 				channel_id varchar(16) not null,
 				email      varchar(128) not null,
 				primary key(channel_id, email),
@@ -73,7 +73,7 @@ func NewChannelRepository(handler SQLHandler) *ChannelRepository {
 		if _, err := tx.Exec(
 			`
 			create table if not exists channel_user_ids (
-				org_id     varchar(64) not null,
+				org_id     varchar(16) not null,
 				channel_id varchar(16) not null,
 				user_id    varchar(16) not null,
 				primary key(channel_id, user_id),

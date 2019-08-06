@@ -16,7 +16,7 @@ func NewInvitationRepository(handler SQLHandler) *InvitationRepository {
 		if _, err := tx.Exec(
 			`
 			create table if not exists invitations (
-				org_id     varchar(64) not null,
+				org_id     varchar(16) not null,
 				email      varchar(64) not null,
 				authority  enum('manager', 'collaborator', 'viewer') not null,
 				expires_at bigint,
