@@ -41,6 +41,7 @@ build:
 up: build
 	set -x
 	docker-compose up
+	# docker exec -it ${CONTAINERID} mysql -u root -p secret -D mackerel
 
 curl:
 	set -x
