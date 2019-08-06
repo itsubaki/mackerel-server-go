@@ -29,7 +29,7 @@ func NewSQLHandler(config *Config) database.SQLHandler {
 
 			if err := db.Ping(); err != nil {
 				log.Printf("db ping: %v", err)
-				time.Sleep(3 * time.Second)
+				time.Sleep(10 * time.Second)
 				continue
 			}
 
