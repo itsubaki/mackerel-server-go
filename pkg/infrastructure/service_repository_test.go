@@ -15,38 +15,40 @@ func TestServiceRepository(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	mock.ExpectExec(
-		"CREATE TABLE",
-	).WillReturnResult(
-		sqlmock.NewResult(1, 1),
-	)
+	{
+		mock.ExpectExec(
+			"CREATE TABLE",
+		).WillReturnResult(
+			sqlmock.NewResult(1, 1),
+		)
 
-	mock.ExpectBegin()
-	mock.ExpectExec(
-		"INSERT INTO",
-	).WillReturnResult(
-		sqlmock.NewResult(1, 1),
-	)
-	mock.ExpectCommit()
+		mock.ExpectBegin()
+		mock.ExpectExec(
+			"INSERT INTO",
+		).WillReturnResult(
+			sqlmock.NewResult(1, 1),
+		)
+		mock.ExpectCommit()
 
-	mock.ExpectQuery(
-		regexp.QuoteMeta("SELECT * FROM `services` WHERE (`services`.`org_id` = ?) AND (`services`.`name` = ?)"),
-	).WithArgs(
-		"Example-Org",
-		"Example-Service",
-	).WillReturnRows(
-		sqlmock.NewRows(
-			[]string{
-				"org_id",
-				"name",
-				"memo",
-			},
-		).AddRow(
+		mock.ExpectQuery(
+			regexp.QuoteMeta("SELECT * FROM `services` WHERE (`services`.`org_id` = ?) AND (`services`.`name` = ?)"),
+		).WithArgs(
 			"Example-Org",
 			"Example-Service",
-			"Example-Memo",
-		),
-	)
+		).WillReturnRows(
+			sqlmock.NewRows(
+				[]string{
+					"org_id",
+					"name",
+					"memo",
+				},
+			).AddRow(
+				"Example-Org",
+				"Example-Service",
+				"Example-Memo",
+			),
+		)
+	}
 
 	db, err := gorm.Open("mysql", mdb)
 	if err != nil {

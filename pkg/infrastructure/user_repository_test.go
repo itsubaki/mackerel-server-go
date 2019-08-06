@@ -34,101 +34,103 @@ func TestUserRepository(t *testing.T) {
 		JoinedAt:                time.Now().Unix(),
 	}
 
-	mock.ExpectBegin()
-	mock.ExpectExec(
-		`insert into users`,
-	).WillReturnResult(
-		sqlmock.NewResult(1, 1),
-	)
-	mock.ExpectCommit()
+	{
+		mock.ExpectBegin()
+		mock.ExpectExec(
+			`insert into users`,
+		).WillReturnResult(
+			sqlmock.NewResult(1, 1),
+		)
+		mock.ExpectCommit()
 
-	mock.ExpectQuery(
-		regexp.QuoteMeta(`select 1 from users where org_id=? and id=? limit 1`),
-	).WithArgs(
-		user.OrgID, user.ID,
-	).WillReturnRows(
-		sqlmock.NewRows(
-			[]string{
-				"1",
-			},
-		).AddRow(
-			1,
-		),
-	)
+		mock.ExpectQuery(
+			regexp.QuoteMeta(`select 1 from users where org_id=? and id=? limit 1`),
+		).WithArgs(
+			user.OrgID, user.ID,
+		).WillReturnRows(
+			sqlmock.NewRows(
+				[]string{
+					"1",
+				},
+			).AddRow(
+				1,
+			),
+		)
 
-	mock.ExpectBegin()
-	mock.ExpectQuery(
-		regexp.QuoteMeta(`select * from users where org_id=?`),
-	).WithArgs(
-		user.OrgID,
-	).WillReturnRows(
-		sqlmock.NewRows(
-			[]string{
-				"org_id",
-				"id",
-				"screen_name",
-				"email",
-				"authority",
-				"is_in_registration_process",
-				"is_mfa_enabled",
-				"authentication_methods",
-				"joined_at",
-			},
-		).AddRow(
+		mock.ExpectBegin()
+		mock.ExpectQuery(
+			regexp.QuoteMeta(`select * from users where org_id=?`),
+		).WithArgs(
+			user.OrgID,
+		).WillReturnRows(
+			sqlmock.NewRows(
+				[]string{
+					"org_id",
+					"id",
+					"screen_name",
+					"email",
+					"authority",
+					"is_in_registration_process",
+					"is_mfa_enabled",
+					"authentication_methods",
+					"joined_at",
+				},
+			).AddRow(
+				user.OrgID,
+				user.ID,
+				user.ScreenName,
+				user.Email,
+				user.Authority,
+				user.IsInRegistrationProcess,
+				user.IsMFAEnabled,
+				strings.Join(user.AuthenticationMethods, ","),
+				user.JoinedAt,
+			),
+		)
+		mock.ExpectCommit()
+
+		mock.ExpectBegin()
+		mock.ExpectQuery(
+			regexp.QuoteMeta(`select * from users where org_id=? and id=?`),
+		).WithArgs(
 			user.OrgID,
 			user.ID,
-			user.ScreenName,
-			user.Email,
-			user.Authority,
-			user.IsInRegistrationProcess,
-			user.IsMFAEnabled,
-			strings.Join(user.AuthenticationMethods, ","),
-			user.JoinedAt,
-		),
-	)
-	mock.ExpectCommit()
+		).WillReturnRows(
+			sqlmock.NewRows(
+				[]string{
+					"org_id",
+					"id",
+					"screen_name",
+					"email",
+					"authority",
+					"is_in_registration_process",
+					"is_mfa_enabled",
+					"authentication_methods",
+					"joined_at",
+				},
+			).AddRow(
+				user.OrgID,
+				user.ID,
+				user.ScreenName,
+				user.Email,
+				user.Authority,
+				user.IsInRegistrationProcess,
+				user.IsMFAEnabled,
+				strings.Join(user.AuthenticationMethods, ","),
+				user.JoinedAt,
+			),
+		)
 
-	mock.ExpectBegin()
-	mock.ExpectQuery(
-		regexp.QuoteMeta(`select * from users where org_id=? and id=?`),
-	).WithArgs(
-		user.OrgID,
-		user.ID,
-	).WillReturnRows(
-		sqlmock.NewRows(
-			[]string{
-				"org_id",
-				"id",
-				"screen_name",
-				"email",
-				"authority",
-				"is_in_registration_process",
-				"is_mfa_enabled",
-				"authentication_methods",
-				"joined_at",
-			},
-		).AddRow(
+		mock.ExpectExec(
+			regexp.QuoteMeta(`delete from users where org_id=? and id=?`),
+		).WithArgs(
 			user.OrgID,
 			user.ID,
-			user.ScreenName,
-			user.Email,
-			user.Authority,
-			user.IsInRegistrationProcess,
-			user.IsMFAEnabled,
-			strings.Join(user.AuthenticationMethods, ","),
-			user.JoinedAt,
-		),
-	)
-
-	mock.ExpectExec(
-		regexp.QuoteMeta(`delete from users where org_id=? and id=?`),
-	).WithArgs(
-		user.OrgID,
-		user.ID,
-	).WillReturnResult(
-		sqlmock.NewResult(1, 1),
-	)
-	mock.ExpectCommit()
+		).WillReturnResult(
+			sqlmock.NewResult(1, 1),
+		)
+		mock.ExpectCommit()
+	}
 
 	if err := repo.Save(user.OrgID, &user); err != nil {
 		t.Fatal(err)

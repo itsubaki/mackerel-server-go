@@ -33,17 +33,19 @@ func TestRouterHosts(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	mock.ExpectBegin()
-	mock.ExpectExec("create table if not exists apikeys").WillReturnResult(sqlmock.NewResult(1, 1))
-	mock.ExpectExec("insert into apikeys").WillReturnResult(sqlmock.NewResult(1, 1))
-	mock.ExpectCommit()
+	{
+		mock.ExpectBegin()
+		mock.ExpectExec("create table if not exists apikeys").WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectExec("insert into apikeys").WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectCommit()
 
-	mock.ExpectBegin()
-	mock.ExpectExec("create table if not exists hosts").WillReturnResult(sqlmock.NewResult(1, 1))
-	mock.ExpectExec("create table if not exists host_meta").WillReturnResult(sqlmock.NewResult(1, 1))
-	mock.ExpectExec("create table if not exists host_metric_values").WillReturnResult(sqlmock.NewResult(1, 1))
-	mock.ExpectExec("create table if not exists host_metric_values_latest").WillReturnResult(sqlmock.NewResult(1, 1))
-	mock.ExpectCommit()
+		mock.ExpectBegin()
+		mock.ExpectExec("create table if not exists hosts").WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectExec("create table if not exists host_meta").WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectExec("create table if not exists host_metric_values").WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectExec("create table if not exists host_metric_values_latest").WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectCommit()
+	}
 
 	router := gin.New()
 	handler := &SQLHandler{DB: db}
@@ -119,9 +121,9 @@ func TestRouterHosts(t *testing.T) {
 		if rec.Body.String() != `{"hosts":[]}` {
 			t.Fatalf("body: %v", rec.Body.String())
 		}
+	}
 
-		if err := mock.ExpectationsWereMet(); err != nil {
-			t.Fatal(err)
-		}
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatal(err)
 	}
 }
