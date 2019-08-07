@@ -55,12 +55,12 @@ func (repo *OrgRepository) Org(orgID string) (*domain.Org, error) {
 		if err := row.Scan(
 			&name,
 		); err != nil {
-			return fmt.Errorf("select * from xapikey: %v", err)
+			return fmt.Errorf("select name from orgs where id=?: %v", err)
 		}
 
 		return nil
 	}); err != nil {
 		return nil, fmt.Errorf("transaction: %v", err)
 	}
-	return &domain.Org{Name: name}, nil
+	return &domain.Org{ID: orgID, Name: name}, nil
 }

@@ -1,4 +1,4 @@
-package infrastructure
+package database
 
 import (
 	"log"
@@ -6,6 +6,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/itsubaki/mackerel-api/pkg/infrastructure"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/itsubaki/mackerel-api/pkg/domain"
@@ -19,7 +21,7 @@ func TestUserRepository(t *testing.T) {
 	}
 
 	repo := database.UserRepository{}
-	repo.SQLHandler = &SQLHandler{db}
+	repo.SQLHandler = &infrastructure.SQLHandler{db}
 	defer repo.Close()
 
 	user := domain.User{
