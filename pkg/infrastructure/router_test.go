@@ -121,9 +121,54 @@ func TestRouterHosts(t *testing.T) {
 		if rec.Body.String() != `{"hosts":[]}` {
 			t.Fatalf("body: %v", rec.Body.String())
 		}
+
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Fatal(err)
+		}
 	}
 
-	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Fatal(err)
-	}
+}
+
+func TestRouterServices(t *testing.T) {
+
+}
+
+func TestRouterMonitors(t *testing.T) {
+
+}
+
+func TestRouterChannels(t *testing.T) {
+
+}
+
+func TestRouterNotificationGroups(t *testing.T) {
+
+}
+
+func TestRouteGraphs(t *testing.T) {
+
+}
+
+func TestRouterCheckReports(t *testing.T) {
+
+}
+
+func TestRouterAlerts(t *testing.T) {
+
+}
+
+func TestRouterDashboards(t *testing.T) {
+
+}
+
+func TestRouterInvitations(t *testing.T) {
+
+}
+
+func TestRouterUsers(t *testing.T) {
+
+}
+
+func TestRouterOrganizations(t *testing.T) {
+
 }
