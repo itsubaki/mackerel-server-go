@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/itsubaki/mackerel-api/pkg/domain"
 )
@@ -20,7 +21,7 @@ func (s *AlertInteractor) List(orgID string, withClosed bool, nextID string, lim
 
 func (s *AlertInteractor) Close(orgID, alertID, reason string) (*domain.Alert, error) {
 	if !s.AlertRepository.Exists(orgID, alertID) {
-		return nil, &AlertNotFound{Err{errors.New("the <alertId>'s corresponding alert can't be found")}}
+		return nil, &AlertNotFound{Err{errors.New(fmt.Sprintf("the <%s>'s corresponding alert can't be found", alertID))}}
 	}
 
 	return s.AlertRepository.Close(orgID, alertID, reason)

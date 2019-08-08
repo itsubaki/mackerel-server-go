@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/itsubaki/mackerel-api/pkg/domain"
 )
@@ -16,7 +17,7 @@ func (s *UserInteractor) List(orgID string) (*domain.Users, error) {
 
 func (s *UserInteractor) Delete(orgID, userID string) (*domain.User, error) {
 	if !s.UserRepository.Exists(orgID, userID) {
-		return nil, &UserNotFound{Err{errors.New("the <userId> that was designated doesn't belong to the orgIDanization")}}
+		return nil, &UserNotFound{Err{errors.New(fmt.Sprintf("the <%s> that was designated doesn't belong to the organization<%s>", userID, orgID))}}
 	}
 
 	return s.UserRepository.Delete(orgID, userID)
