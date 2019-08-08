@@ -71,6 +71,7 @@ func (repo *MonitorRepository) List(orgID string) (*domain.Monitors, error) {
 		}
 		defer rows.Close()
 
+		var scopes, exclude, service, headers, body string
 		for rows.Next() {
 			var monitor domain.Monitoring
 			if err := rows.Scan(
@@ -87,13 +88,13 @@ func (repo *MonitorRepository) List(orgID string) (*domain.Monitors, error) {
 				&monitor.Warning,
 				&monitor.Critical,
 				&monitor.MaxCheckAttempts,
-				&monitor.Scopes,
-				&monitor.ExcludeScopes,
+				&scopes,
+				&exclude,
 				&monitor.MissingDurationWarning,
 				&monitor.MissingDurationCritical,
 				&monitor.URL,
 				&monitor.Method,
-				&monitor.Service,
+				&service,
 				&monitor.ResponseTimeWarning,
 				&monitor.ResponseTimeCritical,
 				&monitor.ResponseTimeDuration,
@@ -101,11 +102,31 @@ func (repo *MonitorRepository) List(orgID string) (*domain.Monitors, error) {
 				&monitor.CertificationExpirationWarning,
 				&monitor.CertificationExpirationCritical,
 				&monitor.SkipCertificateVerification,
-				&monitor.Headers,
-				&monitor.RequestBody,
+				&headers,
+				&body,
 				&monitor.Expression,
 			); err != nil {
 				return fmt.Errorf("scan: %v", err)
+			}
+
+			if err := json.Unmarshal([]byte(scopes), &monitor.Scopes); err != nil {
+				return fmt.Errorf("unmarshal monitor.Scopes: %v", err)
+			}
+
+			if err := json.Unmarshal([]byte(exclude), &monitor.ExcludeScopes); err != nil {
+				return fmt.Errorf("unmarshal monitor.ExcludeScopes: %v", err)
+			}
+
+			if err := json.Unmarshal([]byte(service), &monitor.Service); err != nil {
+				return fmt.Errorf("unmarshal monitor.Service: %v", err)
+			}
+
+			if err := json.Unmarshal([]byte(headers), &monitor.Headers); err != nil {
+				return fmt.Errorf("unmarshal monitor.Headers: %v", err)
+			}
+
+			if err := json.Unmarshal([]byte(body), &monitor.RequestBody); err != nil {
+				return fmt.Errorf("unmarshal monitor.RequestBody: %v", err)
 			}
 
 			monitors = append(monitors, monitor.Cast())

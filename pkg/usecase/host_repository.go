@@ -16,6 +16,7 @@ type HostRepository interface {
 	MetricValues(orgID, hostID, name string, from, to int64) (*domain.MetricValues, error)
 	MetricValuesLimit(orgID, hostID, name string, limit int) (*domain.MetricValues, error)
 	MetricValuesLatest(orgID string, hostID, name []string) (*domain.TSDBLatest, error)
+	MetricValuesAverage(orgID, hostID, name string, duration int) (*domain.MetricValueAverage, error)
 	SaveMetricValues(orgID string, values []domain.MetricValue) (*domain.Success, error)
 
 	ExistsMetadata(orgID, hostID, namespace string) bool

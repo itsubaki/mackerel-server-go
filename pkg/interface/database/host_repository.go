@@ -3,6 +3,7 @@ package database
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/itsubaki/mackerel-api/pkg/domain"
@@ -693,6 +694,55 @@ func (repo *HostRepository) SaveMetricValues(orgID string, values []domain.Metri
 	}
 
 	return &domain.Success{Success: true}, nil
+}
+
+func (repo *HostRepository) MetricValuesAverage(orgID, hostID, name string, duration int) (*domain.MetricValueAverage, error) {
+	avg := &domain.MetricValueAverage{
+		OrgID:    orgID,
+		HostID:   hostID,
+		Name:     name,
+		Duration: duration,
+	}
+
+	if err := repo.Transact(func(tx Tx) error {
+		row := tx.QueryRow(`
+			select
+				max(latest.time), avg(latest.value)
+			from (
+				select
+					time,
+					value
+				from
+					host_metric_values
+				where
+					org_id=?  and
+					host_id=? and
+					name=?
+				order by
+					time desc
+				limit ?
+				) as latest
+			`,
+			orgID,
+			hostID,
+			name,
+			duration,
+		)
+
+		if err := row.Scan(
+			&avg.Time,
+			&avg.Value,
+		); err != nil {
+			return fmt.Errorf("scan: %v", err)
+		}
+
+		return nil
+	}); err != nil {
+		log.Printf("transaction: %v\n", err)
+		return avg, fmt.Errorf("transaction: %v", err)
+	}
+
+	return avg, nil
 }
 
 // select * from host_metadata where host_id=${hostID} and namespace=${namespace} limit=1

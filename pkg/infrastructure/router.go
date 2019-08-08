@@ -159,6 +159,25 @@ func Organizations(v0 *gin.RouterGroup, handler database.SQLHandler) {
 	o.GET("", func(c *gin.Context) { org.Org(c) })
 }
 
+func CheckMonitors(v0 *gin.RouterGroup, handler database.SQLHandler) {
+	check := controller.NewCheckMonitorController(handler)
+
+	host := v0.Group("/monitoring/checks/host-metric")
+	host.GET("", func(c *gin.Context) { check.HostMetric(c) })
+
+	conn := v0.Group("/monitoring/checks/connectivity")
+	conn.GET("", func(c *gin.Context) { check.Connectivity(c) })
+
+	service := v0.Group("/monitoring/checks/service-metric")
+	service.GET("", func(c *gin.Context) { check.ServiceMetric(c) })
+
+	ext := v0.Group("/monitoring/checks/external")
+	ext.GET("", func(c *gin.Context) { check.External(c) })
+
+	exp := v0.Group("/monitoring/checks/expression")
+	exp.GET("", func(c *gin.Context) { check.Expression(c) })
+}
+
 func UseAPIKey(g *gin.Engine, handler database.SQLHandler) {
 	apikey := controller.NewAPIKeyController(handler)
 
@@ -186,7 +205,9 @@ func Router(handler database.SQLHandler) *gin.Engine {
 	g := gin.Default()
 	Status(g)
 
+	// middleware
 	UseAPIKey(g, handler)
+
 	v0 := g.Group("/api").Group("/v0")
 	Hosts(v0, handler)
 	Services(v0, handler)
@@ -200,6 +221,9 @@ func Router(handler database.SQLHandler) *gin.Engine {
 	Invitations(v0, handler)
 	Users(v0, handler)
 	Organizations(v0, handler)
+
+	// advance
+	CheckMonitors(v0, handler)
 
 	return g
 }

@@ -44,14 +44,15 @@ test:
 	set -x
 	go test -cover $(shell go list ./... | grep -v /vendor/ | grep -v /build/) -v
 
-testmon:
+testmonitor:
 	curl -s -v localhost:8080/api/v0/monitors \
 	    -X POST \
 	    -H "X-Api-Key: ${XAPIKEY}" \
 	    -H "Content-Type: application/json" \
 	    -d '{ "type": "host", "name": "loadavg1", "duration": 3, "metric": "loadavg1", "operator": ">", "warning": 1.0, "critical": 4.0 }'
-	# select id from hosts where is_retired=0;
-	# select avg(latest.value) from (select value from host_metric_values where host_id='2cd930226d1' and name='loadavg1' order by time desc limit 3) as latest;
+	curl -s -v localhost:8080/api/v0/monitoring/checks/host-metric \
+	    -H "X-Api-Key: ${XAPIKEY}" \
+	    -H "Content-Type: application/json"
 
 testcurl:
 	set -x

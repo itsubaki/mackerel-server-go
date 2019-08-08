@@ -120,3 +120,13 @@ type MetricValue struct {
 	Time   int64   `json:"time"`
 	Value  float64 `json:"value"`
 }
+
+// advance
+type MetricValueAverage struct {
+	OrgID    string
+	HostID   string
+	Name     string
+	Time     int64
+	Duration int
+	Value    float64
+}
