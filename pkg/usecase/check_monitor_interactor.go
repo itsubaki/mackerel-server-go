@@ -41,29 +41,26 @@ func (s *CheckMonitorInteractor) HostMetric(orgID string) (*domain.Success, erro
 				return &domain.Success{Success: false}, fmt.Errorf(fmt.Sprintf("get average of metric value: %v", err))
 			}
 
+			var level string
 			if m.Operator == ">" {
-				if avg.Value > m.Critical {
-					log.Printf("[CRIT] %#v\n", avg)
-					continue
-				}
-
 				if avg.Value > m.Warning {
-					log.Printf("[WARN] %#v\n", avg)
-					continue
+					level = "WARNING"
+				}
+				if avg.Value > m.Critical {
+					level = "CRITICAL"
 				}
 			}
 
 			if m.Operator == "<" {
-				if avg.Value < m.Critical {
-					log.Printf("[CRIT] %#v\n", avg)
-					continue
-				}
-
 				if avg.Value < m.Warning {
-					log.Printf("[WARN] %#v\n", avg)
-					continue
+					level = "WARNING"
+				}
+				if avg.Value < m.Critical {
+					level = "CRITICAL"
 				}
 			}
+
+			log.Printf("[%s] %#v\n", level, avg)
 		}
 	}
 
