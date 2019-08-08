@@ -44,16 +44,6 @@ test:
 	set -x
 	go test -cover $(shell go list ./... | grep -v /vendor/ | grep -v /build/) -v
 
-testmonitor:
-	curl -s -v localhost:8080/api/v0/monitors \
-	    -X POST \
-	    -H "X-Api-Key: ${XAPIKEY}" \
-	    -H "Content-Type: application/json" \
-	    -d '{ "type": "host", "name": "loadavg1", "duration": 3, "metric": "loadavg1", "operator": ">", "warning": 1.0, "critical": 4.0 }'
-	curl -s -v localhost:8080/api/v0/monitoring/checks/host-metric \
-	    -H "X-Api-Key: ${XAPIKEY}" \
-	    -H "Content-Type: application/json"
-
 testcurl:
 	set -x
 
@@ -120,4 +110,11 @@ testcurl:
 	curl -s "localhost:8080/api/v0/services/ExampleService/metrics?name=hoge&from=1351700000&to=1351700100" -H "X-Api-Key: ${XAPIKEY}" | jq .
 	curl -s localhost:8080/api/v0/services/ExampleService/metric-names -H "X-Api-Key: ${XAPIKEY}" | jq .
 	curl -s localhost:8080/api/v0/services/ExampleService -X DELETE -H "X-Api-Key: ${XAPIKEY}" | jq .
-
+	curl -s -v localhost:8080/api/v0/monitors \
+	    -X POST \
+	    -H "X-Api-Key: ${XAPIKEY}" \
+	    -H "Content-Type: application/json" \
+	    -d '{ "type": "host", "name": "loadavg1", "duration": 3, "metric": "loadavg1", "operator": ">", "warning": 1.0, "critical": 4.0 }'
+	curl -s -v localhost:8080/api/v0/monitoring/checks/host-metric \
+	    -H "X-Api-Key: ${XAPIKEY}" \
+	    -H "Content-Type: application/json"
