@@ -31,10 +31,6 @@ runmysql:
 	docker run --name mysql -e MYSQL_ROOT_PASSWORD=secret -p 3306:3306 -d mysql
 	# mysql -h127.0.0.1 -P3306 -uroot -psecret
 
-test:
-	set -x
-	go test -cover $(shell go list ./... | grep -v /vendor/ | grep -v /build/) -v
-
 build:
 	set -x
 	docker build -t mackerel-api .
@@ -44,7 +40,20 @@ up: build
 	docker-compose up
 	# docker exec -it ${CONTAINERID} mysql -u root -p
 
-curl:
+test:
+	set -x
+	go test -cover $(shell go list ./... | grep -v /vendor/ | grep -v /build/) -v
+
+testmon:
+	curl -s -v localhost:8080/api/v0/monitors \
+	    -X POST \
+	    -H "X-Api-Key: ${XAPIKEY}" \
+	    -H "Content-Type: application/json" \
+	    -d '{ "type": "host", "name": "loadavg1", "duration": 3, "metric": "loadavg1", "operator": ">", "warning": 1.0, "critical": 4.0 }'
+	# select id from hosts where is_retired=0;
+	# select avg(latest.value) from (select value from host_metric_values where host_id='2cd930226d1' and name='loadavg1' order by time desc limit 3) as latest;
+
+testcurl:
 	set -x
 
 	curl -s localhost:8080/api/v0/org -H "X-Api-Key: ${XAPIKEY}" | jq .
@@ -110,3 +119,4 @@ curl:
 	curl -s "localhost:8080/api/v0/services/ExampleService/metrics?name=hoge&from=1351700000&to=1351700100" -H "X-Api-Key: ${XAPIKEY}" | jq .
 	curl -s localhost:8080/api/v0/services/ExampleService/metric-names -H "X-Api-Key: ${XAPIKEY}" | jq .
 	curl -s localhost:8080/api/v0/services/ExampleService -X DELETE -H "X-Api-Key: ${XAPIKEY}" | jq .
+
