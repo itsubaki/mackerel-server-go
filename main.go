@@ -10,7 +10,6 @@ import (
 	"github.com/itsubaki/mackerel-api/pkg/infrastructure"
 )
 
-// CommandLine endpoint
 func main() {
 	config := infrastructure.NewConfig()
 	fmt.Printf("%#v\n", config)
