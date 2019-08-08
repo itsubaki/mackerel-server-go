@@ -9,7 +9,7 @@ import (
 	"github.com/itsubaki/mackerel-api/pkg/interface/database"
 )
 
-func Root(g *gin.Engine) {
+func Status(g *gin.Engine) {
 	g.GET("/", func(c *gin.Context) {
 		c.Status(http.StatusOK)
 	})
@@ -184,9 +184,9 @@ func UseAPIKey(g *gin.Engine, handler database.SQLHandler) {
 
 func Router(handler database.SQLHandler) *gin.Engine {
 	g := gin.Default()
-	UseAPIKey(g, handler)
+	Status(g)
 
-	Root(g)
+	UseAPIKey(g, handler)
 	v0 := g.Group("/api").Group("/v0")
 	Hosts(v0, handler)
 	Services(v0, handler)
