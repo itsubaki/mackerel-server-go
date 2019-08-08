@@ -1,4 +1,4 @@
-package controllers
+package controller
 
 type Context interface {
 	Param(string) string

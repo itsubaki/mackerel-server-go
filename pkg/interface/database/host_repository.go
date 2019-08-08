@@ -162,7 +162,7 @@ func (repo *HostRepository) List(orgID string) (*domain.Hosts, error) {
 	return &domain.Hosts{Hosts: hosts}, nil
 }
 
-// insert into hosts values(${name}, ${meta}, ${interfaces}, ${checks}, ${display_name}, ${custom_identifier}, ${created_at}, ${id}, ${status}, ${memo}, ${roles}, ${is_retired}, ${retired_at} )
+// insert into hosts values(${name}, ${meta}, ${interface}, ${checks}, ${display_name}, ${custom_identifier}, ${created_at}, ${id}, ${status}, ${memo}, ${roles}, ${is_retired}, ${retired_at} )
 func (repo *HostRepository) Save(orgID string, host *domain.Host) (*domain.HostID, error) {
 	if err := repo.Transact(func(tx Tx) error {
 		roles, err := json.Marshal(host.Roles)

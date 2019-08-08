@@ -5,8 +5,8 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/itsubaki/mackerel-api/pkg/interfaces/controllers"
-	"github.com/itsubaki/mackerel-api/pkg/interfaces/database"
+	"github.com/itsubaki/mackerel-api/pkg/interface/controller"
+	"github.com/itsubaki/mackerel-api/pkg/interface/database"
 )
 
 func Root(g *gin.Engine) {
@@ -16,7 +16,7 @@ func Root(g *gin.Engine) {
 }
 
 func Hosts(v0 *gin.RouterGroup, handler database.SQLHandler) {
-	hosts := controllers.NewHostController(handler)
+	hosts := controller.NewHostController(handler)
 
 	h := v0.Group("/hosts")
 	h.GET("", func(c *gin.Context) { hosts.List(c) })
@@ -40,7 +40,7 @@ func Hosts(v0 *gin.RouterGroup, handler database.SQLHandler) {
 }
 
 func Services(v0 *gin.RouterGroup, handler database.SQLHandler) {
-	services := controllers.NewServiceController(handler)
+	services := controller.NewServiceController(handler)
 
 	s := v0.Group("/services")
 	s.GET("", func(c *gin.Context) { services.List(c) })
@@ -67,7 +67,7 @@ func Services(v0 *gin.RouterGroup, handler database.SQLHandler) {
 }
 
 func Monitors(v0 *gin.RouterGroup, handler database.SQLHandler) {
-	monitors := controllers.NewMonitorController(handler)
+	monitors := controller.NewMonitorController(handler)
 
 	m := v0.Group("/monitors")
 	m.GET("", func(c *gin.Context) { monitors.List(c) })
@@ -78,7 +78,7 @@ func Monitors(v0 *gin.RouterGroup, handler database.SQLHandler) {
 }
 
 func Channels(v0 *gin.RouterGroup, handler database.SQLHandler) {
-	channels := controllers.NewChannelController(handler)
+	channels := controller.NewChannelController(handler)
 
 	c := v0.Group("/channels")
 	c.GET("", func(c *gin.Context) { channels.List(c) })
@@ -87,7 +87,7 @@ func Channels(v0 *gin.RouterGroup, handler database.SQLHandler) {
 }
 
 func NotificationGroups(v0 *gin.RouterGroup, handler database.SQLHandler) {
-	groups := controllers.NewNotificationGroupController(handler)
+	groups := controller.NewNotificationGroupController(handler)
 
 	g := v0.Group("/notification-groups")
 	g.GET("", func(c *gin.Context) { groups.List(c) })
@@ -97,7 +97,7 @@ func NotificationGroups(v0 *gin.RouterGroup, handler database.SQLHandler) {
 }
 
 func Graphs(v0 *gin.RouterGroup, handler database.SQLHandler) {
-	graphs := controllers.NewGraphController(handler)
+	graphs := controller.NewGraphController(handler)
 
 	d := v0.Group("/graph-defs")
 	d.POST("/create", func(c *gin.Context) { graphs.SaveDef(c) })
@@ -110,14 +110,14 @@ func Graphs(v0 *gin.RouterGroup, handler database.SQLHandler) {
 }
 
 func CheckReports(v0 *gin.RouterGroup, handler database.SQLHandler) {
-	reports := controllers.NewCheckReportController(handler)
+	reports := controller.NewCheckReportController(handler)
 
 	r := v0.Group("/monitoring/checks/report")
 	r.POST("", func(c *gin.Context) { reports.Save(c) })
 }
 
 func Alerts(v0 *gin.RouterGroup, handler database.SQLHandler) {
-	alerts := controllers.NewAlertController(handler)
+	alerts := controller.NewAlertController(handler)
 
 	a := v0.Group("/alerts")
 	a.GET("", func(c *gin.Context) { alerts.List(c) })
@@ -125,7 +125,7 @@ func Alerts(v0 *gin.RouterGroup, handler database.SQLHandler) {
 }
 
 func Dashboards(v0 *gin.RouterGroup, handler database.SQLHandler) {
-	dashboard := controllers.NewDashboardController(handler)
+	dashboard := controller.NewDashboardController(handler)
 
 	d := v0.Group("/dashboards")
 	d.GET("", func(c *gin.Context) { dashboard.List(c) })
@@ -136,7 +136,7 @@ func Dashboards(v0 *gin.RouterGroup, handler database.SQLHandler) {
 }
 
 func Invitations(v0 *gin.RouterGroup, handler database.SQLHandler) {
-	invitations := controllers.NewInvitationController(handler)
+	invitations := controller.NewInvitationController(handler)
 
 	i := v0.Group("/invitations")
 	i.GET("", func(c *gin.Context) { invitations.List(c) })
@@ -145,7 +145,7 @@ func Invitations(v0 *gin.RouterGroup, handler database.SQLHandler) {
 }
 
 func Users(v0 *gin.RouterGroup, handler database.SQLHandler) {
-	users := controllers.NewUserController(handler)
+	users := controller.NewUserController(handler)
 
 	u := v0.Group("/users")
 	u.GET("", func(c *gin.Context) { users.List(c) })
@@ -153,14 +153,14 @@ func Users(v0 *gin.RouterGroup, handler database.SQLHandler) {
 }
 
 func Organizations(v0 *gin.RouterGroup, handler database.SQLHandler) {
-	org := controllers.NewOrgController(handler)
+	org := controller.NewOrgController(handler)
 
 	o := v0.Group("/org")
 	o.GET("", func(c *gin.Context) { org.Org(c) })
 }
 
 func UseAPIKey(g *gin.Engine, handler database.SQLHandler) {
-	apikey := controllers.NewAPIKeyController(handler)
+	apikey := controller.NewAPIKeyController(handler)
 
 	g.Use(func(c *gin.Context) {
 		key, err := apikey.APIKey(c)

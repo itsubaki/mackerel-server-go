@@ -7,7 +7,7 @@ import (
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/itsubaki/mackerel-api/pkg/infrastructure"
-	"github.com/itsubaki/mackerel-api/pkg/interfaces/database"
+	"github.com/itsubaki/mackerel-api/pkg/interface/database"
 )
 
 func TestOrgRepository(t *testing.T) {

@@ -7,7 +7,7 @@ import (
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/itsubaki/mackerel-api/pkg/interfaces/database"
+	"github.com/itsubaki/mackerel-api/pkg/interface/database"
 )
 
 type SQLHandler struct {
