@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -12,7 +11,7 @@ import (
 
 func main() {
 	config := infrastructure.NewConfig()
-	fmt.Printf("%#v\n", config)
+	log.Printf("%#v\n", config)
 
 	handler := infrastructure.NewSQLHandler(config)
 
