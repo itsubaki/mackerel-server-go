@@ -41,31 +41,36 @@ func (s *CheckMonitorInteractor) HostMetric(orgID string) (*domain.Success, erro
 				return &domain.Success{Success: false}, fmt.Errorf("get average of metric value: %v", err)
 			}
 
-			var status string
-			if m.Operator == ">" {
-				if avg.Value > m.Warning {
-					status = "WARNING"
-				}
-				if avg.Value > m.Critical {
-					status = "CRITICAL"
-				}
-
+			status := "OK"
+			if m.Operator == ">" && avg.Value > m.Warning {
+				status = "WARNING"
+			}
+			if m.Operator == ">" && avg.Value > m.Critical {
+				status = "CRITICAL"
+			}
+			if m.Operator == "<" && avg.Value < m.Warning {
+				status = "WARNING"
+			}
+			if m.Operator == "<" && avg.Value < m.Critical {
+				status = "CRITICAL"
 			}
 
-			if m.Operator == "<" {
-				if avg.Value < m.Warning {
-					status = "WARNING"
+			if status == "OK" {
+				alert, err := s.AlertRepository.Alert(orgID, h.ID, m.ID)
+				if err != nil {
+					// not found
+					continue
 				}
-				if avg.Value < m.Critical {
-					status = "CRITICAL"
-				}
-			}
 
-			if len(status) < 1 {
-				// TODO close alert
+				// close
+				if _, err := s.AlertRepository.Close(orgID, alert.ID, "automatic"); err != nil {
+					return &domain.Success{Success: false}, fmt.Errorf("close alert<%s>: %v", alert.ID, err)
+				}
+
 				continue
 			}
 
+			// new alert
 			if _, err := s.AlertRepository.Save(orgID, &domain.Alert{
 				OrgID: orgID,
 				ID: domain.NewAlertID(

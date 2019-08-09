@@ -111,6 +111,6 @@ curl:
 	curl -s localhost:8080/api/v0/services/ExampleService/metric-names -H "X-Api-Key: ${XAPIKEY}" | jq .
 	curl -s localhost:8080/api/v0/services/ExampleService -X DELETE -H "X-Api-Key: ${XAPIKEY}" | jq .
 
-	curl -s -v localhost:8080/api/v0/monitors -X POST -H "X-Api-Key: ${XAPIKEY}" -H "Content-Type: application/json" -d '{ "type": "host", "name": "loadavg1", "duration": 3, "metric": "loadavg1", "operator": ">", "warning": 1.0, "critical": 4.0 }' | jq .
+	curl -s -v localhost:8080/api/v0/monitors -X POST -H "X-Api-Key: ${XAPIKEY}" -H "Content-Type: application/json" -d '{ "type": "host", "name": "loadavg1", "duration": 3, "metric": "loadavg1", "operator": ">", "warning": 3.0, "critical": 6.0 }' | jq .
 	curl -s -v localhost:8080/api/v0/monitoring/checks/host-metric -H "X-Api-Key: ${XAPIKEY}" -H "Content-Type: application/json" } | jq .
 #	curl -s -v localhost:8080/api/v0/alerts/0d76964bd7b/close -X POST -H "X-Api-Key: ${XAPIKEY}" -H "Content-Type: application/json" } -d '{ "reason": "manual" }' | jq .

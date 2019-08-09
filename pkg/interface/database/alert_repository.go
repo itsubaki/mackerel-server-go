@@ -227,6 +227,63 @@ func (repo *AlertRepository) Save(orgID string, alert *domain.Alert) (*domain.Al
 	return alert, nil
 }
 
+func (repo *AlertRepository) Alert(orgID, hostID, monitorID string) (*domain.Alert, error) {
+	alert := &domain.Alert{
+		OrgID:     orgID,
+		MonitorID: monitorID,
+		HostID:    hostID,
+	}
+
+	if err := repo.Transact(func(tx Tx) error {
+		row := tx.QueryRow(
+			`
+				select
+					id,
+					status,
+					type,
+					value,
+					message,
+					reason,
+					opened_at,
+					closed_at
+				from
+					alerts
+				where
+					org_id=?     and
+					host_id=?    and
+					monitor_id=? and
+					closed_at=?
+				order by
+					opened_at desc
+				limit 1
+				`,
+			alert.OrgID,
+			alert.HostID,
+			alert.MonitorID,
+			0,
+		)
+
+		if err := row.Scan(
+			&alert.ID,
+			&alert.Status,
+			&alert.Type,
+			&alert.Value,
+			&alert.Message,
+			&alert.Reason,
+			&alert.OpenedAt,
+			&alert.ClosedAt,
+		); err != nil {
+			return fmt.Errorf("scan: %v", err)
+		}
+
+		return nil
+	}); err != nil {
+		return nil, fmt.Errorf("transaction: %v", err)
+	}
+
+	return alert, nil
+}
+
 func (repo *AlertRepository) List(orgID string, withClosed bool, nextID string, limit int) (*domain.Alerts, error) {
 	status := "UNKNOWN"
 	if withClosed {
