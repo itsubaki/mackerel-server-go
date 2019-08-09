@@ -704,6 +704,7 @@ func (repo *HostRepository) MetricValuesAverage(orgID, hostID, name string, dura
 	}
 
 	if err := repo.Transact(func(tx Tx) error {
+
 		row := tx.QueryRow(`
 			select
 				max(latest.time),

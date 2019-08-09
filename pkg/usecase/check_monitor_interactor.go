@@ -76,18 +76,14 @@ func (s *CheckMonitorInteractor) HostMetric(orgID string) (*domain.Success, erro
 					m.ID,
 					strconv.FormatInt(avg.Time, 10),
 				),
-				Status: status,
-				MonitorID: domain.NewMonitorID(
-					orgID,
-					h.ID,
-					m.ID,
-				),
-				Type:     "host",
-				HostID:   h.ID,
-				Value:    avg.Value,
-				Message:  "",
-				Reason:   "",
-				OpenedAt: time.Now().Unix(),
+				Status:    status,
+				MonitorID: m.ID,
+				Type:      "host",
+				HostID:    h.ID,
+				Value:     avg.Value,
+				Message:   "",
+				Reason:    "",
+				OpenedAt:  time.Now().Unix(),
 			}); err != nil {
 				log.Printf("save alert: %v", err)
 				return &domain.Success{Success: false}, nil
