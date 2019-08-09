@@ -106,6 +106,9 @@ func (repo *AlertRepository) Save(orgID string, alert *domain.Alert) (*domain.Al
 					org_id=?  and
 					host_id=? and
 					monitor_id=?
+				order by
+					time desc
+				limit 1
 				`,
 			orgID,
 			alert.HostID,
@@ -204,6 +207,9 @@ func (repo *AlertRepository) Save(orgID string, alert *domain.Alert) (*domain.Al
 					org_id=?  and
 					host_id=? and
 					monitor_id=?
+				order by
+					time desc
+				limit 1
 				`,
 			orgID,
 			alert.HostID,
