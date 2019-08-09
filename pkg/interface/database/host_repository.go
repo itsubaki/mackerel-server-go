@@ -3,7 +3,6 @@ package database
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/itsubaki/mackerel-api/pkg/domain"
@@ -707,7 +706,8 @@ func (repo *HostRepository) MetricValuesAverage(orgID, hostID, name string, dura
 	if err := repo.Transact(func(tx Tx) error {
 		row := tx.QueryRow(`
 			select
-				max(latest.time), avg(latest.value)
+				max(latest.time),
+				avg(latest.value)
 			from (
 				select
 					time,
@@ -738,7 +738,6 @@ func (repo *HostRepository) MetricValuesAverage(orgID, hostID, name string, dura
 
 		return nil
 	}); err != nil {
-		log.Printf("transaction: %v\n", err)
 		return avg, fmt.Errorf("transaction: %v", err)
 	}
 

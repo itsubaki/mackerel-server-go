@@ -3,6 +3,8 @@ package usecase
 import (
 	"fmt"
 	"log"
+	"strconv"
+	"time"
 
 	"github.com/itsubaki/mackerel-api/pkg/domain"
 )
@@ -66,22 +68,30 @@ func (s *CheckMonitorInteractor) HostMetric(orgID string) (*domain.Success, erro
 				continue
 			}
 
-			//if _, err := s.AlertRepository.Save(orgID, &domain.Alert{
-			//	OrgID:     orgID,
-			//	ID:        domain.NewAlertID(),
-			//	Status:    status,
-			//	MonitorID: domain.NewMonitorID(),
-			//	Type:      "host",
-			//	HostID:    h.ID,
-			//	Value:     avg.Value,
-			//	Message:   "",
-			//	Reason:    "",
-			//	OpenedAt:  time.Now().Unix(),
-			//	ClosedAt:  0,
-			//}); err != nil {
-			//	log.Printf("save alert: %v", err)
-			//	return &domain.Success{Success: false}, nil
-			//}
+			if _, err := s.AlertRepository.Save(orgID, &domain.Alert{
+				OrgID: orgID,
+				ID: domain.NewAlertID(
+					orgID,
+					h.ID,
+					m.ID,
+					strconv.FormatInt(avg.Time, 10),
+				),
+				Status: status,
+				MonitorID: domain.NewMonitorID(
+					orgID,
+					h.ID,
+					m.ID,
+				),
+				Type:     "host",
+				HostID:   h.ID,
+				Value:    avg.Value,
+				Message:  "",
+				Reason:   "",
+				OpenedAt: time.Now().Unix(),
+			}); err != nil {
+				log.Printf("save alert: %v", err)
+				return &domain.Success{Success: false}, nil
+			}
 
 			log.Printf("[%s] %#v\n", status, avg)
 		}

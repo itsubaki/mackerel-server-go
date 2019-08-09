@@ -115,6 +115,8 @@ curl:
 	    -H "X-Api-Key: ${XAPIKEY}" \
 	    -H "Content-Type: application/json" \
 	    -d '{ "type": "host", "name": "loadavg1", "duration": 3, "metric": "loadavg1", "operator": ">", "warning": 1.0, "critical": 4.0 }'
+
+hostmetric:
 	curl -s -v localhost:8080/api/v0/monitoring/checks/host-metric \
 	    -H "X-Api-Key: ${XAPIKEY}" \
 	    -H "Content-Type: application/json"
