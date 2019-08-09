@@ -183,10 +183,15 @@ func (repo *AlertRepository) Save(orgID string, alert *domain.Alert) (*domain.Al
 			return fmt.Errorf("insert into alert_history_latest: %v", err)
 		}
 
-		// upsert alert
-		{
-			row := tx.QueryRow(
-				`
+		return nil
+	}); err != nil {
+		log.Printf("transaction: %v\n", err)
+		return alert, fmt.Errorf("transaction: %v\n", err)
+	}
+
+	if err := repo.Transact(func(tx Tx) error {
+		row := tx.QueryRow(
+			`
 				select
 					alert_id,
 					status,
@@ -200,25 +205,25 @@ func (repo *AlertRepository) Save(orgID string, alert *domain.Alert) (*domain.Al
 					host_id=? and
 					monitor_id=?
 				`,
-				orgID,
-				alert.HostID,
-				alert.MonitorID,
-			)
+			orgID,
+			alert.HostID,
+			alert.MonitorID,
+		)
 
-			var alertID, status, hostID, message string
-			var time int64
-			if err := row.Scan(&alertID, &status, &hostID, &message, &time); err != nil {
-				// no record
-				return nil
-			}
+		var alertID, status, hostID, message string
+		var time int64
+		if err := row.Scan(&alertID, &status, &hostID, &message, &time); err != nil {
+			// no record
+			return nil
+		}
 
-			var closedAt int64
-			if alert.Status == "OK" {
-				closedAt = alert.OpenedAt
-			}
+		var closedAt int64
+		if alert.Status == "OK" {
+			closedAt = alert.OpenedAt
+		}
 
-			if _, err := tx.Exec(
-				`
+		if _, err := tx.Exec(
+			`
 				insert into alerts (
 					org_id,
 					id,
@@ -238,20 +243,19 @@ func (repo *AlertRepository) Save(orgID string, alert *domain.Alert) (*domain.Al
 					message = values(message),
 					closed_at = values(closed_at)
 				`,
-				orgID,
-				alertID,
-				status,
-				alert.MonitorID,
-				alert.Type,
-				hostID,
-				alert.Value,
-				message,
-				alert.Reason,
-				time,
-				closedAt,
-			); err != nil {
-				return fmt.Errorf("insert into alerts: %v", err)
-			}
+			orgID,
+			alertID,
+			status,
+			alert.MonitorID,
+			alert.Type,
+			hostID,
+			alert.Value,
+			message,
+			alert.Reason,
+			time,
+			closedAt,
+		); err != nil {
+			return fmt.Errorf("insert into alerts: %v", err)
 		}
 
 		return nil
