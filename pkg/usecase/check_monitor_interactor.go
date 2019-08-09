@@ -53,6 +53,7 @@ func (s *CheckMonitorInteractor) HostMetric(orgID string) (*domain.Success, erro
 				if avg.Value > m.Critical {
 					status = "CRITICAL"
 				}
+
 			}
 
 			if m.Operator == "<" {
@@ -81,7 +82,7 @@ func (s *CheckMonitorInteractor) HostMetric(orgID string) (*domain.Success, erro
 				Type:      "host",
 				HostID:    h.ID,
 				Value:     avg.Value,
-				Message:   "",
+				Message:   fmt.Sprintf("%f %s %f(warning), %f(critical)", avg.Value, m.Operator, m.Warning, m.Critical),
 				Reason:    "",
 				OpenedAt:  time.Now().Unix(),
 			}); err != nil {

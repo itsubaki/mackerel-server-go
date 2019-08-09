@@ -239,6 +239,7 @@ func (repo *AlertRepository) Save(orgID string, alert *domain.Alert) (*domain.Al
 				)
 				values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 				on duplicate key update
+					value = values(value),
 					status = values(status),
 					message = values(message),
 					closed_at = values(closed_at)
