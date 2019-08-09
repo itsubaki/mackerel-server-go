@@ -3,6 +3,7 @@ package usecase
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"regexp"
 
 	"github.com/itsubaki/mackerel-api/pkg/domain"
@@ -123,40 +124,50 @@ func (s *ServiceInteractor) Metadata(orgID, serviceName, namespace string) (inte
 
 func (s *ServiceInteractor) SaveMetadata(orgID, serviceName, namespace string, metadata interface{}) (*domain.Success, error) {
 	if !s.ServiceRepository.Exists(orgID, serviceName) {
-		return nil, &ServiceNotFound{Err{errors.New("the Service corresponding to <serviceName> can't be found")}}
+		return &domain.Success{Success: false}, &ServiceNotFound{Err{errors.New("the Service corresponding to <serviceName> can't be found")}}
 	}
 
 	meta, err := s.ServiceRepository.MetadataList(orgID, serviceName)
 	if err != nil {
-		return nil, err
+		return &domain.Success{Success: false}, fmt.Errorf("get metadata list: %v", err)
 	}
 
 	if len(meta.Metadata) > 50 {
-		return nil, &MetadataLimitExceeded{Err{errors.New("trying to register while exceeding the limit of metadata per service (50 per service)")}}
+		return &domain.Success{Success: false}, &MetadataLimitExceeded{Err{errors.New("trying to register while exceeding the limit of metadata per service (50 per service)")}}
 	}
 
 	b, err := json.Marshal(metadata)
 	if err != nil {
-		return nil, err
+		return &domain.Success{Success: false}, fmt.Errorf("marshal: %v", err)
 	}
 
 	if len(b) > 100000 {
-		return nil, &MetadataTooLarge{Err{errors.New("the metadata exceeds 100KB")}}
+		return &domain.Success{Success: false}, &MetadataTooLarge{Err{errors.New("the metadata exceeds 100KB")}}
 	}
 
-	return s.ServiceRepository.SaveMetadata(orgID, serviceName, namespace, metadata)
+	res, err := s.ServiceRepository.SaveMetadata(orgID, serviceName, namespace, metadata)
+	if err != nil {
+		return res, fmt.Errorf("save metadata: %v", err)
+	}
+
+	return res, nil
 }
 
 func (s *ServiceInteractor) DeleteMetadata(orgID, serviceName, namespace string) (*domain.Success, error) {
 	if !s.ServiceRepository.Exists(orgID, serviceName) {
-		return nil, &ServiceNotFound{Err{errors.New("the Service corresponding to <serviceName> can't be found")}}
+		return &domain.Success{Success: false}, &ServiceNotFound{Err{errors.New("the Service corresponding to <serviceName> can't be found")}}
 	}
 
 	if !s.ServiceRepository.ExistsMetadata(orgID, serviceName, namespace) {
-		return nil, &ServiceMetadataNotFound{Err{errors.New("the specified metadata does not exist for the host")}}
+		return &domain.Success{Success: false}, &ServiceMetadataNotFound{Err{errors.New("the specified metadata does not exist for the host")}}
 	}
 
-	return s.ServiceRepository.DeleteMetadata(orgID, serviceName, namespace)
+	res, err := s.ServiceRepository.DeleteMetadata(orgID, serviceName, namespace)
+	if err != nil {
+		return res, fmt.Errorf("delete metadata: %v", err)
+	}
+
+	return res, nil
 }
 
 func (s *ServiceInteractor) RoleMetadataList(orgID, serviceName, roleName string) (*domain.RoleMetadataList, error) {
@@ -189,48 +200,58 @@ func (s *ServiceInteractor) RoleMetadata(orgID, serviceName, roleName, namespace
 
 func (s *ServiceInteractor) SaveRoleMetadata(orgID, serviceName, roleName, namespace string, metadata interface{}) (*domain.Success, error) {
 	if !s.ServiceRepository.Exists(orgID, serviceName) {
-		return nil, &ServiceNotFound{Err{errors.New("the service does not exist")}}
+		return &domain.Success{Success: false}, &ServiceNotFound{Err{errors.New("the service does not exist")}}
 	}
 
 	if !s.ServiceRepository.ExistsRole(orgID, serviceName, roleName) {
-		return nil, &RoleNotFound{Err{errors.New("the role does not exist")}}
+		return &domain.Success{Success: false}, &RoleNotFound{Err{errors.New("the role does not exist")}}
 	}
 
 	meta, err := s.ServiceRepository.RoleMetadataList(orgID, serviceName, roleName)
 	if err != nil {
-		return nil, err
+		return &domain.Success{Success: false}, fmt.Errorf("get role metadata list: %v", err)
 	}
 
 	if len(meta.Metadata) > 50 {
-		return nil, &MetadataLimitExceeded{Err{errors.New("trying to register while exceeding the limit of metadata per service (50 per service)")}}
+		return &domain.Success{Success: false}, &MetadataLimitExceeded{Err{errors.New("trying to register while exceeding the limit of metadata per service (50 per service)")}}
 	}
 
 	b, err := json.Marshal(metadata)
 	if err != nil {
-		return nil, err
+		return &domain.Success{Success: false}, fmt.Errorf("marshal: %v", err)
 	}
 
 	if len(b) > 100000 {
-		return nil, &MetadataTooLarge{Err{errors.New("the metadata exceeds 100KB")}}
+		return &domain.Success{Success: false}, &MetadataTooLarge{Err{errors.New("the metadata exceeds 100KB")}}
 	}
 
-	return s.ServiceRepository.SaveRoleMetadata(orgID, serviceName, roleName, namespace, metadata)
+	res, err := s.ServiceRepository.SaveRoleMetadata(orgID, serviceName, roleName, namespace, metadata)
+	if err != nil {
+		return res, fmt.Errorf("save role metadata: %v", err)
+	}
+
+	return res, nil
 }
 
 func (s *ServiceInteractor) DeleteRoleMetadata(orgID, serviceName, roleName, namespace string) (*domain.Success, error) {
 	if !s.ServiceRepository.Exists(orgID, serviceName) {
-		return nil, &ServiceNotFound{Err{errors.New("the service does not exist")}}
+		return &domain.Success{Success: false}, &ServiceNotFound{Err{errors.New("the service does not exist")}}
 	}
 
 	if !s.ServiceRepository.ExistsRole(orgID, serviceName, roleName) {
-		return nil, &RoleNotFound{Err{errors.New("the role does not exist")}}
+		return &domain.Success{Success: false}, &RoleNotFound{Err{errors.New("the role does not exist")}}
 	}
 
 	if !s.ServiceRepository.ExistsRoleMetadata(orgID, serviceName, roleName, namespace) {
-		return nil, &RoleMetadataNotFound{Err{errors.New("the metadata specified for the role does not exist")}}
+		return &domain.Success{Success: false}, &RoleMetadataNotFound{Err{errors.New("the metadata specified for the role does not exist")}}
 	}
 
-	return s.ServiceRepository.DeleteRoleMetadata(orgID, serviceName, roleName, namespace)
+	res, err := s.ServiceRepository.DeleteRoleMetadata(orgID, serviceName, roleName, namespace)
+	if err != nil {
+		return res, fmt.Errorf("delete role metadata: %v", err)
+	}
+
+	return res, nil
 }
 
 func (s *ServiceInteractor) MetricNames(orgID, serviceName string) (*domain.ServiceMetricValueNames, error) {
@@ -256,5 +277,10 @@ func (s *ServiceInteractor) MetricValues(orgID, serviceName, metricName string, 
 func (s *ServiceInteractor) SaveMetricValues(orgID, serviceName string, values []domain.ServiceMetricValue) (*domain.Success, error) {
 	// TODO
 	// When the number of requests per minute is exceeded. Correct this by setting the posting frequency to a 1 minute interval, or posting multiple metrics at once, etc.
-	return s.ServiceRepository.SaveMetricValues(orgID, serviceName, values)
+	res, err := s.ServiceRepository.SaveMetricValues(orgID, serviceName, values)
+	if err != nil {
+		return res, fmt.Errorf("save metric values: %v", err)
+	}
+
+	return res, nil
 }

@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"fmt"
-	"log"
 	"strconv"
 	"time"
 
@@ -18,14 +17,12 @@ type CheckMonitorInteractor struct {
 func (s *CheckMonitorInteractor) HostMetric(orgID string) (*domain.Success, error) {
 	monitors, err := s.MonitorRepository.List(orgID)
 	if err != nil {
-		log.Printf(fmt.Sprintf("get monitors: %v", err))
-		return &domain.Success{Success: false}, nil
+		return &domain.Success{Success: false}, fmt.Errorf("get monitors: %v", err)
 	}
 
 	hosts, err := s.HostRepository.List(orgID)
 	if err != nil {
-		log.Printf(fmt.Sprintf("get hosts: %v", err))
-		return &domain.Success{Success: false}, nil
+		return &domain.Success{Success: false}, fmt.Errorf("get hosts: %v", err)
 	}
 
 	for i := range monitors.Monitors {
@@ -41,8 +38,7 @@ func (s *CheckMonitorInteractor) HostMetric(orgID string) (*domain.Success, erro
 
 			avg, err := s.HostRepository.MetricValuesAverage(h.OrgID, h.ID, m.Metric, m.Duration)
 			if err != nil {
-				log.Printf(fmt.Sprintf("get average of metric value: %v", err))
-				return &domain.Success{Success: false}, nil
+				return &domain.Success{Success: false}, fmt.Errorf("get average of metric value: %v", err)
 			}
 
 			var status string
@@ -87,8 +83,7 @@ func (s *CheckMonitorInteractor) HostMetric(orgID string) (*domain.Success, erro
 				Reason:    "",
 				OpenedAt:  time.Now().Unix(),
 			}); err != nil {
-				log.Printf("save alert: %v", err)
-				return &domain.Success{Success: false}, nil
+				return &domain.Success{Success: false}, fmt.Errorf("save alert: %v", err)
 			}
 		}
 	}

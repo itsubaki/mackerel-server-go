@@ -1,7 +1,7 @@
 package usecase
 
 import (
-	"log"
+	"fmt"
 	"strconv"
 
 	"github.com/itsubaki/mackerel-api/pkg/domain"
@@ -18,8 +18,7 @@ func (s *CheckReportInteractor) Save(orgID string, reports *domain.CheckReports)
 	}
 
 	if s, err := s.CheckReportRepository.Save(orgID, reports); !s.Success {
-		log.Printf("save check_report: %v", err)
-		return s, err
+		return s, fmt.Errorf("save check_report: %v", err)
 	}
 
 	for i := range reports.Reports {
@@ -45,8 +44,7 @@ func (s *CheckReportInteractor) Save(orgID string, reports *domain.CheckReports)
 			Reason:   "",
 			OpenedAt: reports.Reports[i].OccurredAt,
 		}); err != nil {
-			log.Printf("save alert: %v", err)
-			return &domain.Success{Success: false}, nil
+			return &domain.Success{Success: false}, fmt.Errorf("save alert: %v", err)
 		}
 	}
 

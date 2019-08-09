@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/itsubaki/mackerel-api/pkg/domain"
 )
@@ -20,8 +21,13 @@ func (s *InvitationInteractor) Save(orgID string, inv *domain.Invitation) (*doma
 
 func (s *InvitationInteractor) Revoke(orgID, email string) (*domain.Success, error) {
 	if !s.InvitationRepository.Exists(orgID, email) {
-		return nil, &InvitationNotFound{Err{errors.New("the specified email has not be sent an invitation")}}
+		return &domain.Success{Success: false}, &InvitationNotFound{Err{errors.New("the specified email has not be sent an invitation")}}
 	}
 
-	return s.InvitationRepository.Revoke(orgID, email)
+	res, err := s.InvitationRepository.Revoke(orgID, email)
+	if err != nil {
+		return res, fmt.Errorf("revoke: %v", err)
+	}
+
+	return res, nil
 }
