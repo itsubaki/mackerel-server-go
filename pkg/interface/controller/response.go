@@ -12,7 +12,7 @@ func doResponse(c Context, out interface{}, err error) {
 		c.JSON(http.StatusOK, out)
 		return
 	}
-	log.Println(err)
+	log.Printf("%v: %#v", err, c)
 
 	switch err.(type) {
 	case

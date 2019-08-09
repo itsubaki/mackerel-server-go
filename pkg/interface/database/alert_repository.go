@@ -51,23 +51,6 @@ func NewAlertRepository(handler SQLHandler) *AlertRepository {
 			return fmt.Errorf("create table alert_history: %v", err)
 		}
 
-		if _, err := tx.Exec(
-			`
-			create table if not exists alert_history_latest (
-				org_id     varchar(16) not null,
-				alert_id   varchar(16) not null,
-				status     enum('OK', 'CRITICAL', 'WARNING', 'UNKNOWN') not null,
-				monitor_id varchar(16) not null,
-				host_id    varchar(16),
-				time       bigint      not null,
-				message    text,
-				primary key(alert_id, monitor_id)
-			)
-			`,
-		); err != nil {
-			return fmt.Errorf("create table alert_history_latest: %v", err)
-		}
-
 		return nil
 	}); err != nil {
 		panic(fmt.Errorf("transaction: %v", err))
@@ -100,7 +83,7 @@ func (repo *AlertRepository) Save(orgID string, alert *domain.Alert) (*domain.Al
 					alert_id,
 					status
 				from
-					alert_history_latest
+					alert_history
 				where
 					org_id=?  and
 					host_id=? and
@@ -158,33 +141,6 @@ func (repo *AlertRepository) Save(orgID string, alert *domain.Alert) (*domain.Al
 			return fmt.Errorf("insert into alert_history: %v", err)
 		}
 
-		if _, err := tx.Exec(
-			`
-				insert into alert_history_latest (
-					org_id,
-					alert_id,
-					status,
-					monitor_id,
-					host_id,
-					time,
-					message
-				) values (?, ?, ?, ?, ?, ?, ?)
-				on duplicate key update
-					status = values(status),
-					time = values(time),
-					message = values(message)
-				`,
-			orgID,
-			alertID,
-			alert.Status,
-			alert.MonitorID,
-			alert.HostID,
-			alert.OpenedAt,
-			alert.Message,
-		); err != nil {
-			return fmt.Errorf("insert into alert_history_latest: %v", err)
-		}
-
 		return nil
 	}); err != nil {
 		return alert, fmt.Errorf("transaction: %v", err)
@@ -200,7 +156,7 @@ func (repo *AlertRepository) Save(orgID string, alert *domain.Alert) (*domain.Al
 					message,
 					time
 				from
-					alert_history_latest
+					alert_history
 				where
 					org_id=?  and
 					host_id=? and
@@ -375,33 +331,6 @@ func (repo *AlertRepository) Close(orgID, alertID, reason string) (*domain.Alert
 			alert.Message,
 		); err != nil {
 			return fmt.Errorf("insert into alert_history: %v", err)
-		}
-
-		if _, err := tx.Exec(
-			`
-				insert into alert_history_latest (
-					org_id,
-					alert_id,
-					status,
-					monitor_id,
-					host_id,
-					time,
-					message
-				) values (?, ?, ?, ?, ?, ?, ?)
-				on duplicate key update
-					status = values(status),
-					time = values(time),
-					message = values(message)
-				`,
-			orgID,
-			alertID,
-			"OK",
-			alert.MonitorID,
-			alert.HostID,
-			alert.ClosedAt,
-			alert.Message,
-		); err != nil {
-			return fmt.Errorf("insert into alert_history_latest: %v", err)
 		}
 
 		return nil
