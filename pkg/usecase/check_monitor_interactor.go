@@ -55,22 +55,11 @@ func (s *CheckMonitorInteractor) HostMetric(orgID string) (*domain.Success, erro
 				status = "CRITICAL"
 			}
 
+			reason := ""
 			if status == "OK" {
-				alert, err := s.AlertRepository.Alert(orgID, h.ID, m.ID)
-				if err != nil {
-					// not found
-					continue
-				}
-
-				// close
-				if _, err := s.AlertRepository.Close(orgID, alert.ID, "automatic"); err != nil {
-					return &domain.Success{Success: false}, fmt.Errorf("close alert<%s>: %v", alert.ID, err)
-				}
-
-				continue
+				reason = "automatic"
 			}
 
-			// new alert
 			if _, err := s.AlertRepository.Save(orgID, &domain.Alert{
 				OrgID: orgID,
 				ID: domain.NewAlertID(
@@ -85,7 +74,7 @@ func (s *CheckMonitorInteractor) HostMetric(orgID string) (*domain.Success, erro
 				HostID:    h.ID,
 				Value:     avg.Value,
 				Message:   fmt.Sprintf("%f %s %f(warning), %f(critical)", avg.Value, m.Operator, m.Warning, m.Critical),
-				Reason:    "",
+				Reason:    reason,
 				OpenedAt:  time.Now().Unix(),
 			}); err != nil {
 				return &domain.Success{Success: false}, fmt.Errorf("save alert: %v", err)

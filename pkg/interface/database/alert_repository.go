@@ -171,15 +171,15 @@ func (repo *AlertRepository) Save(orgID string, alert *domain.Alert) (*domain.Al
 		)
 
 		var alertID, status, hostID, message string
-		var time int64
-		if err := row.Scan(&alertID, &status, &hostID, &message, &time); err != nil {
+		var timestamp int64
+		if err := row.Scan(&alertID, &status, &hostID, &message, &timestamp); err != nil {
 			// no record
 			return nil
 		}
 
 		var closedAt int64
 		if alert.Status == "OK" {
-			closedAt = alert.OpenedAt
+			closedAt = timestamp
 		}
 
 		if _, err := tx.Exec(
@@ -213,7 +213,7 @@ func (repo *AlertRepository) Save(orgID string, alert *domain.Alert) (*domain.Al
 			alert.Value,
 			message,
 			alert.Reason,
-			time,
+			timestamp,
 			closedAt,
 		); err != nil {
 			return fmt.Errorf("insert into alerts: %v", err)
@@ -222,63 +222,6 @@ func (repo *AlertRepository) Save(orgID string, alert *domain.Alert) (*domain.Al
 		return nil
 	}); err != nil {
 		return alert, fmt.Errorf("transaction: %v", err)
-	}
-
-	return alert, nil
-}
-
-func (repo *AlertRepository) Alert(orgID, hostID, monitorID string) (*domain.Alert, error) {
-	alert := &domain.Alert{
-		OrgID:     orgID,
-		MonitorID: monitorID,
-		HostID:    hostID,
-	}
-
-	if err := repo.Transact(func(tx Tx) error {
-		row := tx.QueryRow(
-			`
-				select
-					id,
-					status,
-					type,
-					value,
-					message,
-					reason,
-					opened_at,
-					closed_at
-				from
-					alerts
-				where
-					org_id=?     and
-					host_id=?    and
-					monitor_id=? and
-					closed_at=?
-				order by
-					opened_at desc
-				limit 1
-				`,
-			alert.OrgID,
-			alert.HostID,
-			alert.MonitorID,
-			0,
-		)
-
-		if err := row.Scan(
-			&alert.ID,
-			&alert.Status,
-			&alert.Type,
-			&alert.Value,
-			&alert.Message,
-			&alert.Reason,
-			&alert.OpenedAt,
-			&alert.ClosedAt,
-		); err != nil {
-			return fmt.Errorf("scan: %v", err)
-		}
-
-		return nil
-	}); err != nil {
-		return nil, fmt.Errorf("transaction: %v", err)
 	}
 
 	return alert, nil
