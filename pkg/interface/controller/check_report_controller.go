@@ -16,6 +16,7 @@ func NewCheckReportController(handler database.SQLHandler) *CheckReportControlle
 	return &CheckReportController{
 		Interactor: &usecase.CheckReportInteractor{
 			CheckReportRepository: database.NewCheckReportRepository(handler),
+			AlertRepository:       database.NewAlertRepository(handler),
 		},
 	}
 }

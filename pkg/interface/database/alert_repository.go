@@ -219,7 +219,7 @@ func (repo *AlertRepository) Save(orgID string, alert *domain.Alert) (*domain.Al
 
 		var closedAt int64
 		if alert.Status == "OK" {
-			closedAt = alert.ClosedAt
+			closedAt = alert.OpenedAt
 		}
 
 		if _, err := tx.Exec(
@@ -249,7 +249,7 @@ func (repo *AlertRepository) Save(orgID string, alert *domain.Alert) (*domain.Al
 			alert.MonitorID,
 			alert.Type,
 			hostID,
-			0,
+			alert.Value,
 			message,
 			alert.Reason,
 			time,
