@@ -10,6 +10,8 @@ import (
 )
 
 func main() {
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+
 	config := infrastructure.NewConfig()
 	log.Printf("%#v\n", config)
 
