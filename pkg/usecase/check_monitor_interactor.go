@@ -66,6 +66,7 @@ func (s *CheckMonitorInteractor) HostMetric(orgID string) (*domain.Success, erro
 			}
 
 			if len(status) < 1 {
+				// TODO close alert
 				continue
 			}
 
@@ -89,8 +90,6 @@ func (s *CheckMonitorInteractor) HostMetric(orgID string) (*domain.Success, erro
 				log.Printf("save alert: %v", err)
 				return &domain.Success{Success: false}, nil
 			}
-
-			log.Printf("[%s] %#v\n", status, avg)
 		}
 	}
 
