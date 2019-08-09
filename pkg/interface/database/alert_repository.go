@@ -177,6 +177,11 @@ func (repo *AlertRepository) Save(orgID string, alert *domain.Alert) (*domain.Al
 			return nil
 		}
 
+		if status == "OK" && alert.Status == "OK" {
+			// have record and alert closed
+			return nil
+		}
+
 		var closedAt int64
 		if alert.Status == "OK" {
 			closedAt = timestamp
