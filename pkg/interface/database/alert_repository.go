@@ -93,6 +93,180 @@ func (repo *AlertRepository) Exists(orgID, alertID string) bool {
 	return false
 }
 
+func (repo *AlertRepository) Save(orgID string, alert *domain.Alert) (*domain.Alert, error) {
+	if err := repo.Transact(func(tx Tx) error {
+		row := tx.QueryRow(
+			`
+				select
+					alert_id,
+					status
+				from
+					alert_history_latest
+				where
+					org_id=?  and
+					host_id=? and
+					monitor_id=?
+				`,
+			orgID,
+			alert.HostID,
+			alert.MonitorID,
+		)
+
+		var alertID, status string
+		if err := row.Scan(&alertID, &status); err != nil && alert.Status == "OK" {
+			// no record and no alert
+			return nil
+		}
+
+		if status == "OK" && alert.Status == "OK" {
+			// have record and alert closed
+			return nil
+		}
+
+		if (len(status) < 1 || status == "OK") && alert.Status != "OK" {
+			// new alert
+			alertID = alert.ID
+		}
+
+		// status != "OK" && reports.Reports[i].Status != "OK"
+		// -> continuous alert
+		// status != "OK" && reports.Reports[i].Status == "OK"
+		// -> close alert
+
+		if _, err := tx.Exec(
+			`
+				insert into alert_history (
+					org_id,
+					alert_id,
+					status,
+					monitor_id,
+					host_id,
+					time,
+					message
+				) values (?, ?, ?, ?, ?, ?, ?)
+				`,
+			orgID,
+			alertID,
+			alert.Status,
+			alert.MonitorID,
+			alert.HostID,
+			alert.OpenedAt,
+			alert.Message,
+		); err != nil {
+			return fmt.Errorf("insert into alert_history: %v", err)
+		}
+
+		if _, err := tx.Exec(
+			`
+				insert into alert_history_latest (
+					org_id,
+					alert_id,
+					status,
+					monitor_id,
+					host_id,
+					time,
+					message
+				) values (?, ?, ?, ?, ?, ?, ?)
+				on duplicate key update
+					status = values(status),
+					time = values(time),
+					message = values(message)
+				`,
+			orgID,
+			alertID,
+			alert.Status,
+			alert.MonitorID,
+			alert.HostID,
+			alert.OpenedAt,
+			alert.Message,
+		); err != nil {
+			return fmt.Errorf("insert into alert_history_latest: %v", err)
+		}
+
+		return nil
+	}); err != nil {
+		log.Printf("transaction: %v\n", err)
+		return alert, fmt.Errorf("transaction: %v\n", err)
+	}
+
+	if err := repo.Transact(func(tx Tx) error {
+		row := tx.QueryRow(
+			`
+				select
+					alert_id,
+					status,
+					host_id,
+					message,
+					time
+				from
+					alert_history_latest
+				where
+					org_id=?  and
+					host_id=? and
+					monitor_id=?
+				`,
+			orgID,
+			alert.HostID,
+			alert.MonitorID,
+		)
+
+		var alertID, status, hostID, message string
+		var time int64
+		if err := row.Scan(&alertID, &status, &hostID, &message, &time); err != nil {
+			// no record
+			return nil
+		}
+
+		var closedAt int64
+		if alert.Status == "OK" {
+			closedAt = alert.ClosedAt
+		}
+
+		if _, err := tx.Exec(
+			`
+				insert into alerts (
+					org_id,
+					id,
+					status,
+					monitor_id,
+					type,
+					host_id,
+					value,
+					message,
+					reason,
+					opened_at,
+					closed_at
+				)
+				values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+				on duplicate key update
+					status = values(status),
+					message = values(message),
+					closed_at = values(closed_at)
+				`,
+			orgID,
+			alertID,
+			status,
+			alert.MonitorID,
+			alert.Type,
+			hostID,
+			0,
+			message,
+			alert.Reason,
+			time,
+			closedAt,
+		); err != nil {
+			return fmt.Errorf("insert into alerts: %v", err)
+		}
+
+		return nil
+	}); err != nil {
+		log.Printf("transaction: %v\n", err)
+		return alert, fmt.Errorf("transaction: %v\n", err)
+	}
+
+	return alert, nil
+}
+
 func (repo *AlertRepository) List(orgID string, withClosed bool, nextID string, limit int) (*domain.Alerts, error) {
 	status := "UNKNOWN"
 	if withClosed {

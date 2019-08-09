@@ -29,7 +29,7 @@ runmysql:
 	-docker stop mysql
 	-docker rm mysql
 	docker run --name mysql -e MYSQL_ROOT_PASSWORD=secret -p 3306:3306 -d mysql
-	# mysql -h127.0.0.1 -P3306 -uroot -psecret
+	# mysql -h127.0.0.1 -P3306 -uroot -psecret -Dmackerel
 
 build:
 	set -x
@@ -44,7 +44,7 @@ test:
 	set -x
 	go test -cover $(shell go list ./... | grep -v /vendor/ | grep -v /build/) -v
 
-testcurl:
+curl:
 	set -x
 
 	curl -s localhost:8080/api/v0/org -H "X-Api-Key: ${XAPIKEY}" | jq .

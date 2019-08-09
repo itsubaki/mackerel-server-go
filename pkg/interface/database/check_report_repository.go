@@ -124,18 +124,35 @@ func (repo *CheckReportRepository) Save(orgID string, reports *domain.CheckRepor
 
 	if err := repo.Transact(func(tx Tx) error {
 		for i := range reports.Reports {
+			monitorID := domain.NewMonitorID(
+				orgID,
+				reports.Reports[i].Source.HostID,
+				reports.Reports[i].Source.Type,
+				reports.Reports[i].Name,
+			)
+
+			newAlertID := domain.NewAlertID(
+				orgID,
+				reports.Reports[i].Source.HostID,
+				reports.Reports[i].Name,
+				strconv.FormatInt(reports.Reports[i].OccurredAt, 10),
+			)
+
 			row := tx.QueryRow(
 				`
-				select alert_id, status from alert_history_latest where org_id=? and host_id=? and monitor_id=?
+				select
+					alert_id,
+					status
+				from
+					alert_history_latest
+				where
+					org_id=?  and
+					host_id=? and
+					monitor_id=?
 				`,
 				orgID,
 				reports.Reports[i].Source.HostID,
-				domain.NewMonitorID(
-					orgID,
-					reports.Reports[i].Source.HostID,
-					reports.Reports[i].Source.Type,
-					reports.Reports[i].Name,
-				),
+				monitorID,
 			)
 
 			var alertID, status string
@@ -151,12 +168,7 @@ func (repo *CheckReportRepository) Save(orgID string, reports *domain.CheckRepor
 
 			if (len(status) < 1 || status == "OK") && reports.Reports[i].Status != "OK" {
 				// new alert
-				alertID = domain.NewAlertID(
-					orgID,
-					reports.Reports[i].Source.HostID,
-					reports.Reports[i].Name,
-					strconv.FormatInt(reports.Reports[i].OccurredAt, 10),
-				)
+				alertID = newAlertID
 			}
 
 			// status != "OK" && reports.Reports[i].Status != "OK"
@@ -179,12 +191,7 @@ func (repo *CheckReportRepository) Save(orgID string, reports *domain.CheckRepor
 				orgID,
 				alertID,
 				reports.Reports[i].Status,
-				domain.NewMonitorID(
-					orgID,
-					reports.Reports[i].Source.HostID,
-					reports.Reports[i].Source.Type,
-					reports.Reports[i].Name,
-				),
+				monitorID,
 				reports.Reports[i].Source.HostID,
 				reports.Reports[i].OccurredAt,
 				reports.Reports[i].Message,
@@ -211,12 +218,7 @@ func (repo *CheckReportRepository) Save(orgID string, reports *domain.CheckRepor
 				orgID,
 				alertID,
 				reports.Reports[i].Status,
-				domain.NewMonitorID(
-					orgID,
-					reports.Reports[i].Source.HostID,
-					reports.Reports[i].Source.Type,
-					reports.Reports[i].Name,
-				),
+				monitorID,
 				reports.Reports[i].Source.HostID,
 				reports.Reports[i].OccurredAt,
 				reports.Reports[i].Message,
@@ -233,23 +235,36 @@ func (repo *CheckReportRepository) Save(orgID string, reports *domain.CheckRepor
 
 	if err := repo.Transact(func(tx Tx) error {
 		for i := range reports.Reports {
+			monitorID := domain.NewMonitorID(
+				orgID,
+				reports.Reports[i].Source.HostID,
+				reports.Reports[i].Source.Type,
+				reports.Reports[i].Name,
+			)
+
 			row := tx.QueryRow(
 				`
-				select alert_id, status, monitor_id, host_id, message, time from alert_history_latest where org_id=? and host_id=? and monitor_id=?
+				select
+					alert_id,
+					status,
+					host_id,
+					message,
+					time
+				from
+					alert_history_latest
+				where
+					org_id=?  and
+					host_id=? and
+					monitor_id=?
 				`,
 				orgID,
 				reports.Reports[i].Source.HostID,
-				domain.NewMonitorID(
-					orgID,
-					reports.Reports[i].Source.HostID,
-					reports.Reports[i].Source.Type,
-					reports.Reports[i].Name,
-				),
+				monitorID,
 			)
 
-			var alertID, status, monitorID, hostID, message string
+			var alertID, status, hostID, message string
 			var time int64
-			if err := row.Scan(&alertID, &status, &monitorID, &hostID, &message, &time); err != nil {
+			if err := row.Scan(&alertID, &status, &hostID, &message, &time); err != nil {
 				// no record
 				continue
 			}
