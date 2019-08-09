@@ -91,7 +91,7 @@ func (repo *GraphRepository) SaveDef(orgID string, g []domain.GraphDef) (*domain
 
 		return nil
 	}); err != nil {
-		return &domain.Success{Success: false}, nil
+		return &domain.Success{Success: false}, fmt.Errorf("transaction: %v", err)
 	}
 
 	return &domain.Success{Success: true}, nil

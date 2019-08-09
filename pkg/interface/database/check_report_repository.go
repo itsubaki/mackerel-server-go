@@ -2,7 +2,6 @@ package database
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/itsubaki/mackerel-api/pkg/domain"
 )
@@ -117,8 +116,7 @@ func (repo *CheckReportRepository) Save(orgID string, reports *domain.CheckRepor
 
 		return nil
 	}); err != nil {
-		log.Printf("transaction: %v\n", err)
-		return &domain.Success{Success: false}, nil
+		return &domain.Success{Success: false}, fmt.Errorf("transaction: %v", err)
 	}
 
 	return &domain.Success{Success: true}, nil

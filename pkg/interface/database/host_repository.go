@@ -375,7 +375,7 @@ func (repo *HostRepository) Status(orgID, hostID, status string) (*domain.Succes
 
 		return nil
 	}); err != nil {
-		return &domain.Success{Success: false}, nil
+		return &domain.Success{Success: false}, fmt.Errorf("transaction: %v", err)
 	}
 
 	return &domain.Success{Success: true}, nil
@@ -387,12 +387,12 @@ func (repo *HostRepository) SaveRoleFullNames(orgID, hostID string, names *domai
 
 	mroles, err := json.Marshal(roles)
 	if err != nil {
-		return &domain.Success{Success: false}, nil
+		return &domain.Success{Success: false}, fmt.Errorf("marshal: %v", err)
 	}
 
 	roleFullnames, err := json.Marshal(names.Names)
 	if err != nil {
-		return &domain.Success{Success: false}, nil
+		return &domain.Success{Success: false}, fmt.Errorf("marshal: %v", err)
 	}
 
 	if err := repo.Transact(func(tx Tx) error {
@@ -442,7 +442,7 @@ func (repo *HostRepository) SaveRoleFullNames(orgID, hostID string, names *domai
 
 		return nil
 	}); err != nil {
-		return &domain.Success{Success: false}, nil
+		return &domain.Success{Success: false}, fmt.Errorf("transaction: %v", err)
 	}
 
 	return &domain.Success{Success: true}, nil
@@ -457,7 +457,7 @@ func (repo *HostRepository) Retire(orgID, hostID string, retire *domain.HostReti
 
 		return nil
 	}); err != nil {
-		return &domain.Success{Success: false}, nil
+		return &domain.Success{Success: false}, fmt.Errorf("transaction: %v", err)
 	}
 
 	return &domain.Success{Success: true}, nil
@@ -689,7 +689,7 @@ func (repo *HostRepository) SaveMetricValues(orgID string, values []domain.Metri
 
 		return nil
 	}); err != nil {
-		return &domain.Success{Success: false}, nil
+		return &domain.Success{Success: false}, fmt.Errorf("transaction: %v", err)
 	}
 
 	return &domain.Success{Success: true}, nil
@@ -815,7 +815,7 @@ func (repo *HostRepository) Metadata(orgID, hostID, namespace string) (interface
 func (repo *HostRepository) SaveMetadata(orgID, hostID, namespace string, metadata interface{}) (*domain.Success, error) {
 	meta, err := json.Marshal(metadata)
 	if err != nil {
-		return &domain.Success{Success: false}, nil
+		return &domain.Success{Success: false}, fmt.Errorf("marshal: %v", err)
 	}
 
 	if err := repo.Transact(func(tx Tx) error {
@@ -831,7 +831,7 @@ func (repo *HostRepository) SaveMetadata(orgID, hostID, namespace string, metada
 
 		return nil
 	}); err != nil {
-		return &domain.Success{Success: false}, nil
+		return &domain.Success{Success: false}, fmt.Errorf("transaction: %v", err)
 	}
 
 	return &domain.Success{Success: true}, nil
@@ -851,7 +851,7 @@ func (repo *HostRepository) DeleteMetadata(orgID, hostID, namespace string) (*do
 
 		return nil
 	}); err != nil {
-		return &domain.Success{Success: false}, nil
+		return &domain.Success{Success: false}, fmt.Errorf("transaction: %v", err)
 	}
 
 	return &domain.Success{Success: true}, nil

@@ -2,7 +2,6 @@ package database
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/itsubaki/mackerel-api/pkg/domain"
@@ -188,8 +187,7 @@ func (repo *AlertRepository) Save(orgID string, alert *domain.Alert) (*domain.Al
 
 		return nil
 	}); err != nil {
-		log.Printf("transaction: %v\n", err)
-		return alert, fmt.Errorf("transaction: %v\n", err)
+		return alert, fmt.Errorf("transaction: %v", err)
 	}
 
 	if err := repo.Transact(func(tx Tx) error {
@@ -267,8 +265,7 @@ func (repo *AlertRepository) Save(orgID string, alert *domain.Alert) (*domain.Al
 
 		return nil
 	}); err != nil {
-		log.Printf("transaction: %v\n", err)
-		return alert, fmt.Errorf("transaction: %v\n", err)
+		return alert, fmt.Errorf("transaction: %v", err)
 	}
 
 	return alert, nil
@@ -409,7 +406,6 @@ func (repo *AlertRepository) Close(orgID, alertID, reason string) (*domain.Alert
 
 		return nil
 	}); err != nil {
-		log.Printf("transaction: %v\n", err)
 		return nil, fmt.Errorf("transaction: %v", err)
 	}
 
