@@ -91,6 +91,70 @@ func NewHostRepository(handler SQLHandler) *HostRepository {
 	}
 }
 
+func (repo *HostRepository) ActiveList(orgID string) (*domain.Hosts, error) {
+	hosts := make([]domain.Host, 0)
+
+	if err := repo.Transact(func(tx Tx) error {
+		rows, err := tx.Query("select * from hosts where org_id=? and is_retired=0", orgID)
+		if err != nil {
+			return fmt.Errorf("select * from hosts: %v", err)
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			var host domain.Host
+			var roles, roleFullnames, interfaces, checks, meta string
+			if err := rows.Scan(
+				&host.OrgID,
+				&host.ID,
+				&host.Name,
+				&host.Status,
+				&host.Memo,
+				&host.DisplayName,
+				&host.CustomIdentifier,
+				&host.CreatedAt,
+				&host.RetiredAt,
+				&host.IsRetired,
+				&roles,
+				&roleFullnames,
+				&interfaces,
+				&checks,
+				&meta,
+			); err != nil {
+				return fmt.Errorf("scan: %v", err)
+			}
+
+			if err := json.Unmarshal([]byte(roles), &host.Roles); err != nil {
+				return fmt.Errorf("unmarshal host.Roles: %v", err)
+			}
+
+			if err := json.Unmarshal([]byte(roleFullnames), &host.RoleFullNames); err != nil {
+				return fmt.Errorf("unmarshal host.RoleFullNames: %v", err)
+			}
+
+			if err := json.Unmarshal([]byte(interfaces), &host.Interfaces); err != nil {
+				return fmt.Errorf("unmarshal host.Interfaces: %v", err)
+			}
+
+			if err := json.Unmarshal([]byte(checks), &host.Checks); err != nil {
+				return fmt.Errorf("unmarshal host.Checks: %v", err)
+			}
+
+			if err := json.Unmarshal([]byte(meta), &host.Meta); err != nil {
+				return fmt.Errorf("unmarshal host.Meta: %v", err)
+			}
+
+			hosts = append(hosts, host)
+		}
+
+		return nil
+	}); err != nil {
+		return nil, fmt.Errorf("transaction: %v", err)
+	}
+
+	return &domain.Hosts{Hosts: hosts}, nil
+}
+
 // mysql> explain select * from hosts;
 // +----+-------------+-------+------------+------+---------------+------+---------+------+------+----------+-------+
 // | id | select_type | table | partitions | type | possible_keys | key  | key_len | ref  | rows | filtered | Extra |

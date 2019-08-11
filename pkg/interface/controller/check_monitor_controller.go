@@ -28,14 +28,33 @@ func (s *CheckMonitorController) HostMetric(c Context) {
 }
 
 func (s *CheckMonitorController) Connectivity(c Context) {
+	out, err := s.Interactor.Connectivity(
+		c.GetString("org_id"),
+	)
 
+	doResponse(c, out, err)
 }
 
 func (s *CheckMonitorController) ServiceMetric(c Context) {
+	out, err := s.Interactor.ServiceMetric(
+		c.GetString("org_id"),
+	)
+
+	doResponse(c, out, err)
 }
 
 func (s *CheckMonitorController) External(c Context) {
+	out, err := s.Interactor.External(
+		c.GetString("org_id"),
+	)
+
+	doResponse(c, out, err)
 }
 
 func (s *CheckMonitorController) Expression(c Context) {
+	out, err := s.Interactor.Expression(
+		c.GetString("org_id"),
+	)
+
+	doResponse(c, out, err)
 }

@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"fmt"
+	"log"
 	"strconv"
 	"time"
 
@@ -20,7 +21,7 @@ func (s *CheckMonitorInteractor) HostMetric(orgID string) (*domain.Success, erro
 		return &domain.Success{Success: false}, fmt.Errorf("get monitors: %v", err)
 	}
 
-	hosts, err := s.HostRepository.List(orgID)
+	hosts, err := s.HostRepository.ActiveList(orgID)
 	if err != nil {
 		return &domain.Success{Success: false}, fmt.Errorf("get hosts: %v", err)
 	}
@@ -57,29 +58,104 @@ func (s *CheckMonitorInteractor) HostMetric(orgID string) (*domain.Success, erro
 
 			reason := ""
 			if status == "OK" {
-				reason = "automatic"
+				reason = "closed automatically"
 			}
 
-			if _, err := s.AlertRepository.Save(orgID, &domain.Alert{
-				OrgID: orgID,
-				ID: domain.NewAlertID(
-					orgID,
-					h.ID,
-					m.ID,
-					strconv.FormatInt(avg.Time, 10),
-				),
-				Status:    status,
-				MonitorID: m.ID,
-				Type:      "host",
-				HostID:    h.ID,
-				Value:     avg.Value,
-				Message:   fmt.Sprintf("%f %s %f(warning), %f(critical)", avg.Value, m.Operator, m.Warning, m.Critical),
-				Reason:    reason,
-				OpenedAt:  time.Now().Unix(),
-			}); err != nil {
+			if _, err := s.AlertRepository.Save(
+				orgID,
+				&domain.Alert{
+					OrgID: orgID,
+					ID: domain.NewAlertID(
+						orgID,
+						h.ID,
+						m.ID,
+						strconv.FormatInt(avg.Time, 10),
+					),
+					Status:    status,
+					MonitorID: m.ID,
+					Type:      "host",
+					HostID:    h.ID,
+					Value:     avg.Value,
+					Message:   fmt.Sprintf("%f %s %f(warning), %f(critical)", avg.Value, m.Operator, m.Warning, m.Critical),
+					Reason:    reason,
+					OpenedAt:  time.Now().Unix(),
+				},
+			); err != nil {
 				return &domain.Success{Success: false}, fmt.Errorf("save alert: %v", err)
 			}
 		}
+	}
+
+	return &domain.Success{Success: true}, nil
+}
+
+func (s *CheckMonitorInteractor) Connectivity(orgID string) (*domain.Success, error) {
+	monitors, err := s.MonitorRepository.List(orgID)
+	if err != nil {
+		return &domain.Success{Success: false}, fmt.Errorf("get monitors: %v", err)
+	}
+
+	for i := range monitors.Monitors {
+		m, ok := monitors.Monitors[i].(*domain.HostConnectivityMonitoring)
+		if !ok {
+			continue
+		}
+
+		log.Printf("[DEBUG] %v", m)
+	}
+
+	return &domain.Success{Success: true}, nil
+}
+
+func (s *CheckMonitorInteractor) ServiceMetric(orgID string) (*domain.Success, error) {
+	monitors, err := s.MonitorRepository.List(orgID)
+	if err != nil {
+		return &domain.Success{Success: false}, fmt.Errorf("get monitors: %v", err)
+	}
+
+	for i := range monitors.Monitors {
+		m, ok := monitors.Monitors[i].(*domain.ServiceMetricMonitoring)
+		if !ok {
+			continue
+		}
+
+		log.Printf("[DEBUG] %v", m)
+	}
+
+	return &domain.Success{Success: true}, nil
+}
+
+func (s *CheckMonitorInteractor) External(orgID string) (*domain.Success, error) {
+	monitors, err := s.MonitorRepository.List(orgID)
+	if err != nil {
+		return &domain.Success{Success: false}, fmt.Errorf("get monitors: %v", err)
+	}
+
+	for i := range monitors.Monitors {
+		m, ok := monitors.Monitors[i].(*domain.ExternalMonitoring)
+		if !ok {
+			continue
+		}
+
+		log.Printf("[DEBUG] %v", m)
+	}
+
+	return &domain.Success{Success: true}, nil
+}
+
+func (s *CheckMonitorInteractor) Expression(orgID string) (*domain.Success, error) {
+	monitors, err := s.MonitorRepository.List(orgID)
+	if err != nil {
+		return &domain.Success{Success: false}, fmt.Errorf("get monitors: %v", err)
+	}
+
+	for i := range monitors.Monitors {
+		m, ok := monitors.Monitors[i].(*domain.ExpressionMonitoring)
+		if !ok {
+			continue
+		}
+
+		log.Printf("[DEBUG] %v", m)
 	}
 
 	return &domain.Success{Success: true}, nil

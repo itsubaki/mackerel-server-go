@@ -4,6 +4,7 @@ import "github.com/itsubaki/mackerel-api/pkg/domain"
 
 type HostRepository interface {
 	List(orgID string) (*domain.Hosts, error)
+	ActiveList(orgID string) (*domain.Hosts, error)
 	Save(orgID string, host *domain.Host) (*domain.HostID, error)
 	Host(orgID, hostID string) (*domain.Host, error)
 	Exists(orgID, hostID string) bool
