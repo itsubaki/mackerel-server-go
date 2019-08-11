@@ -16,9 +16,9 @@ type CheckMonitorInteractor struct {
 }
 
 func (s *CheckMonitorInteractor) HostMetric(orgID string) (*domain.Success, error) {
-	monitors, err := s.MonitorRepository.List(orgID)
+	monitors, err := s.MonitorRepository.HostMetricList(orgID)
 	if err != nil {
-		return &domain.Success{Success: false}, fmt.Errorf("get monitors: %v", err)
+		return &domain.Success{Success: false}, fmt.Errorf("get host metric monitoring list: %v", err)
 	}
 
 	hosts, err := s.HostRepository.ActiveList(orgID)
@@ -26,17 +26,8 @@ func (s *CheckMonitorInteractor) HostMetric(orgID string) (*domain.Success, erro
 		return &domain.Success{Success: false}, fmt.Errorf("get hosts: %v", err)
 	}
 
-	for i := range monitors.Monitors {
-		m, ok := monitors.Monitors[i].(*domain.HostMetricMonitoring)
-		if !ok {
-			continue
-		}
-
+	for _, m := range monitors {
 		for _, h := range hosts.Hosts {
-			if h.IsRetired {
-				continue
-			}
-
 			avg, err := s.HostRepository.MetricValuesAverage(h.OrgID, h.ID, m.Metric, m.Duration)
 			if err != nil {
 				return &domain.Success{Success: false}, fmt.Errorf("get average of metric value: %v", err)
@@ -92,7 +83,7 @@ func (s *CheckMonitorInteractor) HostMetric(orgID string) (*domain.Success, erro
 func (s *CheckMonitorInteractor) Connectivity(orgID string) (*domain.Success, error) {
 	monitors, err := s.MonitorRepository.List(orgID)
 	if err != nil {
-		return &domain.Success{Success: false}, fmt.Errorf("get monitors: %v", err)
+		return &domain.Success{Success: false}, fmt.Errorf("get monitor list: %v", err)
 	}
 
 	for i := range monitors.Monitors {
@@ -110,7 +101,7 @@ func (s *CheckMonitorInteractor) Connectivity(orgID string) (*domain.Success, er
 func (s *CheckMonitorInteractor) ServiceMetric(orgID string) (*domain.Success, error) {
 	monitors, err := s.MonitorRepository.List(orgID)
 	if err != nil {
-		return &domain.Success{Success: false}, fmt.Errorf("get monitors: %v", err)
+		return &domain.Success{Success: false}, fmt.Errorf("get monitor list: %v", err)
 	}
 
 	for i := range monitors.Monitors {
@@ -128,7 +119,7 @@ func (s *CheckMonitorInteractor) ServiceMetric(orgID string) (*domain.Success, e
 func (s *CheckMonitorInteractor) External(orgID string) (*domain.Success, error) {
 	monitors, err := s.MonitorRepository.List(orgID)
 	if err != nil {
-		return &domain.Success{Success: false}, fmt.Errorf("get monitors: %v", err)
+		return &domain.Success{Success: false}, fmt.Errorf("get monitor list: %v", err)
 	}
 
 	for i := range monitors.Monitors {
@@ -146,7 +137,7 @@ func (s *CheckMonitorInteractor) External(orgID string) (*domain.Success, error)
 func (s *CheckMonitorInteractor) Expression(orgID string) (*domain.Success, error) {
 	monitors, err := s.MonitorRepository.List(orgID)
 	if err != nil {
-		return &domain.Success{Success: false}, fmt.Errorf("get monitors: %v", err)
+		return &domain.Success{Success: false}, fmt.Errorf("get monitor list: %v", err)
 	}
 
 	for i := range monitors.Monitors {

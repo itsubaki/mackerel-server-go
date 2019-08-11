@@ -4,6 +4,7 @@ import "github.com/itsubaki/mackerel-api/pkg/domain"
 
 type MonitorRepository interface {
 	List(orgID string) (*domain.Monitors, error)
+	HostMetricList(orgID string) ([]domain.HostMetricMonitoring, error)
 	Save(orgID string, monitor *domain.Monitoring) (interface{}, error)
 	Update(orgID string, monitor *domain.Monitoring) (interface{}, error)
 	Monitor(orgID, monitorID string) (interface{}, error)

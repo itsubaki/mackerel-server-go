@@ -108,9 +108,9 @@ func (m *Monitoring) Cast() interface{} {
 			MaxCheckAttempts:                m.MaxCheckAttempts,
 			CertificationExpirationWarning:  m.CertificationExpirationWarning,
 			CertificationExpirationCritical: m.CertificationExpirationCritical,
-			IsMute:                          m.IsMute,
-			Headers:                         m.Headers,
-			RequestBody:                     m.RequestBody,
+			IsMute:      m.IsMute,
+			Headers:     m.Headers,
+			RequestBody: m.RequestBody,
 		}
 	}
 

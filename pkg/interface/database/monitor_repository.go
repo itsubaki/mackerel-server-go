@@ -62,6 +62,25 @@ func NewMonitorRepository(handler SQLHandler) *MonitorRepository {
 	}
 }
 
+func (repo *MonitorRepository) HostMetricList(orgID string) ([]domain.HostMetricMonitoring, error) {
+	list := make([]domain.HostMetricMonitoring, 0)
+	monitors, err := repo.List(orgID)
+	if err != nil {
+		return nil, fmt.Errorf("list monitors: %v", err)
+	}
+
+	for i := range monitors.Monitors {
+		m, ok := monitors.Monitors[i].(*domain.HostMetricMonitoring)
+		if !ok {
+			continue
+		}
+
+		list = append(list, *m)
+	}
+
+	return list, nil
+}
+
 func (repo *MonitorRepository) List(orgID string) (*domain.Monitors, error) {
 	monitors := make([]interface{}, 0)
 	if err := repo.Transact(func(tx Tx) error {
