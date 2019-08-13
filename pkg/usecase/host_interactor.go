@@ -23,10 +23,12 @@ func (s *HostInteractor) List(orgID string) (*domain.Hosts, error) {
 }
 
 func (s *HostInteractor) Save(orgID string, host *domain.Host) (*domain.HostID, error) {
-	// Update
+	// Update Host
 	if len(host.ID) > 0 && !s.HostRepository.Exists(orgID, host.ID) {
 		return nil, &HostNotFound{Err{errors.New(fmt.Sprintf("the host that corresponds to the <%s> can’t be located", host.ID))}}
 	}
+
+	// Set Status
 	if len(host.Status) < 1 && s.HostRepository.Exists(orgID, host.ID) {
 		exists, err := s.HostRepository.Host(orgID, host.ID)
 		if err != nil {
@@ -35,7 +37,7 @@ func (s *HostInteractor) Save(orgID string, host *domain.Host) (*domain.HostID, 
 		host.Status = exists.Status
 	}
 
-	// Create
+	// Create Host
 	if len(host.ID) < 1 {
 		host.ID = domain.NewHostID()
 		host.CreatedAt = time.Now().Unix()
@@ -47,7 +49,7 @@ func (s *HostInteractor) Save(orgID string, host *domain.Host) (*domain.HostID, 
 		}
 	}
 
-	// role_fullnames -> roles
+	// Set Roles
 	host.Roles = make(map[string][]string)
 	for i := range host.RoleFullNames {
 		svc := strings.Split(host.RoleFullNames[i], ":")
@@ -58,12 +60,14 @@ func (s *HostInteractor) Save(orgID string, host *domain.Host) (*domain.HostID, 
 		host.Roles[svc[0]] = append(host.Roles[svc[0]], svc[1])
 	}
 
+	// Save Host
 	res, err := s.HostRepository.Save(orgID, host)
 	if err != nil {
 		return nil, fmt.Errorf("save host: %v", err)
 	}
 
-	for svc := range host.Roles {
+	// Save Services, Roles
+	for svc, roles := range host.Roles {
 		if s.ServiceRepository.Exists(orgID, svc) {
 			continue
 		}
@@ -74,9 +78,7 @@ func (s *HostInteractor) Save(orgID string, host *domain.Host) (*domain.HostID, 
 		}); err != nil {
 			return nil, fmt.Errorf("save service<%s>: %v", svc, err)
 		}
-	}
 
-	for svc, roles := range host.Roles {
 		for i := range roles {
 			if s.RoleRepository.Exists(orgID, svc, roles[i]) {
 				continue
