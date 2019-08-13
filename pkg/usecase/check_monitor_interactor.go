@@ -29,6 +29,10 @@ func (s *CheckMonitorInteractor) HostMetric(orgID string) (*domain.Success, erro
 
 	for _, m := range monitors {
 		for _, h := range hosts.Hosts {
+			if !s.HostMetricRepository.Exists(h.OrgID, h.ID, m.Metric) {
+				continue
+			}
+
 			avg, err := s.HostMetricRepository.ValuesAverage(h.OrgID, h.ID, m.Metric, m.Duration)
 			if err != nil {
 				return &domain.Success{Success: false}, fmt.Errorf("get average of metric value: %v", err)
