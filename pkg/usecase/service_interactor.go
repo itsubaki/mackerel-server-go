@@ -10,13 +10,22 @@ import (
 )
 
 type ServiceInteractor struct {
-	NameRule          *regexp.Regexp
-	RoleNameRule      *regexp.Regexp
-	ServiceRepository ServiceRepository
+	NameRule                *regexp.Regexp
+	RoleNameRule            *regexp.Regexp
+	ServiceRepository       ServiceRepository
+	ServiceMetaRepository   ServiceMetaRepository
+	ServiceMetricRepository ServiceMetricRepository
+	RoleRepository          RoleRepository
+	RoleMetaRepository      RoleMetaRepository
 }
 
 func (s *ServiceInteractor) List(orgID string) (*domain.Services, error) {
-	return s.ServiceRepository.List(orgID)
+	roles, err := s.RoleRepository.ListWith(orgID)
+	if err != nil {
+		return nil, fmt.Errorf("list roles: %v", err)
+	}
+
+	return s.ServiceRepository.List(orgID, roles)
 }
 
 func (s *ServiceInteractor) Save(orgID string, service *domain.Service) (*domain.Service, error) {
@@ -26,6 +35,20 @@ func (s *ServiceInteractor) Save(orgID string, service *domain.Service) (*domain
 
 	if err := s.ServiceRepository.Save(orgID, service); err != nil {
 		return nil, err
+	}
+
+	for i := range service.Roles {
+		if !s.RoleRepository.Exists(orgID, service.Name, service.Roles[i]) {
+			continue
+		}
+
+		if err := s.RoleRepository.Save(orgID, service.Name, &domain.Role{
+			OrgID:       orgID,
+			ServiceName: service.Name,
+			Name:        service.Roles[i],
+		}); err != nil {
+			return nil, err
+		}
 	}
 
 	return &domain.Service{
@@ -45,6 +68,12 @@ func (s *ServiceInteractor) Delete(orgID, serviceName string) (*domain.Service, 
 		return nil, err
 	}
 
+	roles, err := s.RoleRepository.List(orgID, serviceName)
+	if err != nil {
+		return nil, err
+	}
+	service.Roles = roles.Array()
+
 	if err := s.ServiceRepository.Delete(orgID, serviceName); err != nil {
 		return nil, err
 	}
@@ -57,7 +86,7 @@ func (s *ServiceInteractor) RoleList(orgID, serviceName string) (*domain.Roles, 
 		return nil, &ServiceNotFound{Err{errors.New("the Service corresponding to <serviceName> can't be found")}}
 	}
 
-	list, err := s.ServiceRepository.RoleList(orgID, serviceName)
+	list, err := s.RoleRepository.List(orgID, serviceName)
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +103,7 @@ func (s *ServiceInteractor) SaveRole(orgID, serviceName string, role *domain.Rol
 		return nil, &InvalidRoleName{}
 	}
 
-	if err := s.ServiceRepository.SaveRole(orgID, serviceName, role); err != nil {
+	if err := s.RoleRepository.Save(orgID, serviceName, role); err != nil {
 		return nil, err
 	}
 
@@ -86,16 +115,16 @@ func (s *ServiceInteractor) DeleteRole(orgID, serviceName, roleName string) (*do
 		return nil, &ServiceNotFound{Err{errors.New("the Service corresponding to <serviceName> can't be found")}}
 	}
 
-	if !s.ServiceRepository.ExistsRole(orgID, serviceName, roleName) {
+	if !s.RoleRepository.Exists(orgID, serviceName, roleName) {
 		return nil, &RoleNotFound{Err{errors.New("the role corresponding to <roleName> can't be found")}}
 	}
 
-	r, err := s.ServiceRepository.Role(orgID, serviceName, roleName)
+	r, err := s.RoleRepository.Role(orgID, serviceName, roleName)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := s.ServiceRepository.DeleteRole(orgID, serviceName, roleName); err != nil {
+	if err := s.RoleRepository.Delete(orgID, serviceName, roleName); err != nil {
 		return nil, err
 	}
 
@@ -107,7 +136,7 @@ func (s *ServiceInteractor) MetadataList(orgID, serviceName string) (*domain.Ser
 		return nil, &ServiceNotFound{Err{errors.New("the Service corresponding to <serviceName> can't be found")}}
 	}
 
-	return s.ServiceRepository.MetadataList(orgID, serviceName)
+	return s.ServiceMetaRepository.List(orgID, serviceName)
 }
 
 func (s *ServiceInteractor) Metadata(orgID, serviceName, namespace string) (interface{}, error) {
@@ -115,11 +144,11 @@ func (s *ServiceInteractor) Metadata(orgID, serviceName, namespace string) (inte
 		return nil, &ServiceNotFound{Err{errors.New("the Service corresponding to <serviceName> can't be found")}}
 	}
 
-	if !s.ServiceRepository.ExistsMetadata(orgID, serviceName, namespace) {
+	if !s.ServiceMetaRepository.Exists(orgID, serviceName, namespace) {
 		return nil, &ServiceMetadataNotFound{Err{errors.New("metadata specified for the service does not exist")}}
 	}
 
-	return s.ServiceRepository.Metadata(orgID, serviceName, namespace)
+	return s.ServiceMetaRepository.Metadata(orgID, serviceName, namespace)
 }
 
 func (s *ServiceInteractor) SaveMetadata(orgID, serviceName, namespace string, metadata interface{}) (*domain.Success, error) {
@@ -127,7 +156,7 @@ func (s *ServiceInteractor) SaveMetadata(orgID, serviceName, namespace string, m
 		return &domain.Success{Success: false}, &ServiceNotFound{Err{errors.New("the Service corresponding to <serviceName> can't be found")}}
 	}
 
-	meta, err := s.ServiceRepository.MetadataList(orgID, serviceName)
+	meta, err := s.ServiceMetaRepository.List(orgID, serviceName)
 	if err != nil {
 		return &domain.Success{Success: false}, fmt.Errorf("get metadata list: %v", err)
 	}
@@ -145,7 +174,7 @@ func (s *ServiceInteractor) SaveMetadata(orgID, serviceName, namespace string, m
 		return &domain.Success{Success: false}, &MetadataTooLarge{Err{errors.New("the metadata exceeds 100KB")}}
 	}
 
-	res, err := s.ServiceRepository.SaveMetadata(orgID, serviceName, namespace, metadata)
+	res, err := s.ServiceMetaRepository.Save(orgID, serviceName, namespace, metadata)
 	if err != nil {
 		return res, fmt.Errorf("save metadata: %v", err)
 	}
@@ -158,11 +187,11 @@ func (s *ServiceInteractor) DeleteMetadata(orgID, serviceName, namespace string)
 		return &domain.Success{Success: false}, &ServiceNotFound{Err{errors.New("the Service corresponding to <serviceName> can't be found")}}
 	}
 
-	if !s.ServiceRepository.ExistsMetadata(orgID, serviceName, namespace) {
+	if !s.ServiceMetaRepository.Exists(orgID, serviceName, namespace) {
 		return &domain.Success{Success: false}, &ServiceMetadataNotFound{Err{errors.New("the specified metadata does not exist for the host")}}
 	}
 
-	res, err := s.ServiceRepository.DeleteMetadata(orgID, serviceName, namespace)
+	res, err := s.ServiceMetaRepository.Delete(orgID, serviceName, namespace)
 	if err != nil {
 		return res, fmt.Errorf("delete metadata: %v", err)
 	}
@@ -175,11 +204,11 @@ func (s *ServiceInteractor) RoleMetadataList(orgID, serviceName, roleName string
 		return nil, &ServiceNotFound{Err{errors.New("the service does not exist")}}
 	}
 
-	if !s.ServiceRepository.ExistsRole(orgID, serviceName, roleName) {
+	if !s.RoleRepository.Exists(orgID, serviceName, roleName) {
 		return nil, &RoleNotFound{Err{errors.New("the role does not exist")}}
 	}
 
-	return s.ServiceRepository.RoleMetadataList(orgID, serviceName, roleName)
+	return s.RoleMetaRepository.List(orgID, serviceName, roleName)
 }
 
 func (s *ServiceInteractor) RoleMetadata(orgID, serviceName, roleName, namespace string) (interface{}, error) {
@@ -187,15 +216,15 @@ func (s *ServiceInteractor) RoleMetadata(orgID, serviceName, roleName, namespace
 		return nil, &ServiceNotFound{Err{errors.New("the service does not exist")}}
 	}
 
-	if !s.ServiceRepository.ExistsRole(orgID, serviceName, roleName) {
+	if !s.RoleRepository.Exists(orgID, serviceName, roleName) {
 		return nil, &RoleNotFound{Err{errors.New("the role does not exist")}}
 	}
 
-	if !s.ServiceRepository.ExistsRoleMetadata(orgID, serviceName, roleName, namespace) {
+	if !s.RoleMetaRepository.Exists(orgID, serviceName, roleName, namespace) {
 		return nil, &RoleMetadataNotFound{Err{errors.New("the metadata specified for the role does not exist")}}
 	}
 
-	return s.ServiceRepository.RoleMetadata(orgID, serviceName, roleName, namespace)
+	return s.RoleMetaRepository.Metadata(orgID, serviceName, roleName, namespace)
 }
 
 func (s *ServiceInteractor) SaveRoleMetadata(orgID, serviceName, roleName, namespace string, metadata interface{}) (*domain.Success, error) {
@@ -203,11 +232,11 @@ func (s *ServiceInteractor) SaveRoleMetadata(orgID, serviceName, roleName, names
 		return &domain.Success{Success: false}, &ServiceNotFound{Err{errors.New("the service does not exist")}}
 	}
 
-	if !s.ServiceRepository.ExistsRole(orgID, serviceName, roleName) {
+	if !s.RoleRepository.Exists(orgID, serviceName, roleName) {
 		return &domain.Success{Success: false}, &RoleNotFound{Err{errors.New("the role does not exist")}}
 	}
 
-	meta, err := s.ServiceRepository.RoleMetadataList(orgID, serviceName, roleName)
+	meta, err := s.RoleMetaRepository.List(orgID, serviceName, roleName)
 	if err != nil {
 		return &domain.Success{Success: false}, fmt.Errorf("get role metadata list: %v", err)
 	}
@@ -225,7 +254,7 @@ func (s *ServiceInteractor) SaveRoleMetadata(orgID, serviceName, roleName, names
 		return &domain.Success{Success: false}, &MetadataTooLarge{Err{errors.New("the metadata exceeds 100KB")}}
 	}
 
-	res, err := s.ServiceRepository.SaveRoleMetadata(orgID, serviceName, roleName, namespace, metadata)
+	res, err := s.RoleMetaRepository.Save(orgID, serviceName, roleName, namespace, metadata)
 	if err != nil {
 		return res, fmt.Errorf("save role metadata: %v", err)
 	}
@@ -238,15 +267,15 @@ func (s *ServiceInteractor) DeleteRoleMetadata(orgID, serviceName, roleName, nam
 		return &domain.Success{Success: false}, &ServiceNotFound{Err{errors.New("the service does not exist")}}
 	}
 
-	if !s.ServiceRepository.ExistsRole(orgID, serviceName, roleName) {
+	if !s.RoleRepository.Exists(orgID, serviceName, roleName) {
 		return &domain.Success{Success: false}, &RoleNotFound{Err{errors.New("the role does not exist")}}
 	}
 
-	if !s.ServiceRepository.ExistsRoleMetadata(orgID, serviceName, roleName, namespace) {
+	if !s.RoleMetaRepository.Exists(orgID, serviceName, roleName, namespace) {
 		return &domain.Success{Success: false}, &RoleMetadataNotFound{Err{errors.New("the metadata specified for the role does not exist")}}
 	}
 
-	res, err := s.ServiceRepository.DeleteRoleMetadata(orgID, serviceName, roleName, namespace)
+	res, err := s.RoleMetaRepository.Delete(orgID, serviceName, roleName, namespace)
 	if err != nil {
 		return res, fmt.Errorf("delete role metadata: %v", err)
 	}
@@ -259,7 +288,7 @@ func (s *ServiceInteractor) MetricNames(orgID, serviceName string) (*domain.Serv
 		return nil, &ServiceNotFound{Err{errors.New("the Service corresponding to <serviceName> can't be found")}}
 	}
 
-	return s.ServiceRepository.MetricNames(orgID, serviceName)
+	return s.ServiceMetricRepository.Names(orgID, serviceName)
 }
 
 func (s *ServiceInteractor) MetricValues(orgID, serviceName, metricName string, from, to int64) (*domain.ServiceMetricValues, error) {
@@ -267,17 +296,17 @@ func (s *ServiceInteractor) MetricValues(orgID, serviceName, metricName string, 
 		return nil, &ServiceNotFound{Err{errors.New("the service does not exist")}}
 	}
 
-	if !s.ServiceRepository.ExistsMetric(orgID, serviceName, metricName) {
+	if !s.ServiceMetricRepository.Exists(orgID, serviceName, metricName) {
 		return nil, &ServiceMetricNotFound{Err{errors.New("the metric does not exist")}}
 	}
 
-	return s.ServiceRepository.MetricValues(orgID, serviceName, metricName, from, to)
+	return s.ServiceMetricRepository.Values(orgID, serviceName, metricName, from, to)
 }
 
 func (s *ServiceInteractor) SaveMetricValues(orgID, serviceName string, values []domain.ServiceMetricValue) (*domain.Success, error) {
 	// TODO
 	// When the number of requests per minute is exceeded. Correct this by setting the posting frequency to a 1 minute interval, or posting multiple metrics at once, etc.
-	res, err := s.ServiceRepository.SaveMetricValues(orgID, serviceName, values)
+	res, err := s.ServiceMetricRepository.Save(orgID, serviceName, values)
 	if err != nil {
 		return res, fmt.Errorf("save metric values: %v", err)
 	}

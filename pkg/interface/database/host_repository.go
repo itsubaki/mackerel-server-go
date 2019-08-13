@@ -263,40 +263,6 @@ func (repo *HostRepository) Save(orgID string, host *domain.Host) (*domain.HostI
 
 		}
 
-		for svc, role := range host.Roles {
-			if _, err := tx.Exec(
-				`
-				insert into services (
-					org_id,
-					name
-				)
-				select ?, ? where not exists (select 1 from services where org_id=? and name=?)
-				`,
-				orgID, svc,
-				orgID, svc,
-			); err != nil {
-				return fmt.Errorf("insert into services: %v", err)
-			}
-
-			for i := range role {
-				if _, err := tx.Exec(
-					`
-					insert into roles (
-						org_id,
-						service_name,
-						name
-					)
-					select ?, ?, ? where not exists (select 1 from roles where org_id=? and service_name=? and name=?)
-					`,
-					orgID, svc, role[i],
-					orgID, svc, role[i],
-				); err != nil {
-					return fmt.Errorf("insert into roles: %v", err)
-				}
-
-			}
-		}
-
 		return nil
 	}); err != nil {
 		return nil, fmt.Errorf("transaction: %v", err)
@@ -402,6 +368,21 @@ func (repo *HostRepository) Status(orgID, hostID, status string) (*domain.Succes
 	return &domain.Success{Success: true}, nil
 }
 
+// update hosts set is_retired=true, retired_at=time.Now().Unix() where id=${hostID}
+func (repo *HostRepository) Retire(orgID, hostID string, retire *domain.HostRetire) (*domain.Success, error) {
+	if err := repo.Transact(func(tx Tx) error {
+		if _, err := tx.Exec("update hosts set is_retired=?, retired_at=? where org_id=? and id=?", true, time.Now().Unix(), orgID, hostID); err != nil {
+			return fmt.Errorf("update hosts: %v", err)
+		}
+
+		return nil
+	}); err != nil {
+		return &domain.Success{Success: false}, fmt.Errorf("transaction: %v", err)
+	}
+
+	return &domain.Success{Success: true}, nil
+}
+
 // update hosts set roles=${roles} where id=${hostID}
 func (repo *HostRepository) SaveRoleFullNames(orgID, hostID string, names *domain.RoleFullNames) (*domain.Success, error) {
 	roles := names.Roles()
@@ -424,60 +405,6 @@ func (repo *HostRepository) SaveRoleFullNames(orgID, hostID string, names *domai
 			orgID,
 			hostID,
 		); err != nil {
-			return fmt.Errorf("update hosts: %v", err)
-		}
-
-		return nil
-	}); err != nil {
-		return &domain.Success{Success: false}, fmt.Errorf("transaction: %v", err)
-	}
-
-	if err := repo.Transact(func(tx Tx) error {
-		for svc, role := range roles {
-			if _, err := tx.Exec(
-				`
-				insert into services (
-					org_id,
-					name
-				)
-				select ?, ? where not exists (select 1 from services where org_id=? and name=?)
-				`,
-				orgID, svc,
-				orgID, svc,
-			); err != nil {
-				return fmt.Errorf("insert into services: %v", err)
-			}
-
-			for i := range role {
-				if _, err := tx.Exec(
-					`
-					insert into roles (
-						org_id,
-						service_name,
-						name
-					)
-					select ?, ?, ? where not exists (select 1 from roles where org_id=? and service_name=? and name=?)
-					`,
-					orgID, svc, role[i],
-					orgID, svc, role[i],
-				); err != nil {
-					return fmt.Errorf("insert into roles: %v", err)
-				}
-			}
-		}
-
-		return nil
-	}); err != nil {
-		return &domain.Success{Success: false}, fmt.Errorf("transaction: %v", err)
-	}
-
-	return &domain.Success{Success: true}, nil
-}
-
-// update hosts set is_retired=true, retired_at=time.Now().Unix() where id=${hostID}
-func (repo *HostRepository) Retire(orgID, hostID string, retire *domain.HostRetire) (*domain.Success, error) {
-	if err := repo.Transact(func(tx Tx) error {
-		if _, err := tx.Exec("update hosts set is_retired=?, retired_at=? where org_id=? and id=?", true, time.Now().Unix(), orgID, hostID); err != nil {
 			return fmt.Errorf("update hosts: %v", err)
 		}
 

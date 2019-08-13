@@ -14,6 +14,8 @@ type HostInteractor struct {
 	HostRepository       HostRepository
 	HostMetaRepository   HostMetaRepository
 	HostMetricRepository HostMetricRepository
+	ServiceRepository    ServiceRepository
+	RoleRepository       RoleRepository
 }
 
 func (s *HostInteractor) List(orgID string) (*domain.Hosts, error) {
@@ -56,7 +58,41 @@ func (s *HostInteractor) Save(orgID string, host *domain.Host) (*domain.HostID, 
 		host.Roles[svc[0]] = append(host.Roles[svc[0]], svc[1])
 	}
 
-	return s.HostRepository.Save(orgID, host)
+	res, err := s.HostRepository.Save(orgID, host)
+	if err != nil {
+		return nil, fmt.Errorf("save host: %v", err)
+	}
+
+	for svc := range host.Roles {
+		if s.ServiceRepository.Exists(orgID, svc) {
+			continue
+		}
+
+		if err := s.ServiceRepository.Save(orgID, &domain.Service{
+			OrgID: orgID,
+			Name:  svc,
+		}); err != nil {
+			return nil, fmt.Errorf("save service<%s>: %v", svc, err)
+		}
+	}
+
+	for svc, roles := range host.Roles {
+		for i := range roles {
+			if s.RoleRepository.Exists(orgID, svc, roles[i]) {
+				continue
+			}
+
+			if err := s.RoleRepository.Save(orgID, svc, &domain.Role{
+				OrgID:       orgID,
+				ServiceName: svc,
+				Name:        roles[i],
+			}); err != nil {
+				return nil, fmt.Errorf("save role<%s:%s>: %v", svc, roles[i], err)
+			}
+		}
+	}
+
+	return res, nil
 }
 
 func (s *HostInteractor) Host(orgID, hostID string) (*domain.HostInfo, error) {
@@ -89,6 +125,25 @@ func (s *HostInteractor) SaveRoleFullNames(orgID, hostID string, names *domain.R
 	res, err := s.HostRepository.SaveRoleFullNames(orgID, hostID, names)
 	if err != nil {
 		return res, fmt.Errorf("save role fullnames: %v", err)
+	}
+
+	for svc, roles := range names.Roles() {
+		if err := s.ServiceRepository.Save(orgID, &domain.Service{
+			OrgID: orgID,
+			Name:  svc,
+		}); err != nil {
+			return nil, fmt.Errorf("save service<%s>: %v", svc, err)
+		}
+
+		for i := range roles {
+			if err := s.RoleRepository.Save(orgID, svc, &domain.Role{
+				OrgID:       orgID,
+				ServiceName: svc,
+				Name:        roles[i],
+			}); err != nil {
+				return nil, fmt.Errorf("save role<%s:%s>: %v", svc, roles[i], err)
+			}
+		}
 	}
 
 	return res, nil

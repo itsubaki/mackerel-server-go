@@ -19,6 +19,8 @@ func NewHostController(handler database.SQLHandler) *HostController {
 			HostRepository:       database.NewHostRepository(handler),
 			HostMetricRepository: database.NewHostMetricRepository(handler),
 			HostMetaRepository:   database.NewHostMetaRepository(handler),
+			ServiceRepository:    database.NewServiceRepository(handler),
+			RoleRepository:       database.NewRoleRepository(handler),
 		},
 	}
 }
