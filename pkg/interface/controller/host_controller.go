@@ -16,7 +16,11 @@ type HostController struct {
 func NewHostController(handler database.SQLHandler) *HostController {
 	return &HostController{
 		Interactor: &usecase.HostInteractor{
-			HostRepository: database.NewHostRepository(handler),
+			HostRepository:       database.NewHostRepository(handler),
+			HostMetricRepository: database.NewHostMetricRepository(handler),
+			HostMetaRepository:   database.NewHostMetaRepository(handler),
+			ServiceRepository:    database.NewServiceRepository(handler),
+			RoleRepository:       database.NewRoleRepository(handler),
 		},
 	}
 }

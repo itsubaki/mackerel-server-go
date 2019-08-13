@@ -17,9 +17,13 @@ type ServiceController struct {
 func NewServiceController(handler database.SQLHandler) *ServiceController {
 	return &ServiceController{
 		Interactor: &usecase.ServiceInteractor{
-			NameRule:          regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9_-]{1,62}`),
-			RoleNameRule:      regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9_-]{1,62}`),
-			ServiceRepository: database.NewServiceRepository(handler),
+			NameRule:                regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9_-]{1,62}`),
+			RoleNameRule:            regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9_-]{1,62}`),
+			ServiceRepository:       database.NewServiceRepository(handler),
+			ServiceMetaRepository:   database.NewServiceMetaRepository(handler),
+			ServiceMetricRepository: database.NewServiceMetricRepository(handler),
+			RoleRepository:          database.NewRoleRepository(handler),
+			RoleMetaRepository:      database.NewRoleMetaRepository(handler),
 		},
 	}
 }

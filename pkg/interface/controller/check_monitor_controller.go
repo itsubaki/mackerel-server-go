@@ -12,9 +12,10 @@ type CheckMonitorController struct {
 func NewCheckMonitorController(handler database.SQLHandler) *CheckMonitorController {
 	return &CheckMonitorController{
 		Interactor: &usecase.CheckMonitorInteractor{
-			MonitorRepository: database.NewMonitorRepository(handler),
-			HostRepository:    database.NewHostRepository(handler),
-			AlertRepository:   database.NewAlertRepository(handler),
+			MonitorRepository:    database.NewMonitorRepository(handler),
+			HostRepository:       database.NewHostRepository(handler),
+			HostMetricRepository: database.NewHostMetricRepository(handler),
+			AlertRepository:      database.NewAlertRepository(handler),
 		},
 	}
 }
