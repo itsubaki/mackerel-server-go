@@ -197,23 +197,6 @@ func (s *HostInteractor) SaveMetricValues(orgID string, values []domain.MetricVa
 	return res, nil
 }
 
-func (s *HostInteractor) MetadataList(orgID, hostID string) (*domain.HostMetadataList, error) {
-	if !s.HostRepository.Exists(orgID, hostID) {
-		return nil, &HostNotFound{Err{errors.New(fmt.Sprintf("the host<%s> does not exist", hostID))}}
-	}
-
-	h, err := s.HostRepository.Host(orgID, hostID)
-	if err != nil {
-		return nil, err
-	}
-
-	if h.IsRetired {
-		return nil, &HostIsRetired{Err{errors.New(fmt.Sprintf("more than a week has passed since the host<%s> retired", hostID))}}
-	}
-
-	return s.HostMetaRepository.List(orgID, hostID)
-}
-
 func (s *HostInteractor) Metadata(orgID, hostID, namespace string) (interface{}, error) {
 	if !s.HostRepository.Exists(orgID, hostID) {
 		return nil, &HostNotFound{Err{errors.New(fmt.Sprintf("the host<%s> does not exist", hostID))}}
@@ -233,6 +216,23 @@ func (s *HostInteractor) Metadata(orgID, hostID, namespace string) (interface{},
 	}
 
 	return s.HostMetaRepository.Metadata(orgID, hostID, namespace)
+}
+
+func (s *HostInteractor) ListMetadata(orgID, hostID string) (*domain.HostMetadataList, error) {
+	if !s.HostRepository.Exists(orgID, hostID) {
+		return nil, &HostNotFound{Err{errors.New(fmt.Sprintf("the host<%s> does not exist", hostID))}}
+	}
+
+	h, err := s.HostRepository.Host(orgID, hostID)
+	if err != nil {
+		return nil, err
+	}
+
+	if h.IsRetired {
+		return nil, &HostIsRetired{Err{errors.New(fmt.Sprintf("more than a week has passed since the host<%s> retired", hostID))}}
+	}
+
+	return s.HostMetaRepository.List(orgID, hostID)
 }
 
 func (s *HostInteractor) SaveMetadata(orgID, hostID, namespace string, metadata interface{}) (*domain.Success, error) {

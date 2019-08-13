@@ -33,7 +33,7 @@ func Hosts(v0 *gin.RouterGroup, handler database.SQLHandler) {
 	v0.GET("/tsdb/latest", func(c *gin.Context) { hosts.MetricValuesLatest(c) })
 	v0.POST("/tsdb", func(c *gin.Context) { hosts.SaveMetricValues(c) })
 
-	h.GET("/:hostId/metadata", func(c *gin.Context) { hosts.MetadataList(c) })
+	h.GET("/:hostId/metadata", func(c *gin.Context) { hosts.ListMetadata(c) })
 	h.GET("/:hostId/metadata/:namespace", func(c *gin.Context) { hosts.Metadata(c) })
 	h.PUT("/:hostId/metadata/:namespace", func(c *gin.Context) { hosts.SaveMetadata(c) })
 	h.DELETE("/:hostId/metadata/:namespace", func(c *gin.Context) { hosts.DeleteMetadata(c) })
@@ -47,7 +47,7 @@ func Services(v0 *gin.RouterGroup, handler database.SQLHandler) {
 	s.POST("", func(c *gin.Context) { services.Save(c) })
 	s.DELETE("/:serviceName", func(c *gin.Context) { services.Delete(c) })
 
-	s.GET("/:serviceName/roles", func(c *gin.Context) { services.RoleList(c) })
+	s.GET("/:serviceName/roles", func(c *gin.Context) { services.ListRole(c) })
 	s.POST("/:serviceName/roles", func(c *gin.Context) { services.SaveRole(c) })
 	s.DELETE("/:serviceName/roles/:roleName", func(c *gin.Context) { services.DeleteRole(c) })
 
@@ -55,12 +55,12 @@ func Services(v0 *gin.RouterGroup, handler database.SQLHandler) {
 	s.GET("/:serviceName/metrics", func(c *gin.Context) { services.MetricValues(c) })
 	s.POST("/:serviceName/tsdb", func(c *gin.Context) { services.SaveMetricValues(c) })
 
-	s.GET("/:serviceName/metadata", func(c *gin.Context) { services.MetadataList(c) })
+	s.GET("/:serviceName/metadata", func(c *gin.Context) { services.ListMetadata(c) })
 	s.GET("/:serviceName/metadata/:namespace", func(c *gin.Context) { services.Metadata(c) })
 	s.PUT("/:serviceName/metadata/:namespace", func(c *gin.Context) { services.SaveMetadata(c) })
 	s.DELETE("/:serviceName/metadata/:namespace", func(c *gin.Context) { services.DeleteMetadata(c) })
 
-	s.GET("/:serviceName/roles/:roleName/metadata", func(c *gin.Context) { services.RoleMetadataList(c) })
+	s.GET("/:serviceName/roles/:roleName/metadata", func(c *gin.Context) { services.ListRoleMetadata(c) })
 	s.GET("/:serviceName/roles/:roleName/metadata/:namespace", func(c *gin.Context) { services.RoleMetadata(c) })
 	s.PUT("/:serviceName/roles/:roleName/metadata/:namespace", func(c *gin.Context) { services.SaveRoleMetadata(c) })
 	s.DELETE("/:serviceName/roles/:roleName/metadata/:namespace", func(c *gin.Context) { services.DeleteRoleMetadata(c) })

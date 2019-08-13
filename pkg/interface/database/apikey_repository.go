@@ -2,6 +2,7 @@ package database
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/itsubaki/mackerel-api/pkg/domain"
 )
@@ -15,11 +16,12 @@ func NewAPIKeyRepository(handler SQLHandler) *APIKeyRepository {
 		if _, err := tx.Exec(
 			`
 			create table if not exists apikeys (
-				org_id  varchar(16) not null,
-				name    varchar(16) not null,
-				api_key varchar(45) not null primary key,
-				xread   boolean     not null default 1,
-				xwrite  boolean     not null default 1
+				org_id      varchar(16) not null,
+				name        varchar(16) not null,
+				api_key     varchar(45) not null primary key,
+				xread       boolean     not null default 1,
+				xwrite      boolean     not null default 1,
+				last_access bigint      not null default 0
 			)
 			`,
 		); err != nil {
@@ -97,6 +99,30 @@ func (repo *APIKeyRepository) Save(orgID, name string, write bool) (*domain.APIK
 	}, nil
 }
 
+func (repo *APIKeyRepository) List(orgID string) ([]domain.APIKey, error) {
+	keys := make([]domain.APIKey, 0)
+	rows, err := repo.Query(`select * from apikeys where org_id=?`, orgID)
+	if err != nil {
+		return nil, fmt.Errorf("select * from apikeys: %v", err)
+	}
+
+	for rows.Next() {
+		var key domain.APIKey
+		if err := rows.Scan(
+			&key.OrgID,
+			&key.Name,
+			&key.APIKey,
+			&key.Read,
+			&key.Write,
+			&key.LastAccess,
+		); err != nil {
+			return nil, fmt.Errorf("scan: %v", err)
+		}
+	}
+
+	return keys, nil
+}
+
 func (repo *APIKeyRepository) APIKey(xapikey string) (*domain.APIKey, error) {
 	var key domain.APIKey
 	if err := repo.Transact(func(tx Tx) error {
@@ -107,8 +133,19 @@ func (repo *APIKeyRepository) APIKey(xapikey string) (*domain.APIKey, error) {
 			&key.APIKey,
 			&key.Read,
 			&key.Write,
+			&key.LastAccess,
 		); err != nil {
 			return fmt.Errorf("select * from apikeys: %v", err)
+		}
+
+		if _, err := tx.Exec(
+			`
+			update apikeys set last_access=? where api_key=?
+			`,
+			time.Now().Unix(),
+			xapikey,
+		); err != nil {
+			return fmt.Errorf("update apykeys: %v", err)
 		}
 
 		return nil

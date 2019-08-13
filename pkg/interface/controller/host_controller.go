@@ -179,20 +179,20 @@ func (s *HostController) SaveMetricValues(c Context) {
 	doResponse(c, out, err)
 }
 
-func (s *HostController) MetadataList(c Context) {
-	out, err := s.Interactor.MetadataList(
-		c.GetString("org_id"),
-		c.Param("hostId"),
-	)
-
-	doResponse(c, out, err)
-}
-
 func (s *HostController) Metadata(c Context) {
 	out, err := s.Interactor.Metadata(
 		c.GetString("org_id"),
 		c.Param("hostId"),
 		c.Param("namespace"),
+	)
+
+	doResponse(c, out, err)
+}
+
+func (s *HostController) ListMetadata(c Context) {
+	out, err := s.Interactor.ListMetadata(
+		c.GetString("org_id"),
+		c.Param("hostId"),
 	)
 
 	doResponse(c, out, err)

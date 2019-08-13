@@ -60,8 +60,8 @@ func (s *ServiceController) Delete(c Context) {
 	doResponse(c, out, err)
 }
 
-func (s *ServiceController) RoleList(c Context) {
-	out, err := s.Interactor.RoleList(
+func (s *ServiceController) ListRole(c Context) {
+	out, err := s.Interactor.ListRole(
 		c.GetString("org_id"),
 		c.Param("serviceName"),
 	)
@@ -144,20 +144,20 @@ func (s *ServiceController) SaveMetricValues(c Context) {
 	doResponse(c, out, err)
 }
 
-func (s *ServiceController) MetadataList(c Context) {
-	out, err := s.Interactor.MetadataList(
-		c.GetString("org_id"),
-		c.Param("serviceName"),
-	)
-
-	doResponse(c, out, err)
-}
-
 func (s *ServiceController) Metadata(c Context) {
 	out, err := s.Interactor.Metadata(
 		c.GetString("org_id"),
 		c.Param("serviceName"),
 		c.Param("namespace"),
+	)
+
+	doResponse(c, out, err)
+}
+
+func (s *ServiceController) ListMetadata(c Context) {
+	out, err := s.Interactor.ListMetadata(
+		c.GetString("org_id"),
+		c.Param("serviceName"),
 	)
 
 	doResponse(c, out, err)
@@ -201,8 +201,8 @@ func (s *ServiceController) RoleMetadata(c Context) {
 	doResponse(c, out, err)
 }
 
-func (s *ServiceController) RoleMetadataList(c Context) {
-	out, err := s.Interactor.RoleMetadataList(
+func (s *ServiceController) ListRoleMetadata(c Context) {
+	out, err := s.Interactor.ListRoleMetadata(
 		c.GetString("org_id"),
 		c.Param("serviceName"),
 		c.Param("roleName"),
