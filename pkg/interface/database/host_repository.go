@@ -427,6 +427,12 @@ func (repo *HostRepository) SaveRoleFullNames(orgID, hostID string, names *domai
 			return fmt.Errorf("update hosts: %v", err)
 		}
 
+		return nil
+	}); err != nil {
+		return &domain.Success{Success: false}, fmt.Errorf("transaction: %v", err)
+	}
+
+	if err := repo.Transact(func(tx Tx) error {
 		for svc, role := range roles {
 			if _, err := tx.Exec(
 				`
@@ -457,7 +463,6 @@ func (repo *HostRepository) SaveRoleFullNames(orgID, hostID string, names *domai
 				); err != nil {
 					return fmt.Errorf("insert into roles: %v", err)
 				}
-
 			}
 		}
 

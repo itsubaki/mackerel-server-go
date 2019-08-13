@@ -283,7 +283,7 @@ func (repo *HostMetricRepository) Save(orgID string, values []domain.MetricValue
 	return &domain.Success{Success: true}, nil
 }
 
-func (repo *HostMetricRepository) Average(orgID, hostID, name string, duration int) (*domain.MetricValueAverage, error) {
+func (repo *HostMetricRepository) ValuesAverage(orgID, hostID, name string, duration int) (*domain.MetricValueAverage, error) {
 	avg := &domain.MetricValueAverage{
 		OrgID:    orgID,
 		HostID:   hostID,

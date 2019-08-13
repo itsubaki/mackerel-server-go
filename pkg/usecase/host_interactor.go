@@ -11,7 +11,9 @@ import (
 )
 
 type HostInteractor struct {
-	HostRepository HostRepository
+	HostRepository       HostRepository
+	HostMetaRepository   HostMetaRepository
+	HostMetricRepository HostMetricRepository
 }
 
 func (s *HostInteractor) List(orgID string) (*domain.Hosts, error) {
@@ -110,7 +112,7 @@ func (s *HostInteractor) MetricNames(orgID, hostID string) (*domain.MetricNames,
 		return nil, &HostNotFound{Err{errors.New(fmt.Sprintf("the host that corresponds to the <%s> can’t be located", hostID))}}
 	}
 
-	return s.HostRepository.MetricNames(orgID, hostID)
+	return s.HostMetricRepository.Names(orgID, hostID)
 }
 
 func (s *HostInteractor) MetricValues(orgID, hostID, name string, from, to int64) (*domain.MetricValues, error) {
@@ -118,19 +120,19 @@ func (s *HostInteractor) MetricValues(orgID, hostID, name string, from, to int64
 		return nil, &HostNotFound{Err{errors.New(fmt.Sprintf("the host<%s> doesn't exist", hostID))}}
 	}
 
-	if !s.HostRepository.ExistsMetric(orgID, hostID, name) {
+	if !s.HostMetricRepository.Exists(orgID, hostID, name) {
 		return nil, &HostMetricNotFound{Err{errors.New(fmt.Sprintf("the metric<%s:%s> doesn't exist", hostID, name))}}
 	}
 
-	return s.HostRepository.MetricValues(orgID, hostID, name, from, to)
+	return s.HostMetricRepository.Values(orgID, hostID, name, from, to)
 }
 
 func (s *HostInteractor) MetricValuesLatest(orgID string, hostId, name []string) (*domain.TSDBLatest, error) {
-	return s.HostRepository.MetricValuesLatest(orgID, hostId, name)
+	return s.HostMetricRepository.ValuesLatest(orgID, hostId, name)
 }
 
 func (s *HostInteractor) SaveMetricValues(orgID string, values []domain.MetricValue) (*domain.Success, error) {
-	res, err := s.HostRepository.SaveMetricValues(orgID, values)
+	res, err := s.HostMetricRepository.Save(orgID, values)
 	if err != nil {
 		return res, fmt.Errorf("save host metric values: %v", err)
 	}
@@ -152,7 +154,7 @@ func (s *HostInteractor) MetadataList(orgID, hostID string) (*domain.HostMetadat
 		return nil, &HostIsRetired{Err{errors.New(fmt.Sprintf("more than a week has passed since the host<%s> retired", hostID))}}
 	}
 
-	return s.HostRepository.MetadataList(orgID, hostID)
+	return s.HostMetaRepository.List(orgID, hostID)
 }
 
 func (s *HostInteractor) Metadata(orgID, hostID, namespace string) (interface{}, error) {
@@ -160,7 +162,7 @@ func (s *HostInteractor) Metadata(orgID, hostID, namespace string) (interface{},
 		return nil, &HostNotFound{Err{errors.New(fmt.Sprintf("the host<%s> does not exist", hostID))}}
 	}
 
-	if !s.HostRepository.ExistsMetadata(orgID, hostID, namespace) {
+	if !s.HostMetaRepository.Exists(orgID, hostID, namespace) {
 		return nil, &HostMetadataNotFound{Err{errors.New(fmt.Sprintf("the specified metadata does not exist for the host<%s:%s>", hostID, namespace))}}
 	}
 
@@ -173,7 +175,7 @@ func (s *HostInteractor) Metadata(orgID, hostID, namespace string) (interface{},
 		return nil, &HostIsRetired{Err{errors.New(fmt.Sprintf("more than a week has passed since the host<%s> retired", hostID))}}
 	}
 
-	return s.HostRepository.Metadata(orgID, hostID, namespace)
+	return s.HostMetaRepository.Metadata(orgID, hostID, namespace)
 }
 
 func (s *HostInteractor) SaveMetadata(orgID, hostID, namespace string, metadata interface{}) (*domain.Success, error) {
@@ -190,7 +192,7 @@ func (s *HostInteractor) SaveMetadata(orgID, hostID, namespace string, metadata 
 		return &domain.Success{Success: false}, &HostIsRetired{Err{errors.New(fmt.Sprintf("the host<%s> has already been retired", hostID))}}
 	}
 
-	meta, err := s.HostRepository.MetadataList(orgID, hostID)
+	meta, err := s.HostMetaRepository.List(orgID, hostID)
 	if err != nil {
 		return &domain.Success{Success: false}, fmt.Errorf("get metadata list: %v", err)
 	}
@@ -208,7 +210,7 @@ func (s *HostInteractor) SaveMetadata(orgID, hostID, namespace string, metadata 
 		return &domain.Success{Success: false}, &MetadataTooLarge{Err{errors.New(fmt.Sprintf("the metadata<%s:%s> exceeds 100KB", hostID, namespace))}}
 	}
 
-	res, err := s.HostRepository.SaveMetadata(orgID, hostID, namespace, metadata)
+	res, err := s.HostMetaRepository.Save(orgID, hostID, namespace, metadata)
 	if err != nil {
 		return res, fmt.Errorf("save metadata: %v", err)
 	}
@@ -221,7 +223,7 @@ func (s *HostInteractor) DeleteMetadata(orgID, hostID, namespace string) (*domai
 		return &domain.Success{Success: false}, &HostNotFound{Err{errors.New(fmt.Sprintf("the host<%s> does not exist", hostID))}}
 	}
 
-	if !s.HostRepository.ExistsMetadata(orgID, hostID, namespace) {
+	if !s.HostMetaRepository.Exists(orgID, hostID, namespace) {
 		return &domain.Success{Success: false}, &HostMetadataNotFound{Err{errors.New(fmt.Sprintf("the specified metadata does not exist for the host<%s:%s>", hostID, namespace))}}
 	}
 
@@ -234,7 +236,7 @@ func (s *HostInteractor) DeleteMetadata(orgID, hostID, namespace string) (*domai
 		return &domain.Success{Success: false}, &HostIsRetired{Err{errors.New(fmt.Sprintf("the host<%s> has already been retired", hostID))}}
 	}
 
-	res, err := s.HostRepository.DeleteMetadata(orgID, hostID, namespace)
+	res, err := s.HostMetaRepository.Delete(orgID, hostID, namespace)
 	if err != nil {
 		return res, fmt.Errorf("delete metadata: %v", err)
 	}

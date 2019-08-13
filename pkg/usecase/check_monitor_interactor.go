@@ -10,9 +10,10 @@ import (
 )
 
 type CheckMonitorInteractor struct {
-	MonitorRepository MonitorRepository
-	HostRepository    HostRepository
-	AlertRepository   AlertRepository
+	MonitorRepository    MonitorRepository
+	HostRepository       HostRepository
+	HostMetricRepository HostMetricRepository
+	AlertRepository      AlertRepository
 }
 
 func (s *CheckMonitorInteractor) HostMetric(orgID string) (*domain.Success, error) {
@@ -28,7 +29,7 @@ func (s *CheckMonitorInteractor) HostMetric(orgID string) (*domain.Success, erro
 
 	for _, m := range monitors {
 		for _, h := range hosts.Hosts {
-			avg, err := s.HostRepository.MetricValuesAverage(h.OrgID, h.ID, m.Metric, m.Duration)
+			avg, err := s.HostMetricRepository.ValuesAverage(h.OrgID, h.ID, m.Metric, m.Duration)
 			if err != nil {
 				return &domain.Success{Success: false}, fmt.Errorf("get average of metric value: %v", err)
 			}
