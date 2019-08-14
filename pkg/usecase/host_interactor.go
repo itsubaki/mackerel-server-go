@@ -60,7 +60,6 @@ func (s *HostInteractor) Save(orgID string, host *domain.Host) (*domain.HostID, 
 		host.Roles[svc[0]] = append(host.Roles[svc[0]], svc[1])
 	}
 
-	// TODO transaction
 	// Save Host
 	res, err := s.HostRepository.Save(orgID, host)
 	if err != nil {
@@ -125,7 +124,6 @@ func (s *HostInteractor) SaveRoleFullNames(orgID, hostID string, names *domain.R
 		return nil, &HostNotFound{Err{errors.New(fmt.Sprintf("the host that corresponds to the <%s> can’t be located", hostID))}}
 	}
 
-	// TODO transaction
 	res, err := s.HostRepository.SaveRoleFullNames(orgID, hostID, names)
 	if err != nil {
 		return res, fmt.Errorf("save role fullnames: %v", err)

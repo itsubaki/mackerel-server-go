@@ -33,7 +33,6 @@ func (s *ServiceInteractor) Save(orgID string, service *domain.Service) (*domain
 		return nil, &InvalidServiceName{}
 	}
 
-	// TODO transaction
 	if err := s.ServiceRepository.Save(orgID, service); err != nil {
 		return nil, err
 	}
@@ -55,7 +54,7 @@ func (s *ServiceInteractor) Save(orgID string, service *domain.Service) (*domain
 	return &domain.Service{
 		Name:  service.Name,
 		Memo:  service.Memo,
-		Roles: []string{},
+		Roles: service.Roles,
 	}, nil
 }
 
@@ -305,8 +304,7 @@ func (s *ServiceInteractor) MetricValues(orgID, serviceName, metricName string, 
 }
 
 func (s *ServiceInteractor) SaveMetricValues(orgID, serviceName string, values []domain.ServiceMetricValue) (*domain.Success, error) {
-	// TODO
-	// When the number of requests per minute is exceeded. Correct this by setting the posting frequency to a 1 minute interval, or posting multiple metrics at once, etc.
+	// TODO When the number of requests per minute is exceeded. Correct this by setting the posting frequency to a 1 minute interval, or posting multiple metrics at once, etc.
 	res, err := s.ServiceMetricRepository.Save(orgID, serviceName, values)
 	if err != nil {
 		return res, fmt.Errorf("save metric values: %v", err)
