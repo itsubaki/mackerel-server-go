@@ -56,6 +56,8 @@ mkr:
 	MACKEREL_APIKEY=${XAPIKEY} mkr --apibase=http://localhost:8080 status ${HOSTID}
 	MACKEREL_APIKEY=${XAPIKEY} mkr --apibase=http://localhost:8080 update --status poweroff ${HOSTID}
 	MACKEREL_APIKEY=${XAPIKEY} mkr --apibase=http://localhost:8080 retire ${HOSTID} --force
+	MACKEREL_APIKEY=${XAPIKEY} mkr --apibase=http://localhost:8080 services
+	MACKEREL_APIKEY=${XAPIKEY} mkr --apibase=http://localhost:8080 alerts
 
 curl:
 	set -x
