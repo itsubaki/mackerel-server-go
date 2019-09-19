@@ -207,7 +207,7 @@ func (repo *HostMetricRepository) ValuesLimit(orgID, hostID, name string, limit 
 // +----+-------------+--------------------+------------+-------+---------------+---------+---------+------+------+----------+--------------------------+
 // 2 rows in set, 1 warning (0.00 sec)
 func (repo *HostMetricRepository) ValuesLatest(orgID string, hostID, name []string) (*domain.TSDBLatest, error) {
-	latest := make(map[string]map[string]float64)
+	latest := make(map[string]map[string]domain.MetricValue)
 	if err := repo.Transact(func(tx Tx) error {
 		rows, err := tx.Query("select * from host_metric_values_latest where org_id=?", orgID)
 		// TODO multiple ?
@@ -225,10 +225,10 @@ func (repo *HostMetricRepository) ValuesLatest(orgID string, hostID, name []stri
 			}
 
 			if _, ok := latest[hostID]; !ok {
-				latest[hostID] = make(map[string]float64)
+				latest[hostID] = make(map[string]domain.MetricValue)
 			}
 
-			latest[hostID][name] = value
+			latest[hostID][name] = domain.MetricValue{Name: name, Value: value}
 		}
 
 		return nil

@@ -9,7 +9,7 @@ type TSDBLatest struct {
 }
 
 // [hostId][name]metric_value
-type TSDBLatestValue map[string]map[string]float64
+type TSDBLatestValue map[string]map[string]MetricValue
 
 type HostMetadata struct {
 	OrgID     string      `json:"-"`
