@@ -17,8 +17,8 @@ func NewHostController(handler database.SQLHandler) *HostController {
 	return &HostController{
 		Interactor: &usecase.HostInteractor{
 			HostRepository:       database.NewHostRepository(handler),
-			HostMetricRepository: database.NewHostMetricRepository(handler),
 			HostMetaRepository:   database.NewHostMetaRepository(handler),
+			HostMetricRepository: database.NewHostMetricRepository(handler),
 			ServiceRepository:    database.NewServiceRepository(handler),
 			RoleRepository:       database.NewRoleRepository(handler),
 		},
@@ -107,10 +107,12 @@ func (s *HostController) RoleFullNames(c Context) {
 
 func (s *HostController) Retire(c Context) {
 	var in domain.HostRetire
-	if err := c.BindJSON(&in); err != nil {
-		c.Status(http.StatusBadRequest)
-		return
-	}
+
+	// mkr request dont have empty body.
+	//if err := c.BindJSON(&in); err != nil {
+	//	c.Status(http.StatusBadRequest)
+	//	return
+	//}
 
 	out, err := s.Interactor.Retire(
 		c.GetString("org_id"),

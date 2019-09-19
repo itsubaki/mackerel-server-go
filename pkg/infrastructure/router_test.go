@@ -5,6 +5,7 @@ import (
 	"net/http/httptest"
 	"regexp"
 	"testing"
+	"time"
 
 	sqlmock "github.com/DATA-DOG/go-sqlmock"
 	"github.com/gin-gonic/gin"
@@ -14,7 +15,7 @@ func TestRouterRoot(t *testing.T) {
 	gin.SetMode(gin.ReleaseMode)
 
 	router := gin.New()
-	Root(router)
+	Status(router)
 
 	req := httptest.NewRequest("GET", "/", nil)
 	rec := httptest.NewRecorder()
@@ -41,9 +42,23 @@ func TestRouterHosts(t *testing.T) {
 
 		mock.ExpectBegin()
 		mock.ExpectExec("create table if not exists hosts").WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectCommit()
+
+		mock.ExpectBegin()
 		mock.ExpectExec("create table if not exists host_meta").WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectCommit()
+
+		mock.ExpectBegin()
 		mock.ExpectExec("create table if not exists host_metric_values").WillReturnResult(sqlmock.NewResult(1, 1))
 		mock.ExpectExec("create table if not exists host_metric_values_latest").WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectCommit()
+
+		mock.ExpectBegin()
+		mock.ExpectExec("create table if not exists services").WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectCommit()
+
+		mock.ExpectBegin()
+		mock.ExpectExec("create table if not exists roles").WillReturnResult(sqlmock.NewResult(1, 1))
 		mock.ExpectCommit()
 	}
 
@@ -70,6 +85,7 @@ func TestRouterHosts(t *testing.T) {
 					"x_api_key",
 					"xread",
 					"xwrite",
+					"last_access",
 				},
 			).AddRow(
 				"4b825dc642c",
@@ -77,8 +93,15 @@ func TestRouterHosts(t *testing.T) {
 				"2684d06cfedbee8499f326037bb6fb7e8c22e73b16bb",
 				1,
 				1,
+				0,
 			),
 		)
+		mock.ExpectExec(
+			regexp.QuoteMeta(`update apikeys set last_access=? where api_key=?`),
+		).WithArgs(
+			time.Now().Unix(),
+			"2684d06cfedbee8499f326037bb6fb7e8c22e73b16bb",
+		).WillReturnResult(sqlmock.NewResult(1, 1))
 		mock.ExpectCommit()
 
 		mock.ExpectBegin()

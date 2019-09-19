@@ -44,6 +44,19 @@ test:
 	set -x
 	go test -cover $(shell go list ./... | grep -v /vendor/ | grep -v /build/) -v
 
+mkr:
+	set -x
+	GO111MODULE=off go get github.com/mackerelio/mkr
+	go install github.com/mackerelio/mkr
+
+	MACKEREL_APIKEY=${XAPIKEY} mkr --apibase=http://localhost:8080 org
+	MACKEREL_APIKEY=${XAPIKEY} mkr --apibase=http://localhost:8080 create mkr-host
+	$(eval HOSTID := $(shell MACKEREL_APIKEY=${XAPIKEY} mkr --apibase=http://localhost:8080 hosts | jq -r '.[] | select(.name == "mkr-host") | .id'))
+	MACKEREL_APIKEY=${XAPIKEY} mkr --apibase=http://localhost:8080 hosts
+	MACKEREL_APIKEY=${XAPIKEY} mkr --apibase=http://localhost:8080 status ${HOSTID}
+	MACKEREL_APIKEY=${XAPIKEY} mkr --apibase=http://localhost:8080 update --status poweroff ${HOSTID}
+	MACKEREL_APIKEY=${XAPIKEY} mkr --apibase=http://localhost:8080 retire ${HOSTID} --force
+
 curl:
 	set -x
 
