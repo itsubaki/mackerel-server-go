@@ -30,6 +30,6 @@ func main() {
 	}()
 
 	if err := infrastructure.Router(handler).Run(config.Port); err != nil {
-		log.Fatalf("run mackerel-api: %v", err)
+		log.Fatalf("router run: %v", err)
 	}
 }

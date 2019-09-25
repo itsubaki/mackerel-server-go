@@ -25,13 +25,10 @@ mackerel compatible monitoring service
    - [x] Invitations
    - [x] Organizations
  - Persistence
-   - [x] Memory
-   - [x] Database/Transaction
+   - [x] Database/Transaction/Reconnect
    - [ ] Amazon Timestream
  - Security
    - [x] `X-Api-Key`
- - Reliability
-   - [ ] Reconnect Database
 
 # Install
 

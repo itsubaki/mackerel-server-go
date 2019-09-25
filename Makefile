@@ -51,11 +51,7 @@ mkr:
 
 	MACKEREL_APIKEY=${XAPIKEY} mkr --apibase=http://localhost:8080 org
 	MACKEREL_APIKEY=${XAPIKEY} mkr --apibase=http://localhost:8080 create mkr-host
-	$(eval HOSTID := $(shell MACKEREL_APIKEY=${XAPIKEY} mkr --apibase=http://localhost:8080 hosts | jq -r '.[] | select(.name == "mkr-host") | .id'))
 	MACKEREL_APIKEY=${XAPIKEY} mkr --apibase=http://localhost:8080 hosts
-	MACKEREL_APIKEY=${XAPIKEY} mkr --apibase=http://localhost:8080 status ${HOSTID}
-	MACKEREL_APIKEY=${XAPIKEY} mkr --apibase=http://localhost:8080 update --status poweroff ${HOSTID}
-	MACKEREL_APIKEY=${XAPIKEY} mkr --apibase=http://localhost:8080 retire ${HOSTID} --force
 	MACKEREL_APIKEY=${XAPIKEY} mkr --apibase=http://localhost:8080 services
 	MACKEREL_APIKEY=${XAPIKEY} mkr --apibase=http://localhost:8080 alerts
 

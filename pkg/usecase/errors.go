@@ -42,6 +42,10 @@ type ServiceMetricNotFound struct {
 	Err
 }
 
+type ServiceMetricLimitExceeded struct {
+	Err
+}
+
 type ServiceMetadataNotFound struct {
 	Err
 }

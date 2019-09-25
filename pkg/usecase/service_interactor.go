@@ -304,7 +304,7 @@ func (s *ServiceInteractor) MetricValues(orgID, serviceName, metricName string, 
 }
 
 func (s *ServiceInteractor) SaveMetricValues(orgID, serviceName string, values []domain.ServiceMetricValue) (*domain.Success, error) {
-	// TODO When the number of requests per minute is exceeded. Correct this by setting the posting frequency to a 1 minute interval, or posting multiple metrics at once, etc.
+	//TODO &ServiceMetricLimitExceeded{Err{errors.New("the number of requests per minute is exceeded")}}
 	res, err := s.ServiceMetricRepository.Save(orgID, serviceName, values)
 	if err != nil {
 		return res, fmt.Errorf("save metric values: %v", err)
