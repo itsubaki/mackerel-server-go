@@ -37,7 +37,7 @@ func NewRoleRepository(handler SQLHandler) *RoleRepository {
 	}
 }
 
-func (repo *RoleRepository) ListWith(orgID string) (map[string][]string, error) {
+func (repo *RoleRepository) List(orgID string) (map[string][]string, error) {
 	roles := make(map[string][]string)
 
 	if err := repo.Transact(func(tx Tx) error {
@@ -71,7 +71,7 @@ func (repo *RoleRepository) ListWith(orgID string) (map[string][]string, error) 
 }
 
 // select * from service_roles where service_name=${serviceName}
-func (repo *RoleRepository) List(orgID, serviceName string) (*domain.Roles, error) {
+func (repo *RoleRepository) ListWith(orgID, serviceName string) (*domain.Roles, error) {
 	var roles []domain.Role
 	if err := repo.Transact(func(tx Tx) error {
 		rows, err := tx.Query("select name, memo from roles where org_id=? and service_name=?", orgID, serviceName)

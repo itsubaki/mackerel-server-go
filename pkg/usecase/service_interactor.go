@@ -20,7 +20,7 @@ type ServiceInteractor struct {
 }
 
 func (s *ServiceInteractor) List(orgID string) (*domain.Services, error) {
-	roles, err := s.RoleRepository.ListWith(orgID)
+	roles, err := s.RoleRepository.List(orgID)
 	if err != nil {
 		return nil, fmt.Errorf("list roles: %v", err)
 	}
@@ -68,7 +68,7 @@ func (s *ServiceInteractor) Delete(orgID, serviceName string) (*domain.Service, 
 		return nil, err
 	}
 
-	roles, err := s.RoleRepository.List(orgID, serviceName)
+	roles, err := s.RoleRepository.ListWith(orgID, serviceName)
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +86,7 @@ func (s *ServiceInteractor) ListRole(orgID, serviceName string) (*domain.Roles, 
 		return nil, &ServiceNotFound{Err{errors.New("the Service corresponding to <serviceName> can't be found")}}
 	}
 
-	list, err := s.RoleRepository.List(orgID, serviceName)
+	list, err := s.RoleRepository.ListWith(orgID, serviceName)
 	if err != nil {
 		return nil, err
 	}

@@ -62,7 +62,7 @@ func NewMonitorRepository(handler SQLHandler) *MonitorRepository {
 	}
 }
 
-func (repo *MonitorRepository) HostMetricList(orgID string) ([]domain.HostMetricMonitoring, error) {
+func (repo *MonitorRepository) ListHostMetric(orgID string) ([]domain.HostMetricMonitoring, error) {
 	list := make([]domain.HostMetricMonitoring, 0)
 	monitors, err := repo.List(orgID)
 	if err != nil {

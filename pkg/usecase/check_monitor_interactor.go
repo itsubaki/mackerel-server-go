@@ -17,7 +17,7 @@ type CheckMonitorInteractor struct {
 }
 
 func (s *CheckMonitorInteractor) HostMetric(orgID string) (*domain.Success, error) {
-	monitors, err := s.MonitorRepository.HostMetricList(orgID)
+	monitors, err := s.MonitorRepository.ListHostMetric(orgID)
 	if err != nil {
 		return &domain.Success{Success: false}, fmt.Errorf("get host metric monitoring list: %v", err)
 	}
