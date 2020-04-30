@@ -3,15 +3,15 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/itsubaki/mackerel-api/pkg/infrastructure"
-	"github.com/itsubaki/mackerel-api/pkg/infrastructure/config"
-	"github.com/itsubaki/mackerel-api/pkg/infrastructure/handler"
 	"net/http/httptest"
 	"reflect"
 
 	"github.com/cucumber/godog"
 	"github.com/cucumber/messages-go/v10"
+	"github.com/gin-gonic/gin"
+	"github.com/itsubaki/mackerel-api/pkg/infrastructure"
+	"github.com/itsubaki/mackerel-api/pkg/infrastructure/config"
+	"github.com/itsubaki/mackerel-api/pkg/infrastructure/handler"
 )
 
 type APIFeature struct {
