@@ -50,6 +50,10 @@ test:
 	set -x
 	go test -cover $(shell go list ./... | grep -v /vendor/ | grep -v /build/) -v
 
+godog:
+	set -x
+	godog
+
 mkr:
 	set -x
 	GO111MODULE=off go get github.com/mackerelio/mkr

@@ -1,7 +1,6 @@
 package infrastructure
 
 import (
-	handler2 "github.com/itsubaki/mackerel-api/pkg/infrastructure/handler"
 	"log"
 	"net/http/httptest"
 	"regexp"
@@ -10,6 +9,7 @@ import (
 
 	sqlmock "github.com/DATA-DOG/go-sqlmock"
 	"github.com/gin-gonic/gin"
+	"github.com/itsubaki/mackerel-api/pkg/infrastructure/handler"
 )
 
 func TestRouterRoot(t *testing.T) {
@@ -63,10 +63,10 @@ func TestRouterHosts(t *testing.T) {
 		mock.ExpectCommit()
 	}
 
-	router := gin.New()
-	handler := &handler2.SQLHandler{DB: db}
-	UseAPIKey(router, handler)
-	Hosts(router.Group("/api").Group("/v0"), handler)
+	r := gin.New()
+	h := &handler.SQLHandler{DB: db}
+	UseAPIKey(r, h)
+	Hosts(r.Group("/api").Group("/v0"), h)
 
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Fatal(err)
@@ -136,7 +136,7 @@ func TestRouterHosts(t *testing.T) {
 		req := httptest.NewRequest("GET", "/api/v0/hosts", nil)
 		req.Header.Add("X-Api-key", "2684d06cfedbee8499f326037bb6fb7e8c22e73b16bb")
 		rec := httptest.NewRecorder()
-		router.ServeHTTP(rec, req)
+		r.ServeHTTP(rec, req)
 
 		if rec.Code != 200 {
 			t.Fatalf("code: %v, body: %v", rec.Code, string(rec.Body.Bytes()))
