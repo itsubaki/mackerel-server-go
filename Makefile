@@ -31,6 +31,12 @@ runmysql:
 	docker run --name mysql -e MYSQL_ROOT_PASSWORD=secret -p 3306:3306 -d mysql
 	# mysql -h127.0.0.1 -P3306 -uroot -psecret -Dmackerel
 
+cleanup:
+	set -x
+	docker stop $(shell docker ps -q)
+	docker rm $(shell docker ps -q -a)
+	docker rmi $(shell docker images -q)
+
 build:
 	set -x
 	docker build -t mackerel-api .
