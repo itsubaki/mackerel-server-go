@@ -1,8 +1,9 @@
-package infrastructure
+package handler
 
 import (
 	"database/sql"
 	"fmt"
+	"github.com/itsubaki/mackerel-api/pkg/infrastructure/config"
 	"log"
 	"time"
 
@@ -14,7 +15,7 @@ type SQLHandler struct {
 	DB *sql.DB
 }
 
-func NewSQLHandler(config *Config) database.SQLHandler {
+func New(config *config.Config) database.SQLHandler {
 	{
 		db, err := sql.Open(config.Driver, config.DataSourceName)
 		if err != nil {

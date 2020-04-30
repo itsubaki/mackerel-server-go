@@ -10,19 +10,20 @@ import (
 	"time"
 
 	"github.com/itsubaki/mackerel-api/pkg/infrastructure"
+	"github.com/itsubaki/mackerel-api/pkg/infrastructure/config"
+	"github.com/itsubaki/mackerel-api/pkg/infrastructure/handler"
 )
 
 func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
-	config := infrastructure.NewConfig()
-	log.Printf("%#v\n", config)
+	c := config.New()
+	log.Printf("%#v\n", c)
 
-	handler := infrastructure.NewSQLHandler(config)
-
+	h := handler.New(c)
 	s := &http.Server{
-		Addr:    config.Port,
-		Handler: infrastructure.Router(handler),
+		Addr:    c.Port,
+		Handler: infrastructure.Router(h),
 	}
 
 	go func() {
@@ -32,21 +33,21 @@ func main() {
 		}
 	}()
 
-	c := make(chan os.Signal, 2)
-	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
-	<-c
+	ch := make(chan os.Signal, 2)
+	signal.Notify(ch, os.Interrupt, syscall.SIGTERM)
+	<-ch
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	if err := s.Shutdown(ctx); err != nil {
 		log.Fatalf("http server shutdown: %v\n", err)
 	}
-	log.Println("http server closed")
+	log.Println("http server shutdown")
 
-	if err := handler.Close(); err != nil {
+	if err := h.Close(); err != nil {
 		log.Fatalf("handler closed: %v\n", err)
 	}
-	log.Println("db disconnected")
+	log.Println("handler closed")
 
 	log.Println("shutdown finished")
 }

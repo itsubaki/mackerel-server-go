@@ -1,6 +1,7 @@
 package infrastructure
 
 import (
+	handler2 "github.com/itsubaki/mackerel-api/pkg/infrastructure/handler"
 	"log"
 	"net/http/httptest"
 	"regexp"
@@ -63,7 +64,7 @@ func TestRouterHosts(t *testing.T) {
 	}
 
 	router := gin.New()
-	handler := &SQLHandler{DB: db}
+	handler := &handler2.SQLHandler{DB: db}
 	UseAPIKey(router, handler)
 	Hosts(router.Group("/api").Group("/v0"), handler)
 

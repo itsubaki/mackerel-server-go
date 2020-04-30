@@ -1,12 +1,12 @@
 package database
 
 import (
+	"github.com/itsubaki/mackerel-api/pkg/infrastructure/handler"
 	"log"
 	"regexp"
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/itsubaki/mackerel-api/pkg/infrastructure"
 	"github.com/itsubaki/mackerel-api/pkg/interface/database"
 )
 
@@ -17,7 +17,7 @@ func TestOrgRepository(t *testing.T) {
 	}
 
 	repo := database.OrgRepository{}
-	repo.SQLHandler = &infrastructure.SQLHandler{db}
+	repo.SQLHandler = &handler.SQLHandler{db}
 	defer repo.Close()
 
 	{

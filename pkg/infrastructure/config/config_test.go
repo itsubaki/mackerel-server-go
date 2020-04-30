@@ -1,4 +1,4 @@
-package infrastructure
+package config
 
 import (
 	"os"
@@ -6,7 +6,7 @@ import (
 )
 
 func TestConfig(t *testing.T) {
-	c := NewConfig()
+	c := New()
 
 	if c.Port != ":8080" {
 		t.Error(c)
@@ -42,7 +42,7 @@ func TestGetValue(t *testing.T) {
 		t.Error(err)
 	}
 
-	c := NewConfig()
+	c := New()
 
 	if c.Port != ":9090" {
 		t.Error(c)

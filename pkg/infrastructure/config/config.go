@@ -1,4 +1,4 @@
-package infrastructure
+package config
 
 import "os"
 
@@ -17,7 +17,7 @@ func GetValue(defaultValue, envKey string) string {
 	return defaultValue
 }
 
-func NewConfig() *Config {
+func New() *Config {
 	return &Config{
 		Port:           GetValue(":8080", "PORT"),
 		Driver:         GetValue("mysql", "DRIVER"),
