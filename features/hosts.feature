@@ -3,8 +3,10 @@ Feature: get hosts
   As an API user
   I need to be able to request hosts
 
-  Scenario: should get hosts
+  Background:
     Given I set X-Api-Key header with "2684d06cfedbee8499f326037bb6fb7e8c22e73b16bb"
+
+  Scenario: should get hosts
     When I send "GET" request to "/api/v0/hosts"
     Then the response code should be 200
     Then the response should match json:
@@ -15,7 +17,6 @@ Feature: get hosts
       """
 
   Scenario: should get latest host metric values
-    Given I set X-Api-Key header with "2684d06cfedbee8499f326037bb6fb7e8c22e73b16bb"
     When I send "GET" request to "/api/v0/tsdb/latest"
     Then the response code should be 200
     Then the response should match json:
@@ -26,7 +27,6 @@ Feature: get hosts
       """
 
   Scenario: should register host
-    Given I set X-Api-Key header with "2684d06cfedbee8499f326037bb6fb7e8c22e73b16bb"
     Given I set Content-Type header with "application/json"
     Given I set request body with:
       """
@@ -50,7 +50,6 @@ Feature: get hosts
     Then I keep the JSON response at "id" as "$HOST_ID"
 
   Scenario: should get host status
-    Given I set X-Api-Key header with "2684d06cfedbee8499f326037bb6fb7e8c22e73b16bb"
     When I send "GET" request to "/api/v0/hosts/$HOST_ID"
     Then the response code should be 200
     Then the response should match json:
