@@ -150,7 +150,6 @@ func TestRouterHosts(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-
 }
 
 func TestRouterServices(t *testing.T) {

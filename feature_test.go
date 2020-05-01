@@ -22,11 +22,11 @@ import (
 type apiFeature struct {
 	header http.Header
 	body   io.Reader
+	resp   *httptest.ResponseRecorder
 
 	config  *config.Config
 	handler database.SQLHandler
 	server  *gin.Engine
-	resp    *httptest.ResponseRecorder
 }
 
 func (a *apiFeature) start() {
@@ -34,19 +34,19 @@ func (a *apiFeature) start() {
 
 	c := config.New()
 	h := handler.New(c)
+	r := infrastructure.Router(h)
 
 	a.config = c
 	a.handler = h
-	a.server = infrastructure.Router(h)
+	a.server = r
 }
 
 func (a *apiFeature) stop() {
-	q := fmt.Sprintf("drop database if exists %s", a.config.DatabaseName)
 	if err := a.handler.Transact(func(tx database.Tx) error {
+		q := fmt.Sprintf("drop database if exists %s", a.config.DatabaseName)
 		if _, err := tx.Exec(q); err != nil {
 			return fmt.Errorf("drop database: %v", err)
 		}
-
 		return nil
 	}); err != nil {
 		panic(err)
@@ -58,7 +58,7 @@ func (a *apiFeature) stop() {
 }
 
 func (a *apiFeature) reset(m *messages.Pickle) {
-	a.header = make(map[string][]string)
+	a.header = make(http.Header)
 	a.body = nil
 	a.resp = httptest.NewRecorder()
 }
