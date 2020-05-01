@@ -1,7 +1,6 @@
 package database
 
 import (
-	"github.com/itsubaki/mackerel-api/pkg/infrastructure/handler"
 	"log"
 	"regexp"
 	"strings"
@@ -10,6 +9,7 @@ import (
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/itsubaki/mackerel-api/pkg/domain"
+	"github.com/itsubaki/mackerel-api/pkg/infrastructure/handler"
 	"github.com/itsubaki/mackerel-api/pkg/interface/database"
 )
 

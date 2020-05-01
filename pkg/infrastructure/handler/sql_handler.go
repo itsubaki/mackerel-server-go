@@ -3,11 +3,11 @@ package handler
 import (
 	"database/sql"
 	"fmt"
-	"github.com/itsubaki/mackerel-api/pkg/infrastructure/config"
 	"log"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/itsubaki/mackerel-api/pkg/infrastructure/config"
 	"github.com/itsubaki/mackerel-api/pkg/interface/database"
 )
 
