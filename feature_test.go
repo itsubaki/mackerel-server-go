@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"reflect"
+	"strings"
 
 	"github.com/cucumber/godog"
 	"github.com/cucumber/messages-go/v10"
@@ -17,6 +17,7 @@ import (
 	"github.com/itsubaki/mackerel-api/pkg/infrastructure/config"
 	"github.com/itsubaki/mackerel-api/pkg/infrastructure/handler"
 	"github.com/itsubaki/mackerel-api/pkg/interface/database"
+	"github.com/jfilipczyk/gomatch"
 )
 
 type apiFeature struct {
@@ -27,6 +28,7 @@ type apiFeature struct {
 	config  *config.Config
 	handler database.SQLHandler
 	server  *gin.Engine
+	keep    map[string]string
 }
 
 func (a *apiFeature) start() {
@@ -40,6 +42,7 @@ func (a *apiFeature) start() {
 	a.config = c
 	a.handler = h
 	a.server = r
+	a.keep = make(map[string]string)
 }
 
 func (a *apiFeature) stop() {
@@ -80,10 +83,13 @@ func (a *apiFeature) SetRequestBody(b *messages.PickleStepArgument_PickleDocStri
 }
 
 func (a *apiFeature) Request(method, endpoint string) error {
+	for k, v := range a.keep {
+		endpoint = strings.Replace(endpoint, k, v, -1)
+	}
 	req := httptest.NewRequest(method, endpoint, a.body)
 	req.Header = a.header
-	a.server.ServeHTTP(a.resp, req)
 
+	a.server.ServeHTTP(a.resp, req)
 	return nil
 }
 
@@ -96,18 +102,33 @@ func (a *apiFeature) ResponseCodeShouldBe(code int) error {
 }
 
 func (a *apiFeature) ResponseShouldMatchJson(body *messages.PickleStepArgument_PickleDocString) error {
-	var expected, actual interface{}
+	expected := body.Content
+	actual := a.resp.Body.String()
 
-	if err := json.Unmarshal([]byte(body.Content), &expected); err != nil {
-		return err
+	ok, err := gomatch.NewDefaultJSONMatcher().Match(expected, actual)
+	if err != nil {
+		return fmt.Errorf("match: %v", err)
 	}
 
+	if !ok {
+		return fmt.Errorf("expected JSON does not match actual, %#v vs. %#v", expected, actual)
+	}
+
+	return nil
+}
+
+func (a *apiFeature) Keep(key, as string) error {
+	var actual map[string]string
 	if err := json.Unmarshal(a.resp.Body.Bytes(), &actual); err != nil {
 		return err
 	}
 
-	if !reflect.DeepEqual(expected, actual) {
-		return fmt.Errorf("expected JSON does not match actual, %#v vs. %#v", expected, actual)
+	for k, v := range actual {
+		if k != key {
+			continue
+		}
+
+		a.keep[as] = v
 	}
 
 	return nil
@@ -124,6 +145,7 @@ func FeatureContext(s *godog.Suite) {
 	s.Step(`^I send "([^"]*)" request to "([^"]*)"$`, a.Request)
 	s.Step(`^the response code should be (\d+)$`, a.ResponseCodeShouldBe)
 	s.Step(`^the response should match json:$`, a.ResponseShouldMatchJson)
+	s.Step(`^I keep the JSON response at "([^"]*)" as "([^"]*)"$`, a.Keep)
 
 	s.AfterSuite(a.stop)
 }

@@ -44,23 +44,24 @@ Feature: get hosts
     Then the response should match json:
       """
       {
-        "id": "408a5aaf1a2"
+        "id": "@string@"
       }
       """
+    Then I keep the JSON response at "id" as "$HOST_ID"
 
   Scenario: should get host status
     Given I set X-Api-Key header with "2684d06cfedbee8499f326037bb6fb7e8c22e73b16bb"
-    When I send "GET" request to "/api/v0/hosts/408a5aaf1a2"
+    When I send "GET" request to "/api/v0/hosts/$HOST_ID"
     Then the response code should be 200
     Then the response should match json:
       """
       {
         "host":{
-          "id":"408a5aaf1a2",
+          "id":"@string@",
           "name":"host01",
           "status":"working",
           "memo":"",
-          "createdAt":1588311448,
+          "createdAt":"@number@",
           "isRetired":false,
           "roles":{},
           "meta":{
