@@ -1,4 +1,4 @@
-Feature: get hosts
+Feature:
   In order to know hosts information
   As an API user
   I need to be able to request hosts
@@ -16,19 +16,9 @@ Feature: get hosts
       }
       """
 
-  Scenario: should get latest host metric values
-    When I send "GET" request to "/api/v0/tsdb/latest"
-    Then the response code should be 200
-    Then the response should match json:
-      """
-      {
-        "tsdbLatest": {}
-      }
-      """
-
   Scenario: should register host
     Given I set Content-Type header with "application/json"
-    Given I set request body with:
+    Given I set request body:
       """
       {
         "name": "host01",
@@ -74,7 +64,7 @@ Feature: get hosts
 
   Scenario: should update host information
     Given I set Content-Type header with "application/json"
-    Given I set request body with:
+    Given I set request body:
       """
       {
         "name": "cucumber-host01",
@@ -96,7 +86,7 @@ Feature: get hosts
 
   Scenario: should update host status
     Given I set Content-Type header with "application/json"
-    Given I set request body with:
+    Given I set request body:
       """
       {
         "status": "poweroff"
@@ -131,5 +121,15 @@ Feature: get hosts
             "agent-version": "0.4.2"
           }
         }
+      }
+      """
+
+  Scenario: should get latest host metric values
+    When I send "GET" request to "/api/v0/tsdb/latest"
+    Then the response code should be 200
+    Then the response should match json:
+      """
+      {
+        "tsdbLatest": {}
       }
       """

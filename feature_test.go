@@ -141,7 +141,7 @@ func FeatureContext(s *godog.Suite) {
 	s.BeforeScenario(a.reset)
 	s.Step(`^I set X-Api-Key header with "([^"]*)"$`, a.SetXAPIKEY)
 	s.Step(`^I set Content-Type header with "([^"]*)"$`, a.SetContentType)
-	s.Step(`^I set request body with:$`, a.SetRequestBody)
+	s.Step(`^I set request body:$`, a.SetRequestBody)
 	s.Step(`^I send "([^"]*)" request to "([^"]*)"$`, a.Request)
 	s.Step(`^the response code should be (\d+)$`, a.ResponseCodeShouldBe)
 	s.Step(`^the response should match json:$`, a.ResponseShouldMatchJson)
