@@ -13,7 +13,7 @@ runserver:
 	set -x
 	-rm $(shell go env GOPATH)/bin/mackerel-api
 	go install
-	GIN_MODE=release mackerel-api
+	GIN_MODE=debug mackerel-api
 
 runclient:
 	set -x
