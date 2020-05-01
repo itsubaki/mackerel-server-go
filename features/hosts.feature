@@ -44,6 +44,11 @@ Feature: get hosts
     Then the response should match json:
       """
       {
-        "id": "<random_string>"
+        "id": "<host_id>"
       }
       """
+
+  Scenario: should get host status
+    Given I set X-Api-Key header with "2684d06cfedbee8499f326037bb6fb7e8c22e73b16bb"
+    When I send "GET" request to "/api/v0/hosts/<host_id>"
+    Then the response code should be 200

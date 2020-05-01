@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"reflect"
 	"strings"
 
@@ -27,10 +28,12 @@ type apiFeature struct {
 	config  *config.Config
 	handler database.SQLHandler
 	server  *gin.Engine
+	random  map[string]string
 }
 
 func (a *apiFeature) start() {
 	gin.SetMode(gin.ReleaseMode)
+	os.Setenv("DATABASE_NAME", "mackerel_feature_test")
 
 	c := config.New()
 	h := handler.New(c)
@@ -39,6 +42,7 @@ func (a *apiFeature) start() {
 	a.config = c
 	a.handler = h
 	a.server = r
+	a.random = make(map[string]string)
 }
 
 func (a *apiFeature) stop() {
@@ -79,6 +83,10 @@ func (a *apiFeature) SetRequestBody(b *messages.PickleStepArgument_PickleDocStri
 }
 
 func (a *apiFeature) Request(method, endpoint string) error {
+	for k, v := range a.random {
+		endpoint = strings.Replace(endpoint, k, v, -1)
+	}
+
 	req := httptest.NewRequest(method, endpoint, a.body)
 	req.Header = a.header
 	a.server.ServeHTTP(a.resp, req)
@@ -106,17 +114,17 @@ func (a *apiFeature) ResponseShouldMatchJson(body *messages.PickleStepArgument_P
 	}
 
 	for k, v := range expected {
-		switch t := v.(type) {
-		case string:
-			if !strings.HasPrefix(t, "<random_string>") {
-				continue
-			}
+		vv, ok := actual[k]
+		if !ok {
+			return fmt.Errorf("expected JSON does not match actual, %#v vs. %#v", expected, actual)
+		}
 
-			vv, ok := actual[k]
-			if !ok {
-				return fmt.Errorf("expected JSON does not match actual, %#v vs. %#v", expected, actual)
+		switch variable := v.(type) {
+		case string:
+			if variable == "<host_id>" {
+				a.random["<host_id>"] = vv.(string)
+				expected[k] = vv
 			}
-			expected[k] = vv
 		}
 	}
 
