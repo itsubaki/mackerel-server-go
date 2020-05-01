@@ -24,9 +24,9 @@ mackerel compatible monitoring service
    - [x] Users
    - [x] Invitations
    - [x] Organizations
+   - [ ] Downtime
  - Persistence
    - [x] Database/Transaction/Reconnect
-   - [ ] Amazon Timestream
  - Security
    - [x] `X-Api-Key`
 
