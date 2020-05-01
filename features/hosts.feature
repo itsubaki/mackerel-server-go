@@ -44,6 +44,6 @@ Feature: get hosts
     Then the response should match json:
       """
       {
-        "id": ""
+        "id": "<random_string>"
       }
       """

@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"reflect"
+	"strings"
 
 	"github.com/cucumber/godog"
 	"github.com/cucumber/messages-go/v10"
@@ -94,7 +95,7 @@ func (a *apiFeature) ResponseCodeShouldBe(code int) error {
 }
 
 func (a *apiFeature) ResponseShouldMatchJson(body *messages.PickleStepArgument_PickleDocString) error {
-	var expected, actual interface{}
+	var expected, actual map[string]interface{}
 
 	if err := json.Unmarshal([]byte(body.Content), &expected); err != nil {
 		return err
@@ -102,6 +103,21 @@ func (a *apiFeature) ResponseShouldMatchJson(body *messages.PickleStepArgument_P
 
 	if err := json.Unmarshal(a.resp.Body.Bytes(), &actual); err != nil {
 		return err
+	}
+
+	for k, v := range expected {
+		switch t := v.(type) {
+		case string:
+			if !strings.HasPrefix(t, "<random_string>") {
+				continue
+			}
+
+			vv, ok := actual[k]
+			if !ok {
+				return fmt.Errorf("expected JSON does not match actual, %#v vs. %#v", expected, actual)
+			}
+			expected[k] = vv
+		}
 	}
 
 	if !reflect.DeepEqual(expected, actual) {
