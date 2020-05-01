@@ -202,7 +202,13 @@ func UseAPIKey(g *gin.Engine, handler database.SQLHandler) {
 }
 
 func Router(handler database.SQLHandler) *gin.Engine {
-	g := gin.Default()
+	g := gin.New()
+
+	g.Use(gin.Recovery())
+	if gin.IsDebugging() {
+		g.Use(gin.Logger())
+	}
+
 	Status(g)
 
 	// middleware
