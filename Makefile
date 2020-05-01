@@ -2,7 +2,6 @@ SHELL := /bin/bash
 DATE := $(shell date +%Y%m%d-%H:%M:%S)
 HASH := $(shell git rev-parse HEAD)
 XAPIKEY := 2684d06cfedbee8499f326037bb6fb7e8c22e73b16bb
-CONTENTTYPE := application/json
 
 install:
 	set -x
@@ -17,7 +16,7 @@ runserver:
 
 runclient:
 	set -x
-	GO111MODULE=off go get -d github.com/mackerelio/go-check-plugins
+	go get -d github.com/mackerelio/go-check-plugins
 	cd $(shell go env GOPATH)/src/github.com/mackerelio/go-check-plugins/check-tcp; go install
 	cp mackerel-agent.conf /usr/local/etc/mackerel-agent.conf
 	-rm ~/Library/mackerel-agent/id
@@ -52,12 +51,11 @@ test:
 
 godog: runmysql
 	set -x
-	godog
+	go test -v --godog.format=pretty
 
 mkr:
 	set -x
-	GO111MODULE=off go get github.com/mackerelio/mkr
-	go install github.com/mackerelio/mkr
+	go get github.com/mackerelio/mkr
 
 	MACKEREL_APIKEY=${XAPIKEY} mkr --apibase=http://localhost:8080 org
 	MACKEREL_APIKEY=${XAPIKEY} mkr --apibase=http://localhost:8080 create mkr-host
