@@ -9,7 +9,6 @@ import (
 	"net/http/httptest"
 	"os"
 	"reflect"
-	"strings"
 
 	"github.com/cucumber/godog"
 	"github.com/cucumber/messages-go/v10"
@@ -28,7 +27,6 @@ type apiFeature struct {
 	config  *config.Config
 	handler database.SQLHandler
 	server  *gin.Engine
-	random  map[string]string
 }
 
 func (a *apiFeature) start() {
@@ -42,7 +40,6 @@ func (a *apiFeature) start() {
 	a.config = c
 	a.handler = h
 	a.server = r
-	a.random = make(map[string]string)
 }
 
 func (a *apiFeature) stop() {
@@ -83,10 +80,6 @@ func (a *apiFeature) SetRequestBody(b *messages.PickleStepArgument_PickleDocStri
 }
 
 func (a *apiFeature) Request(method, endpoint string) error {
-	for k, v := range a.random {
-		endpoint = strings.Replace(endpoint, k, v, -1)
-	}
-
 	req := httptest.NewRequest(method, endpoint, a.body)
 	req.Header = a.header
 	a.server.ServeHTTP(a.resp, req)
@@ -103,7 +96,7 @@ func (a *apiFeature) ResponseCodeShouldBe(code int) error {
 }
 
 func (a *apiFeature) ResponseShouldMatchJson(body *messages.PickleStepArgument_PickleDocString) error {
-	var expected, actual map[string]interface{}
+	var expected, actual interface{}
 
 	if err := json.Unmarshal([]byte(body.Content), &expected); err != nil {
 		return err
@@ -111,21 +104,6 @@ func (a *apiFeature) ResponseShouldMatchJson(body *messages.PickleStepArgument_P
 
 	if err := json.Unmarshal(a.resp.Body.Bytes(), &actual); err != nil {
 		return err
-	}
-
-	for k, v := range expected {
-		vv, ok := actual[k]
-		if !ok {
-			return fmt.Errorf("expected JSON does not match actual, %#v vs. %#v", expected, actual)
-		}
-
-		switch variable := v.(type) {
-		case string:
-			if variable == "<host_id>" {
-				a.random["<host_id>"] = vv.(string)
-				expected[k] = vv
-			}
-		}
 	}
 
 	if !reflect.DeepEqual(expected, actual) {
