@@ -67,13 +67,8 @@ func (a *apiFeature) reset(m *messages.Pickle) {
 	a.resp = httptest.NewRecorder()
 }
 
-func (a *apiFeature) SetXAPIKEY(k string) error {
-	a.header.Add("X-Api-key", k)
-	return nil
-}
-
-func (a *apiFeature) SetContentType(t string) error {
-	a.header.Add("Content-Type", t)
+func (a *apiFeature) SetHeader(k, v string) error {
+	a.header.Add(k, v)
 	return nil
 }
 
@@ -139,8 +134,7 @@ func FeatureContext(s *godog.Suite) {
 	s.BeforeSuite(a.start)
 
 	s.BeforeScenario(a.reset)
-	s.Step(`^I set X-Api-Key header with "([^"]*)"$`, a.SetXAPIKEY)
-	s.Step(`^I set Content-Type header with "([^"]*)"$`, a.SetContentType)
+	s.Step(`^I set "([^"]*)" header with "([^"]*)"$`, a.SetHeader)
 	s.Step(`^I set request body:$`, a.SetRequestBody)
 	s.Step(`^I send "([^"]*)" request to "([^"]*)"$`, a.Request)
 	s.Step(`^the response code should be (\d+)$`, a.ResponseCodeShouldBe)

@@ -4,7 +4,7 @@ Feature:
   I need to be able to request hosts
 
   Background:
-    Given I set X-Api-Key header with "2684d06cfedbee8499f326037bb6fb7e8c22e73b16bb"
+    Given I set "X-Api-Key" header with "2684d06cfedbee8499f326037bb6fb7e8c22e73b16bb"
 
   Scenario: should get hosts
     When I send "GET" request to "/api/v0/hosts"
@@ -17,7 +17,7 @@ Feature:
       """
 
   Scenario: should register host
-    Given I set Content-Type header with "application/json"
+    Given I set "Content-Type" header with "application/json"
     Given I set request body:
       """
       {
@@ -63,7 +63,7 @@ Feature:
       """
 
   Scenario: should update host information
-    Given I set Content-Type header with "application/json"
+    Given I set "Content-Type" header with "application/json"
     Given I set request body:
       """
       {
@@ -85,7 +85,7 @@ Feature:
       """
 
   Scenario: should update host status
-    Given I set Content-Type header with "application/json"
+    Given I set "Content-Type" header with "application/json"
     Given I set request body:
       """
       {
