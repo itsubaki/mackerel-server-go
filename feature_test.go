@@ -33,7 +33,7 @@ type apiFeature struct {
 
 func (a *apiFeature) start() {
 	gin.SetMode(gin.ReleaseMode)
-	os.Setenv("DATABASE_NAME", "mackerel_feature_test")
+	os.Setenv("DATABASE_NAME", "mackerel_test")
 
 	c := config.New()
 	h := handler.New(c)
