@@ -60,7 +60,7 @@ $ make runserver
 set -x
 rm  ${GOPATH}/bin/mackerel-api
 go install
-GIN_MODE=release mackerel-api
+GIN_MODE=debug mackerel-api
 [GIN] 2019/05/24 - 23:52:12 | 200 |   65.133982ms |             ::1 | POST     /api/v0/hosts
 [GIN] 2019/05/24 - 23:52:12 | 200 |   23.998452ms |             ::1 | GET      /api/v0/hosts/0965d1deb93
 [GIN] 2019/05/24 - 23:52:14 | 200 |   55.856843ms |             ::1 | PUT      /api/v0/hosts/0965d1deb93
@@ -71,8 +71,8 @@ GIN_MODE=release mackerel-api
 ```
 $ make runclient
 set -x
-GO111MODULE=off go get -d github.com/mackerelio/go-check-plugins
-cd  ${GOPATH}/src/github.com/mackerelio/go-check-plugins/check-tcp; go install
+go get -d github.com/mackerelio/go-check-plugins
+cd ${GOPATH}/src/github.com/mackerelio/go-check-plugins/check-tcp; go install
 cp mackerel-agent.conf /usr/local/etc/mackerel-agent.conf
 rm ~/Library/mackerel-agent/id
 mackerel-agent -conf /usr/local/etc/mackerel-agent.conf -apibase=http://localhost:8080
