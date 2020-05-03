@@ -52,7 +52,7 @@ test:
 
 godog:
 	set -x
-	go test -v --godog.format=pretty
+	go test -v
 
 mkr:
 	set -x

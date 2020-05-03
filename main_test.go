@@ -11,7 +11,7 @@ import (
 
 var opt = godog.Options{
 	Output: colors.Colored(os.Stdout),
-	Format: "progress", // can define default values
+	Format: "pretty", // can define default values
 }
 
 func init() {
@@ -26,7 +26,7 @@ func TestMain(m *testing.M) {
 		FeatureContext(s)
 	}
 
-	status := godog.RunWithOptions("mackerel-api", f, opt)
+	status := godog.RunWithOptions("godog", f, opt)
 	if st := m.Run(); st > status {
 		status = st
 	}
