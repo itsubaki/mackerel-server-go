@@ -34,7 +34,6 @@ mackerel compatible monitoring service
 
 ```
 $ go get github.com/itsubaki/mackerel-api
-$ go get github.com/mackerelio/mackerel-agent/mackerel-agent
 ```
 
 # Run
