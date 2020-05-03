@@ -46,7 +46,7 @@ Feature:
       """
       {
         "host": {
-          "id": "@string@",
+          "id": "$HOST_ID",
           "name": "host01",
           "status": "working",
           "memo": "",
@@ -80,7 +80,7 @@ Feature:
     Then the response should match json:
       """
       {
-        "id": "@string@"
+        "id": "$HOST_ID"
       }
       """
 
@@ -108,7 +108,7 @@ Feature:
       """
       {
         "host": {
-          "id": "@string@",
+          "id": "$HOST_ID",
           "name": "cucumber-host01",
           "status": "poweroff",
           "memo": "",
@@ -121,6 +121,21 @@ Feature:
             "agent-version": "0.4.2"
           }
         }
+      }
+      """
+
+  Scenario: should retire host
+    Given I set "Content-Type" header with "application/json"
+    Given I set request body:
+      """
+      {}
+      """
+    When I send "POST" request to "/api/v0/hosts/$HOST_ID/retire"
+    Then the response code should be 200
+    Then the response should match json:
+      """
+      {
+        "success": true
       }
       """
 

@@ -67,6 +67,14 @@ func (a *apiFeature) reset(m *messages.Pickle) {
 	a.resp = httptest.NewRecorder()
 }
 
+func (a *apiFeature) replace(str string) string {
+	for k, v := range a.keep {
+		str = strings.Replace(str, k, v, -1)
+	}
+
+	return str
+}
+
 func (a *apiFeature) SetHeader(k, v string) error {
 	a.header.Add(k, v)
 	return nil
@@ -78,10 +86,7 @@ func (a *apiFeature) SetRequestBody(b *messages.PickleStepArgument_PickleDocStri
 }
 
 func (a *apiFeature) Request(method, endpoint string) error {
-	for k, v := range a.keep {
-		endpoint = strings.Replace(endpoint, k, v, -1)
-	}
-	req := httptest.NewRequest(method, endpoint, a.body)
+	req := httptest.NewRequest(method, a.replace(endpoint), a.body)
 	req.Header = a.header
 
 	a.server.ServeHTTP(a.resp, req)
@@ -97,7 +102,7 @@ func (a *apiFeature) ResponseCodeShouldBe(code int) error {
 }
 
 func (a *apiFeature) ResponseShouldMatchJson(body *messages.PickleStepArgument_PickleDocString) error {
-	expected := body.Content
+	expected := a.replace(body.Content)
 	actual := a.resp.Body.String()
 
 	ok, err := gomatch.NewDefaultJSONMatcher().Match(expected, actual)
