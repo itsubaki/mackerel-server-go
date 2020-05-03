@@ -1,5 +1,5 @@
 Feature:
-  In order to know hosts information
+  In order to monitor the host
   As an API user
   I need to be able to request hosts
 
