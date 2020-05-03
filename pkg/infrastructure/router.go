@@ -1,7 +1,6 @@
 package infrastructure
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -184,7 +183,6 @@ func UseAPIKey(g *gin.Engine, handler database.SQLHandler) {
 	g.Use(func(c *gin.Context) {
 		key, err := apikey.APIKey(c)
 		if err != nil {
-			log.Println(err)
 			c.Status(http.StatusForbidden)
 			c.Abort()
 			return

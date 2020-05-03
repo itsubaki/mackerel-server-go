@@ -50,7 +50,7 @@ test:
 	set -x
 	go test -cover $(shell go list ./... | grep -v /vendor/ | grep -v /build/) -v
 
-godog: runmysql
+godog:
 	set -x
 	go test -v --godog.format=pretty
 
