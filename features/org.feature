@@ -1,4 +1,4 @@
-Feature: get org name
+Feature:
   In order to know org name
   As an API user
   I need to be able to request org

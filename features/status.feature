@@ -1,5 +1,5 @@
-Feature: get status
-  In order to know mackerel-api status
+Feature:
+  In order to know service status
   As an API user
   I need to be able to request status
 
