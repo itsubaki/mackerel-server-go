@@ -21,6 +21,8 @@ func main() {
 	log.Printf("%#v\n", c)
 
 	h := handler.New(c)
+	log.Printf("db connected")
+
 	s := &http.Server{
 		Addr:    c.Port,
 		Handler: infrastructure.Router(h),
@@ -42,12 +44,9 @@ func main() {
 	if err := s.Shutdown(ctx); err != nil {
 		log.Fatalf("http server shutdown: %v\n", err)
 	}
-	log.Println("http server shutdown")
-
 	if err := h.Close(); err != nil {
 		log.Fatalf("handler closed: %v\n", err)
 	}
-	log.Println("handler closed")
 
 	log.Println("shutdown finished")
 }

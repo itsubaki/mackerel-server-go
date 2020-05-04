@@ -33,7 +33,7 @@ runmysql:
 
 cleanup:
 	set -x
-	docker stop $(shell docker ps -q)
+	docker stop $(shell docker ps -q -a)
 	docker rm $(shell docker ps -q -a)
 	docker rmi $(shell docker images -q)
 

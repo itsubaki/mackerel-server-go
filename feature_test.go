@@ -46,16 +46,6 @@ func (a *apiFeature) start() {
 }
 
 func (a *apiFeature) stop() {
-	if err := a.handler.Transact(func(tx database.Tx) error {
-		q := fmt.Sprintf("drop database if exists %s", a.config.DatabaseName)
-		if _, err := tx.Exec(q); err != nil {
-			return fmt.Errorf("drop database: %v", err)
-		}
-		return nil
-	}); err != nil {
-		panic(err)
-	}
-
 	if err := a.handler.Close(); err != nil {
 		panic(err)
 	}
