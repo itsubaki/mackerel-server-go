@@ -25,22 +25,16 @@ func init() {
 	os.Setenv("DATABASE_NAME", "mackerel_test")
 
 	c := config.New()
-	db, err := handler.Wait(c)
-	if err != nil {
-		panic(err)
-	}
-	defer db.Close()
-
 	q := []string{
 		fmt.Sprintf("drop database if exists %s", c.DatabaseName),
 		fmt.Sprintf("create database if not exists %s", c.DatabaseName),
 	}
 
-	for i := range q {
-		if _, err := db.Exec(q[i]); err != nil {
-			panic(err)
-		}
+	db, err := handler.NewWith(c, q)
+	if err != nil {
+		panic(err)
 	}
+	defer db.Close()
 }
 
 type apiFeature struct {
