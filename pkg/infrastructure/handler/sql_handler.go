@@ -15,16 +15,21 @@ type SQLHandler struct {
 	DB *sql.DB
 }
 
-func New(config *config.Config) (database.SQLHandler, error) {
-	q := fmt.Sprintf("create database if not exists %s", config.DatabaseName)
-	return NewWith(config, []string{q})
+func New(c *config.Config) (database.SQLHandler, error) {
+	q := fmt.Sprintf("create database if not exists %s", c.DatabaseName)
+	if err := Query(c, []string{q}); err != nil {
+		return nil, fmt.Errorf("query: %v", err)
+	}
+
+	return Open(c)
 }
 
-func NewWith(config *config.Config, query []string) (database.SQLHandler, error) {
-	db, err := Wait(config)
+func Query(c *config.Config, query []string) error {
+	db, err := Wait(c)
 	if err != nil {
-		return nil, fmt.Errorf("wait: %v", err)
+		return fmt.Errorf("wait: %v", err)
 	}
+	defer db.Close()
 
 	if err := db.Transact(func(tx database.Tx) error {
 		for _, q := range query {
@@ -35,15 +40,15 @@ func NewWith(config *config.Config, query []string) (database.SQLHandler, error)
 
 		return nil
 	}); err != nil {
-		panic(fmt.Errorf("transaction: %v", err))
+		return fmt.Errorf("transaction: %v", err)
 	}
 
-	return Open(config)
+	return nil
 }
 
-func Open(config *config.Config) (database.SQLHandler, error) {
-	source := fmt.Sprintf("%s%s", config.DataSourceName, config.DatabaseName)
-	db, err := sql.Open(config.Driver, source)
+func Open(c *config.Config) (database.SQLHandler, error) {
+	source := fmt.Sprintf("%s%s", c.DataSourceName, c.DatabaseName)
+	db, err := sql.Open(c.Driver, source)
 	if err != nil {
 		return nil, fmt.Errorf("sql open: %v", err)
 	}
@@ -53,8 +58,8 @@ func Open(config *config.Config) (database.SQLHandler, error) {
 	}, nil
 }
 
-func Wait(config *config.Config) (database.SQLHandler, error) {
-	db, err := sql.Open(config.Driver, config.DataSourceName)
+func Wait(c *config.Config) (database.SQLHandler, error) {
+	db, err := sql.Open(c.Driver, c.DataSourceName)
 	if err != nil {
 		return nil, fmt.Errorf("sql open: %v", err)
 	}

@@ -129,16 +129,12 @@ func FeatureContext(s *godog.Suite) {
 	os.Setenv("DATABASE_NAME", "mackerel_test")
 
 	c := config.New()
-	q := []string{
+	if err := handler.Query(c, []string{
 		fmt.Sprintf("drop database if exists %s", c.DatabaseName),
 		fmt.Sprintf("create database if not exists %s", c.DatabaseName),
-	}
-
-	db, err := handler.NewWith(c, q)
-	if err != nil {
+	}); err != nil {
 		panic(err)
 	}
-	defer db.Close()
 
 	a := &apiFeature{}
 	s.BeforeSuite(a.start)
