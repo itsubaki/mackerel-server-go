@@ -20,23 +20,6 @@ import (
 	"github.com/jfilipczyk/gomatch"
 )
 
-func init() {
-	gin.SetMode(gin.ReleaseMode)
-	os.Setenv("DATABASE_NAME", "mackerel_test")
-
-	c := config.New()
-	q := []string{
-		fmt.Sprintf("drop database if exists %s", c.DatabaseName),
-		fmt.Sprintf("create database if not exists %s", c.DatabaseName),
-	}
-
-	db, err := handler.NewWith(c, q)
-	if err != nil {
-		panic(err)
-	}
-	defer db.Close()
-}
-
 type apiFeature struct {
 	header http.Header
 	body   io.Reader
@@ -142,6 +125,21 @@ func (a *apiFeature) Keep(key, as string) error {
 }
 
 func FeatureContext(s *godog.Suite) {
+	gin.SetMode(gin.ReleaseMode)
+	os.Setenv("DATABASE_NAME", "mackerel_test")
+
+	c := config.New()
+	q := []string{
+		fmt.Sprintf("drop database if exists %s", c.DatabaseName),
+		fmt.Sprintf("create database if not exists %s", c.DatabaseName),
+	}
+
+	db, err := handler.NewWith(c, q)
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
 	a := &apiFeature{}
 	s.BeforeSuite(a.start)
 
