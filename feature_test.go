@@ -20,6 +20,11 @@ import (
 	"github.com/jfilipczyk/gomatch"
 )
 
+func init() {
+	gin.SetMode(gin.ReleaseMode)
+	os.Setenv("DATABASE_NAME", "mackerel_test")
+}
+
 type apiFeature struct {
 	header http.Header
 	body   io.Reader
@@ -32,9 +37,6 @@ type apiFeature struct {
 }
 
 func (a *apiFeature) start() {
-	gin.SetMode(gin.ReleaseMode)
-	os.Setenv("DATABASE_NAME", "mackerel_test")
-
 	c := config.New()
 
 	// drop database if exists
