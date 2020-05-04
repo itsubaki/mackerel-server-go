@@ -15,16 +15,46 @@ type SQLHandler struct {
 	DB *sql.DB
 }
 
-func New(config *config.Config) database.SQLHandler {
+func New(config *config.Config) (database.SQLHandler, error) {
+	db, err := Wait(config)
+	if err != nil {
+		return nil, fmt.Errorf("wait: %v", err)
+	}
+
+	q := fmt.Sprintf("create database if not exists %s", config.DatabaseName)
+	if _, err := db.Exec(q); err != nil {
+		return nil, fmt.Errorf("db exec: %v", err)
+	}
+
+	if err := db.Close(); err != nil {
+		return nil, fmt.Errorf("db close: %v", err)
+	}
+
+	return Open(config)
+}
+
+func Open(config *config.Config) (database.SQLHandler, error) {
+	source := fmt.Sprintf("%s%s", config.DataSourceName, config.DatabaseName)
+	db, err := sql.Open(config.Driver, source)
+	if err != nil {
+		return nil, fmt.Errorf("sql open: %v", err)
+	}
+
+	return &SQLHandler{
+		DB: db,
+	}, nil
+}
+
+func Wait(config *config.Config) (*sql.DB, error) {
 	db, err := sql.Open(config.Driver, config.DataSourceName)
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("sql open: %v", err)
 	}
 
 	start := time.Now()
 	for {
 		if time.Since(start) > 10*time.Minute {
-			panic("db ping time over")
+			return nil, fmt.Errorf("db ping time over")
 		}
 
 		if err := db.Ping(); err != nil {
@@ -36,28 +66,7 @@ func New(config *config.Config) database.SQLHandler {
 		break
 	}
 
-	q := fmt.Sprintf("create database if not exists %s", config.DatabaseName)
-	if _, err := db.Exec(q); err != nil {
-		panic(err)
-	}
-
-	if err := db.Close(); err != nil {
-		panic(err)
-	}
-
-	return Open(config)
-}
-
-func Open(config *config.Config) database.SQLHandler {
-	source := fmt.Sprintf("%s%s", config.DataSourceName, config.DatabaseName)
-	db, err := sql.Open(config.Driver, source)
-	if err != nil {
-		panic(err)
-	}
-
-	return &SQLHandler{
-		DB: db,
-	}
+	return db, nil
 }
 
 func (h *SQLHandler) Query(query string, args ...interface{}) (database.Rows, error) {

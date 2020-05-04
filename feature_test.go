@@ -2,16 +2,13 @@ package main
 
 import (
 	"bytes"
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/cucumber/godog"
 	"github.com/cucumber/messages-go/v10"
@@ -28,35 +25,21 @@ func init() {
 	os.Setenv("DATABASE_NAME", "mackerel_test")
 
 	c := config.New()
-	db, err := sql.Open(c.Driver, c.DataSourceName)
+	db, err := handler.Wait(c)
 	if err != nil {
 		panic(err)
 	}
 	defer db.Close()
 
-	start := time.Now()
-	for {
-		if time.Since(start) > 10*time.Minute {
-			panic("db ping time over")
-		}
-
-		if err := db.Ping(); err != nil {
-			log.Printf("db ping: %v", err)
-			time.Sleep(10 * time.Second)
-			continue
-		}
-
-		break
+	q := []string{
+		fmt.Sprintf("drop database if exists %s", c.DatabaseName),
+		fmt.Sprintf("create database if not exists %s", c.DatabaseName),
 	}
 
-	q0 := fmt.Sprintf("drop database if exists %s", c.DatabaseName)
-	if _, err := db.Exec(q0); err != nil {
-		panic(err)
-	}
-
-	q1 := fmt.Sprintf("create database if not exists %s", c.DatabaseName)
-	if _, err := db.Exec(q1); err != nil {
-		panic(err)
+	for i := range q {
+		if _, err := db.Exec(q[i]); err != nil {
+			panic(err)
+		}
 	}
 }
 
@@ -73,7 +56,10 @@ type apiFeature struct {
 
 func (a *apiFeature) start() {
 	c := config.New()
-	h := handler.New(c)
+	h, err := handler.New(c)
+	if err != nil {
+		panic(err)
+	}
 	r := infrastructure.Router(h)
 
 	a.config = c

@@ -20,7 +20,10 @@ func main() {
 	c := config.New()
 	log.Printf("%#v\n", c)
 
-	h := handler.New(c)
+	h, err := handler.New(c)
+	if err != nil {
+		log.Printf("handler new: %v", err)
+	}
 	log.Printf("db connected")
 
 	s := &http.Server{
