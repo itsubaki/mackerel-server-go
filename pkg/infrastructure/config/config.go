@@ -9,7 +9,7 @@ type Config struct {
 	DatabaseName   string
 }
 
-func GetValue(defaultValue, envKey string) string {
+func GetValue(envKey, defaultValue string) string {
 	if len(os.Getenv(envKey)) > 0 {
 		return os.Getenv(envKey)
 	}
@@ -19,9 +19,9 @@ func GetValue(defaultValue, envKey string) string {
 
 func New() *Config {
 	return &Config{
-		Port:           GetValue(":8080", "PORT"),
-		Driver:         GetValue("mysql", "DRIVER"),
-		DataSourceName: GetValue("root:secret@tcp(127.0.0.1:3306)/", "DATA_SOURCE_NAME"),
-		DatabaseName:   GetValue("mackerel", "DATABASE_NAME"),
+		Port:           GetValue("PORT", ":8080"),
+		Driver:         GetValue("DRIVER", "mysql"),
+		DataSourceName: GetValue("DATA_SOURCE_NAME", "root:secret@tcp(127.0.0.1:3306)/"),
+		DatabaseName:   GetValue("DATABASE_NAME", "mackerel"),
 	}
 }
