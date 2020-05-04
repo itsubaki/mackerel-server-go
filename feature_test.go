@@ -36,6 +36,19 @@ func (a *apiFeature) start() {
 	os.Setenv("DATABASE_NAME", "mackerel_test")
 
 	c := config.New()
+
+	// drop database if exists
+	t := handler.Open(c)
+	if err := t.Transact(func(tx database.Tx) error {
+		q := fmt.Sprintf("drop database if exists %s", c.DatabaseName)
+		if _, err := tx.Exec(q); err != nil {
+			return fmt.Errorf("drop database: %v", err)
+		}
+		return nil
+	}); err != nil {
+		panic(err)
+	}
+
 	h := handler.New(c)
 	r := infrastructure.Router(h)
 
