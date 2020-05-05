@@ -12,7 +12,9 @@ import (
 )
 
 type SQLHandler struct {
-	DB *sql.DB
+	DB      *sql.DB
+	Timeout time.Duration
+	Sleep   time.Duration
 }
 
 func New(c *config.Config) (database.SQLHandler, error) {
@@ -54,7 +56,9 @@ func Open(driver, dsn string) (database.SQLHandler, error) {
 	}
 
 	h := &SQLHandler{
-		DB: db,
+		DB:      db,
+		Timeout: 10 * time.Minute,
+		Sleep:   10 * time.Second,
 	}
 
 	if err := h.Ping(); err != nil {
@@ -67,13 +71,13 @@ func Open(driver, dsn string) (database.SQLHandler, error) {
 func (h *SQLHandler) Ping() error {
 	start := time.Now()
 	for {
-		if time.Since(start) > 10*time.Minute {
+		if time.Since(start) > h.Timeout {
 			return fmt.Errorf("db ping time over")
 		}
 
 		if err := h.DB.Ping(); err != nil {
 			log.Printf("db ping: %v", err)
-			time.Sleep(10 * time.Second)
+			time.Sleep(h.Sleep)
 			continue
 		}
 
