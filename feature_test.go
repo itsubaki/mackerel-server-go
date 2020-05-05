@@ -126,12 +126,12 @@ func (a *apiFeature) Keep(key, as string) error {
 
 func FeatureContext(s *godog.Suite) {
 	gin.SetMode(gin.ReleaseMode)
-	os.Setenv("DATABASE_NAME", "mackerel_test")
+	os.Setenv("DATABASE", "mackerel_test")
 
 	c := config.New()
-	if err := handler.Query(c.Driver, c.DataSourceName, []string{
-		fmt.Sprintf("drop database if exists %s", c.DatabaseName),
-		fmt.Sprintf("create database if not exists %s", c.DatabaseName),
+	if err := handler.Query(c.Driver, c.Host, []string{
+		fmt.Sprintf("drop database if exists %s", c.Database),
+		fmt.Sprintf("create database if not exists %s", c.Database),
 	}); err != nil {
 		panic(err)
 	}

@@ -16,17 +16,17 @@ type SQLHandler struct {
 }
 
 func New(c *config.Config) (database.SQLHandler, error) {
-	q := fmt.Sprintf("create database if not exists %s", c.DatabaseName)
-	if err := Query(c.Driver, c.DataSourceName, []string{q}); err != nil {
+	if err := Query(c.Driver, c.Host, []string{
+		fmt.Sprintf("create database if not exists %s", c.Database),
+	}); err != nil {
 		return nil, fmt.Errorf("query: %v", err)
 	}
 
-	s := fmt.Sprintf("%s%s", c.DataSourceName, c.DatabaseName)
-	return Open(c.Driver, s)
+	return Open(c.Driver, c.DSN())
 }
 
-func Query(driver, source string, query []string) error {
-	h, err := Open(driver, source)
+func Query(driver, dsn string, query []string) error {
+	h, err := Open(driver, dsn)
 	if err != nil {
 		return fmt.Errorf("open: %v", err)
 	}
@@ -47,8 +47,8 @@ func Query(driver, source string, query []string) error {
 	return nil
 }
 
-func Open(driver, source string) (database.SQLHandler, error) {
-	db, err := sql.Open(driver, source)
+func Open(driver, dsn string) (database.SQLHandler, error) {
+	db, err := sql.Open(driver, dsn)
 	if err != nil {
 		return nil, fmt.Errorf("sql open: %v", err)
 	}

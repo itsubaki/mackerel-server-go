@@ -16,11 +16,11 @@ func TestConfig(t *testing.T) {
 		t.Error(c)
 	}
 
-	if c.DataSourceName != "root:secret@tcp(127.0.0.1:3306)/" {
+	if c.Host != "root:secret@tcp(127.0.0.1:3306)/" {
 		t.Error(c)
 	}
 
-	if c.DatabaseName != "mackerel" {
+	if c.Database != "mackerel" {
 		t.Error(c)
 	}
 }
@@ -34,11 +34,11 @@ func TestGetValue(t *testing.T) {
 		t.Error(err)
 	}
 
-	if err := os.Setenv("DATA_SOURCE_NAME", "user:pswd@tcp(localhost:3307)/"); err != nil {
+	if err := os.Setenv("HOST", "user:pswd@tcp(localhost:3307)/"); err != nil {
 		t.Error(err)
 	}
 
-	if err := os.Setenv("DATABASE_NAME", "tmpdb"); err != nil {
+	if err := os.Setenv("DATABASE", "tmpdb"); err != nil {
 		t.Error(err)
 	}
 
@@ -52,11 +52,11 @@ func TestGetValue(t *testing.T) {
 		t.Error(c)
 	}
 
-	if c.DataSourceName != "user:pswd@tcp(localhost:3307)/" {
+	if c.Host != "user:pswd@tcp(localhost:3307)/" {
 		t.Error(c)
 	}
 
-	if c.DatabaseName != "tmpdb" {
+	if c.Database != "tmpdb" {
 		t.Error(c)
 	}
 }

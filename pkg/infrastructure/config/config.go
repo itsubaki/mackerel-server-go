@@ -1,12 +1,15 @@
 package config
 
-import "os"
+import (
+	"fmt"
+	"os"
+)
 
 type Config struct {
-	Port           string
-	Driver         string
-	DataSourceName string
-	DatabaseName   string
+	Port     string
+	Driver   string
+	Host     string
+	Database string
 }
 
 func GetValue(envKey, defaultValue string) string {
@@ -19,9 +22,13 @@ func GetValue(envKey, defaultValue string) string {
 
 func New() *Config {
 	return &Config{
-		Port:           GetValue("PORT", ":8080"),
-		Driver:         GetValue("DRIVER", "mysql"),
-		DataSourceName: GetValue("DATA_SOURCE_NAME", "root:secret@tcp(127.0.0.1:3306)/"),
-		DatabaseName:   GetValue("DATABASE_NAME", "mackerel"),
+		Port:     GetValue("PORT", ":8080"),
+		Driver:   GetValue("DRIVER", "mysql"),
+		Host:     GetValue("HOST", "root:secret@tcp(127.0.0.1:3306)/"),
+		Database: GetValue("DATABASE", "mackerel"),
 	}
+}
+
+func (c *Config) DSN() string {
+	return fmt.Sprintf("%s%s", c.Host, c.Database)
 }
