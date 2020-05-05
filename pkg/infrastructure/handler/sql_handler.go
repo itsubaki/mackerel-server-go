@@ -25,7 +25,7 @@ func New(c *config.Config) (database.SQLHandler, error) {
 }
 
 func Query(c *config.Config, query []string) error {
-	db, err := Wait(c)
+	db, err := Ping(c)
 	if err != nil {
 		return fmt.Errorf("wait: %v", err)
 	}
@@ -58,7 +58,7 @@ func Open(c *config.Config) (database.SQLHandler, error) {
 	}, nil
 }
 
-func Wait(c *config.Config) (database.SQLHandler, error) {
+func Ping(c *config.Config) (database.SQLHandler, error) {
 	db, err := sql.Open(c.Driver, c.DataSourceName)
 	if err != nil {
 		return nil, fmt.Errorf("sql open: %v", err)
