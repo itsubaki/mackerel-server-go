@@ -129,7 +129,7 @@ func FeatureContext(s *godog.Suite) {
 	os.Setenv("DATABASE_NAME", "mackerel_test")
 
 	c := config.New()
-	if err := handler.Query(c, []string{
+	if err := handler.Query(c.Driver, c.DataSourceName, []string{
 		fmt.Sprintf("drop database if exists %s", c.DatabaseName),
 		fmt.Sprintf("create database if not exists %s", c.DatabaseName),
 	}); err != nil {

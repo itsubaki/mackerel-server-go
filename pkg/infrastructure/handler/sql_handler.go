@@ -17,27 +17,20 @@ type SQLHandler struct {
 
 func New(c *config.Config) (database.SQLHandler, error) {
 	q := fmt.Sprintf("create database if not exists %s", c.DatabaseName)
-	if err := Query(c, []string{q}); err != nil {
+	if err := Query(c.Driver, c.DataSourceName, []string{q}); err != nil {
 		return nil, fmt.Errorf("query: %v", err)
 	}
 
-	return Open(c)
+	s := fmt.Sprintf("%s%s", c.DataSourceName, c.DatabaseName)
+	return Open(c.Driver, s)
 }
 
-func Query(c *config.Config, query []string) error {
-	db, err := sql.Open(c.Driver, c.DataSourceName)
+func Query(driver, source string, query []string) error {
+	h, err := Open(driver, source)
 	if err != nil {
-		return fmt.Errorf("sql open: %v", err)
+		return fmt.Errorf("open: %v", err)
 	}
-
-	h := &SQLHandler{
-		DB: db,
-	}
-
-	if err := h.Ping(); err != nil {
-		return fmt.Errorf("ping: %v", err)
-	}
-	defer db.Close()
+	defer h.Close()
 
 	if err := h.Transact(func(tx database.Tx) error {
 		for _, q := range query {
@@ -54,9 +47,8 @@ func Query(c *config.Config, query []string) error {
 	return nil
 }
 
-func Open(c *config.Config) (database.SQLHandler, error) {
-	source := fmt.Sprintf("%s%s", c.DataSourceName, c.DatabaseName)
-	db, err := sql.Open(c.Driver, source)
+func Open(driver, source string) (database.SQLHandler, error) {
+	db, err := sql.Open(driver, source)
 	if err != nil {
 		return nil, fmt.Errorf("sql open: %v", err)
 	}
