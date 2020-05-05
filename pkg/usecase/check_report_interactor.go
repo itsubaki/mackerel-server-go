@@ -17,8 +17,8 @@ func (s *CheckReportInteractor) Save(orgID string, reports *domain.CheckReports)
 		reports.Reports[i].Message = reports.Reports[i].Message[:len(reports.Reports[i].Message)-1] // remove \n
 	}
 
-	if s, err := s.CheckReportRepository.Save(orgID, reports); !s.Success {
-		return s, fmt.Errorf("save check_report: %v", err)
+	if r, err := s.CheckReportRepository.Save(orgID, reports); !r.Success {
+		return r, fmt.Errorf("save check_report: %v", err)
 	}
 
 	for i := range reports.Reports {
