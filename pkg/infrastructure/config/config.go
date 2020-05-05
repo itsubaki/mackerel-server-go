@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"strings"
 )
 
 type Config struct {
@@ -12,9 +13,10 @@ type Config struct {
 	Database string
 }
 
-func GetValue(envKey, defaultValue string) string {
-	if len(os.Getenv(envKey)) > 0 {
-		return os.Getenv(envKey)
+func GetValue(key, defaultValue string) string {
+	val := os.Getenv(key)
+	if len(val) > 0 {
+		return val
 	}
 
 	return defaultValue
@@ -30,5 +32,9 @@ func New() *Config {
 }
 
 func (c *Config) DSN() string {
+	if !strings.HasSuffix(c.Host, "/") && !strings.HasPrefix(c.Database, "/") {
+		return fmt.Sprintf("%s/%s", c.Host, c.Database)
+	}
+
 	return fmt.Sprintf("%s%s", c.Host, c.Database)
 }
