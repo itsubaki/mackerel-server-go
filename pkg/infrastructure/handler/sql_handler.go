@@ -25,13 +25,21 @@ func New(c *config.Config) (database.SQLHandler, error) {
 }
 
 func Query(c *config.Config, query []string) error {
-	db, err := Ping(c)
+	db, err := sql.Open(c.Driver, c.DataSourceName)
 	if err != nil {
-		return fmt.Errorf("wait: %v", err)
+		return fmt.Errorf("sql open: %v", err)
+	}
+
+	h := &SQLHandler{
+		DB: db,
+	}
+
+	if err := h.Ping(); err != nil {
+		return fmt.Errorf("ping: %v", err)
 	}
 	defer db.Close()
 
-	if err := db.Transact(func(tx database.Tx) error {
+	if err := h.Transact(func(tx database.Tx) error {
 		for _, q := range query {
 			if _, err := tx.Exec(q); err != nil {
 				return fmt.Errorf("exec: %v", err)
@@ -53,24 +61,25 @@ func Open(c *config.Config) (database.SQLHandler, error) {
 		return nil, fmt.Errorf("sql open: %v", err)
 	}
 
-	return &SQLHandler{
+	h := &SQLHandler{
 		DB: db,
-	}, nil
-}
-
-func Ping(c *config.Config) (database.SQLHandler, error) {
-	db, err := sql.Open(c.Driver, c.DataSourceName)
-	if err != nil {
-		return nil, fmt.Errorf("sql open: %v", err)
 	}
 
+	if err := h.Ping(); err != nil {
+		return nil, fmt.Errorf("ping: %v", err)
+	}
+
+	return h, nil
+}
+
+func (h *SQLHandler) Ping() error {
 	start := time.Now()
 	for {
 		if time.Since(start) > 10*time.Minute {
-			return nil, fmt.Errorf("db ping time over")
+			return fmt.Errorf("db ping time over")
 		}
 
-		if err := db.Ping(); err != nil {
+		if err := h.DB.Ping(); err != nil {
 			log.Printf("db ping: %v", err)
 			time.Sleep(10 * time.Second)
 			continue
@@ -79,9 +88,7 @@ func Ping(c *config.Config) (database.SQLHandler, error) {
 		break
 	}
 
-	return &SQLHandler{
-		DB: db,
-	}, nil
+	return nil
 }
 
 func (h *SQLHandler) Query(query string, args ...interface{}) (database.Rows, error) {
