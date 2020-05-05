@@ -1,10 +1,8 @@
 package domain
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
-
 	"github.com/google/uuid"
+	"github.com/speps/go-hashids"
 )
 
 func NewOrgID() string {
@@ -37,8 +35,17 @@ func NewID(digit int, seed ...string) string {
 		sum = sum + seed[i]
 	}
 
-	sha := sha256.Sum256([]byte(sum))
-	hash := hex.EncodeToString(sha[:])
+	hd := hashids.NewData()
+	hd.MinLength = digit
+	hd.Salt = sum
+	h, err := hashids.NewWithData(hd)
+	if err != nil {
+		panic(err)
+	}
+	id, err := h.Encode([]int{42})
+	if err != nil {
+		panic(err)
+	}
 
-	return hash[:digit]
+	return id
 }
