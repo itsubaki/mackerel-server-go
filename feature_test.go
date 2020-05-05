@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	"github.com/cucumber/godog"
-	"github.com/cucumber/messages-go/v10"
+	messages "github.com/cucumber/messages-go/v10"
 	"github.com/gin-gonic/gin"
 	"github.com/itsubaki/mackerel-api/pkg/infrastructure"
 	"github.com/itsubaki/mackerel-api/pkg/infrastructure/config"
