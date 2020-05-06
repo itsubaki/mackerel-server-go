@@ -26,7 +26,7 @@ mackerel compatible monitoring service
    - [x] Organizations
    - [ ] Downtime
  - Persistence
-   - [x] Database/Transaction/Reconnect
+   - [x] Database/Transaction
  - Security
    - [x] `X-Api-Key`
 
