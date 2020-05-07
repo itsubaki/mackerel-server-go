@@ -29,6 +29,10 @@ func (s *ServiceInteractor) List(orgID string) (*domain.Services, error) {
 }
 
 func (s *ServiceInteractor) Save(orgID string, service *domain.Service) (*domain.Service, error) {
+	if service.Roles == nil {
+		service.Roles = make([]string, 0)
+	}
+
 	if !s.NameRule.Match([]byte(service.Name)) {
 		return nil, &InvalidServiceName{}
 	}
