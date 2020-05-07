@@ -48,11 +48,12 @@ up: build
 
 test:
 	set -x
-	go test -cover $(shell go list ./... | grep -v /vendor/ | grep -v /build/) -v
+	go test -v -cover $(shell go list ./... | grep -v /vendor/ | grep -v /build/)
 
 godog:
 	set -x
-	go test -v --godog.format=pretty
+	go test -v --godog.format=pretty -coverprofile=coverage.out -covermode=atomic
+	go tool cover -html=coverage.out -o coverage.html
 
 mkr:
 	set -x
@@ -118,10 +119,8 @@ curl:
 	curl -s localhost:8080/api/v0/services/ExampleService/metadata -H "X-Api-Key: ${XAPIKEY}" | jq .
 	curl -s localhost:8080/api/v0/services/ExampleService/metadata/foobar -X DELETE -H "X-Api-Key: ${XAPIKEY}" | jq .
 	curl -s localhost:8080/api/v0/services -H "X-Api-Key: ${XAPIKEY}" | jq .
-
 	curl -s localhost:8080/api/v0/services/ExampleService -X DELETE -H "X-Api-Key: ${XAPIKEY}" | jq .
 	curl -s localhost:8080/api/v0/services -H "X-Api-Key: ${XAPIKEY}" | jq .
-
 	curl -s localhost:8080/api/v0/services -X POST -H "X-Api-Key: ${XAPIKEY}" -H "Content-Type: application/json" -d '{"name": "ExampleService", "memo": "This is an example."}' | jq .
 	curl -s localhost:8080/api/v0/services/ExampleService/roles -X POST -H "X-Api-Key: ${XAPIKEY}" -H "Content-Type: application/json" -d '{"name": "ExampleRole", "memo": "This is an example."}' | jq .
 	curl -s localhost:8080/api/v0/services/ExampleService/roles -H "X-Api-Key: ${XAPIKEY}" | jq .
@@ -131,7 +130,6 @@ curl:
 	curl -s localhost:8080/api/v0/services/ExampleService/roles/ExampleRole/metadata/foobar -X DELETE -H "X-Api-Key: ${XAPIKEY}" | jq .
 	curl -s localhost:8080/api/v0/services/ExampleService/roles/ExampleRole -X DELETE -H "X-Api-Key: ${XAPIKEY}" | jq .
 	curl -s localhost:8080/api/v0/services -H "X-Api-Key: ${XAPIKEY}" | jq .
-
 	curl -s localhost:8080/api/v0/services/ExampleService/tsdb -X POST -H "X-Api-Key: ${XAPIKEY}" -H "Content-Type: application/json" -d '[{"name":"hoge", "time": 1351700030, "value": 1.234},{"name":"foobar", "time": 1351700050, "value": 5.678}]' | jq .
 	curl -s "localhost:8080/api/v0/services/ExampleService/metrics?name=hoge&from=1351700000&to=1351700100" -H "X-Api-Key: ${XAPIKEY}" | jq .
 	curl -s localhost:8080/api/v0/services/ExampleService/metric-names -H "X-Api-Key: ${XAPIKEY}" | jq .

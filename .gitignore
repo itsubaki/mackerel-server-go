@@ -13,3 +13,5 @@
 *.db
 
 .idea
+coverage.out
+coverage.html
