@@ -101,7 +101,7 @@ func (a *apiFeature) ResponseShouldMatchJson(body *messages.PickleStepArgument_P
 	}
 
 	if !ok {
-		return fmt.Errorf("expected JSON does not match actual, %#v vs. %#v", expected, actual)
+		return fmt.Errorf("expected JSON does not match actual, %s vs. %s", expected, actual)
 	}
 
 	return nil

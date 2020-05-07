@@ -84,6 +84,7 @@ curl:
 	curl -s localhost:8080/api/v0/hosts/${HOSTID}/metric-names -H "X-Api-Key: ${XAPIKEY}" | jq .
 	curl -s localhost:8080/api/v0/hosts -H "X-Api-Key: ${XAPIKEY}" | jq .
 	curl -s localhost:8080/api/v0/hosts/${HOSTID}/retire -X POST -H "X-Api-Key: ${XAPIKEY}" -H "Content-Type: application/json" -d '{}' | jq .
+	curl -s localhost:8080/api/v0/services -H "X-Api-Key: ${XAPIKEY}" | jq .
 
 	curl -s localhost:8080/api/v0/graph-annotations -H "X-Api-Key: ${XAPIKEY}" | jq .
 	$(eval ANNOTATIONID := $(shell curl -s localhost:8080/api/v0/graph-annotations -X POST -H "X-Api-Key: ${XAPIKEY}" -d '{ "title": "deploy application", "description": "link: https://example.com/", "from": 1484000000, "to": 1484000030, "service": "ExampleService", "roles": [ "ExampleRole1", "ExampleRole2" ] }'| jq -r .id))
@@ -116,8 +117,11 @@ curl:
 	curl -s localhost:8080/api/v0/services/ExampleService/metadata/foobar -H "X-Api-Key: ${XAPIKEY}" | jq .
 	curl -s localhost:8080/api/v0/services/ExampleService/metadata -H "X-Api-Key: ${XAPIKEY}" | jq .
 	curl -s localhost:8080/api/v0/services/ExampleService/metadata/foobar -X DELETE -H "X-Api-Key: ${XAPIKEY}" | jq .
+	curl -s localhost:8080/api/v0/services -H "X-Api-Key: ${XAPIKEY}" | jq .
+
 	curl -s localhost:8080/api/v0/services/ExampleService -X DELETE -H "X-Api-Key: ${XAPIKEY}" | jq .
 	curl -s localhost:8080/api/v0/services -H "X-Api-Key: ${XAPIKEY}" | jq .
+
 	curl -s localhost:8080/api/v0/services -X POST -H "X-Api-Key: ${XAPIKEY}" -H "Content-Type: application/json" -d '{"name": "ExampleService", "memo": "This is an example."}' | jq .
 	curl -s localhost:8080/api/v0/services/ExampleService/roles -X POST -H "X-Api-Key: ${XAPIKEY}" -H "Content-Type: application/json" -d '{"name": "ExampleRole", "memo": "This is an example."}' | jq .
 	curl -s localhost:8080/api/v0/services/ExampleService/roles -H "X-Api-Key: ${XAPIKEY}" | jq .
@@ -126,10 +130,13 @@ curl:
 	curl -s localhost:8080/api/v0/services/ExampleService/roles/ExampleRole/metadata -H "X-Api-Key: ${XAPIKEY}" | jq .
 	curl -s localhost:8080/api/v0/services/ExampleService/roles/ExampleRole/metadata/foobar -X DELETE -H "X-Api-Key: ${XAPIKEY}" | jq .
 	curl -s localhost:8080/api/v0/services/ExampleService/roles/ExampleRole -X DELETE -H "X-Api-Key: ${XAPIKEY}" | jq .
+	curl -s localhost:8080/api/v0/services -H "X-Api-Key: ${XAPIKEY}" | jq .
+
 	curl -s localhost:8080/api/v0/services/ExampleService/tsdb -X POST -H "X-Api-Key: ${XAPIKEY}" -H "Content-Type: application/json" -d '[{"name":"hoge", "time": 1351700030, "value": 1.234},{"name":"foobar", "time": 1351700050, "value": 5.678}]' | jq .
 	curl -s "localhost:8080/api/v0/services/ExampleService/metrics?name=hoge&from=1351700000&to=1351700100" -H "X-Api-Key: ${XAPIKEY}" | jq .
 	curl -s localhost:8080/api/v0/services/ExampleService/metric-names -H "X-Api-Key: ${XAPIKEY}" | jq .
 	curl -s localhost:8080/api/v0/services/ExampleService -X DELETE -H "X-Api-Key: ${XAPIKEY}" | jq .
+	curl -s localhost:8080/api/v0/services -H "X-Api-Key: ${XAPIKEY}" | jq .
 
 	curl -s -v localhost:8080/api/v0/monitors -X POST -H "X-Api-Key: ${XAPIKEY}" -H "Content-Type: application/json" -d '{ "type": "host", "name": "loadavg1", "duration": 3, "metric": "loadavg1", "operator": ">", "warning": 3.0, "critical": 6.0 }' | jq .
 	curl -s -v localhost:8080/api/v0/monitoring/checks/host-metric -H "X-Api-Key: ${XAPIKEY}" -H "Content-Type: application/json" } | jq .

@@ -49,21 +49,26 @@ func NewServiceRepository(handler SQLHandler) *ServiceRepository {
 // |  1 | SIMPLE      | services | NULL       | const | PRIMARY       | PRIMARY | 514     | const |    1 |   100.00 | NULL  |
 // +----+-------------+----------+------------+-------+---------------+---------+---------+-------+------+----------+-------+
 // 1 row in set, 1 warning (0.01 sec)
-func (repo *ServiceRepository) List(orgID string, roles map[string][]string) (*domain.Services, error) {
+func (repo *ServiceRepository) List(orgID string) (*domain.Services, error) {
 	services := make([]domain.Service, 0)
 
 	if err := repo.Transact(func(tx Tx) error {
-		for svc := range roles {
+		rows, err := tx.Query("select name, memo from services where org_id=?", orgID)
+		if err != nil {
+			return fmt.Errorf("select * from services: %v", err)
+		}
+		defer rows.Close()
+
+		for rows.Next() {
 			service := domain.Service{
-				Name:  svc,
-				Roles: roles[svc],
+				Roles: make([]string, 0),
 			}
 
-			row := tx.QueryRow("select memo from services where org_id=? and name=?", orgID, svc)
-			if err := row.Scan(
+			if err := rows.Scan(
+				&service.Name,
 				&service.Memo,
 			); err != nil {
-				return fmt.Errorf("scan services: %v", err)
+				return fmt.Errorf("scan: %v", err)
 			}
 
 			services = append(services, service)
@@ -89,7 +94,7 @@ func (repo *ServiceRepository) Save(orgID string, s *domain.Service) error {
 			)
 			values (?, ?, ?)
 			on duplicate key update
-				name = values(memo)
+				memo = values(memo)
 			`,
 			orgID, s.Name, s.Memo,
 		); err != nil {

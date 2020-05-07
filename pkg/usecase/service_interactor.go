@@ -25,7 +25,22 @@ func (s *ServiceInteractor) List(orgID string) (*domain.Services, error) {
 		return nil, fmt.Errorf("list roles: %v", err)
 	}
 
-	return s.ServiceRepository.List(orgID, roles)
+	services, err := s.ServiceRepository.List(orgID)
+	if err != nil {
+		return nil, fmt.Errorf("list services: %v", err)
+	}
+
+	for i := range services.Services {
+		for k, v := range roles {
+			if services.Services[i].Name != k {
+				continue
+			}
+
+			services.Services[i].Roles = v
+		}
+	}
+
+	return services, nil
 }
 
 func (s *ServiceInteractor) Save(orgID string, service *domain.Service) (*domain.Service, error) {
