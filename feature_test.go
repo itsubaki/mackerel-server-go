@@ -71,7 +71,7 @@ func (a *apiFeature) SetHeader(k, v string) error {
 }
 
 func (a *apiFeature) SetRequestBody(b *messages.PickleStepArgument_PickleDocString) error {
-	a.body = bytes.NewBuffer([]byte(b.Content))
+	a.body = bytes.NewBuffer([]byte(a.replace(b.Content)))
 	return nil
 }
 

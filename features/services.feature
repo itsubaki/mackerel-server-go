@@ -92,3 +92,13 @@ Feature:
         ]
       }
       """
+
+  Scenario: should get empty services
+    When I send "GET" request to "/api/v0/services"
+    Then the response code should be 200
+    Then the response should match json:
+      """
+      {
+        "services": []
+      }
+      """

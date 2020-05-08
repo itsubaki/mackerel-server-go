@@ -117,7 +117,7 @@ type MetricValue struct {
 	OrgID  string  `json:"-"`
 	HostID string  `json:"hostId,omitempty"`
 	Name   string  `json:"name,omitempty"`
-	Time   int64   `json:"time"`
+	Time   int64   `json:"time,omitempty"`
 	Value  float64 `json:"value"`
 }
 

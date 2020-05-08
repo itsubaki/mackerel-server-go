@@ -124,13 +124,26 @@ Feature:
       }
       """
 
-  Scenario: should retire host
+  Scenario: should register host metric values
     Given I set "Content-Type" header with "application/json"
     Given I set request body:
       """
-      {}
+      [
+        {
+          "hostId": "$HOST_ID",
+          "name":"cpu",
+          "time": 1351700030,
+          "value": 1.234
+        },
+        {
+          "hostId": "$HOST_ID",
+          "name":"memory",
+          "time": 1351700050,
+          "value": 5.678
+        }
+      ]
       """
-    When I send "POST" request to "/api/v0/hosts/$HOST_ID/retire"
+    When I send "POST" request to "/api/v0/tsdb"
     Then the response code should be 200
     Then the response should match json:
       """
@@ -145,6 +158,32 @@ Feature:
     Then the response should match json:
       """
       {
-        "tsdbLatest": {}
+        "tsdbLatest": {
+          "$HOST_ID": {
+            "cpu": {
+              "name":"cpu",
+              "value":1.234
+            },
+            "memory": {
+              "name": "memory",
+              "value": 5.678
+            }
+          }
+        }
+      }
+      """
+
+  Scenario: should retire host
+    Given I set "Content-Type" header with "application/json"
+    Given I set request body:
+      """
+      {}
+      """
+    When I send "POST" request to "/api/v0/hosts/$HOST_ID/retire"
+    Then the response code should be 200
+    Then the response should match json:
+      """
+      {
+        "success": true
       }
       """
