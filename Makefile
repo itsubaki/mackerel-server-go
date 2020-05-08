@@ -52,8 +52,9 @@ test:
 
 godog:
 	set -x
-	go test -v --godog.format=pretty -coverprofile=coverage.out -covermode=atomic
-	go tool cover -html=coverage.out -o coverage.html
+	go test -v --godog.format=pretty
+# 	go test -v --godog.format=pretty -coverprofile=coverage.out -covermode=atomic
+# 	go tool cover -html=coverage.out -o coverage.html
 
 mkr:
 	set -x
