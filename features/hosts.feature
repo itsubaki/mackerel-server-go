@@ -173,6 +173,19 @@ Feature:
       }
       """
 
+  Scenario: should get latest host metric names
+    When I send "GET" request to "/api/v0/hosts/$HOST_ID/metric-names"
+    Then the response code should be 200
+    Then the response should match json:
+      """
+      {
+        "names": [
+          "cpu",
+          "memory"
+        ]
+      }
+      """
+
   Scenario: should retire host
     Given I set "Content-Type" header with "application/json"
     Given I set request body:

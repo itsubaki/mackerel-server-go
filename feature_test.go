@@ -97,7 +97,7 @@ func (a *apiFeature) ResponseShouldMatchJson(body *messages.PickleStepArgument_P
 
 	ok, err := gomatch.NewDefaultJSONMatcher().Match(expected, actual)
 	if err != nil {
-		return fmt.Errorf("match: %v", err)
+		return fmt.Errorf("actual=%s, match: %v", actual, err)
 	}
 
 	if !ok {
