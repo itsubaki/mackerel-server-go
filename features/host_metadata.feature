@@ -28,3 +28,64 @@ Feature:
       }
       """
     Then I keep the JSON response at "id" as "$HOST_ID"
+
+  Scenario: should register host metadata
+    Given I set "Content-Type" header with "application/json"
+    Given I set request body:
+      """
+      {
+        "message": "this is host metadata"
+      }
+      """
+    When I send "PUT" request to "/api/v0/hosts/$HOST_ID/metadata/example"
+    Then the response code should be 200
+    Then the response should match json:
+      """
+      {
+        "success": true
+      }
+      """
+
+  Scenario: should get host metadata
+    When I send "GET" request to "/api/v0/hosts/$HOST_ID/metadata/example"
+    Then the response code should be 200
+    Then the response should match json:
+      """
+      {
+        "message": "this is host metadata"
+      }
+      """
+
+  Scenario: should get host metadata list
+    When I send "GET" request to "/api/v0/hosts/$HOST_ID/metadata"
+    Then the response code should be 200
+    Then the response should match json:
+      """
+      {
+        "metadata": [
+          {
+            "namespace": "example"
+          }
+        ]
+      }
+      """
+
+  Scenario: should delete host metadata
+    When I send "DELETE" request to "/api/v0/hosts/$HOST_ID/metadata/example"
+    Then the response code should be 200
+    Then the response should match json:
+      """
+      {
+        "success": true
+      }
+      """
+
+  Scenario: should get empty host metadata list
+    When I send "GET" request to "/api/v0/hosts/$HOST_ID/metadata"
+    Then the response code should be 200
+    Then the response should match json:
+      """
+      {
+        "metadata": []
+      }
+      """

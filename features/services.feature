@@ -42,7 +42,7 @@ Feature:
       }
       """
 
-  Scenario: should register roles
+  Scenario: should register role
     Given I set "Content-Type" header with "application/json"
     Given I set request body:
       """
