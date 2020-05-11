@@ -14,6 +14,8 @@ func (s *MonitorInteractor) List(orgID string) (*domain.Monitors, error) {
 
 func (s *MonitorInteractor) Save(orgID string, monitor *domain.Monitoring) (interface{}, error) {
 	monitor.ID = domain.NewMonitorID(monitor.Name)
+
+	// TODO external only
 	if len(monitor.Method) < 1 {
 		monitor.Method = "GET"
 	}

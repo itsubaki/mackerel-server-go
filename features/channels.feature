@@ -45,7 +45,7 @@ Feature:
       """
     Then I keep the JSON response at "id" as "$CHANNEL_ID"
 
-  Scenario: should get channel
+  Scenario: should get channels
     When I send "GET" request to "/api/v0/channels"
     Then the response code should be 200
     Then the response should match json:
