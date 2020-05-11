@@ -28,7 +28,7 @@ type apiFeature struct {
 	config  *config.Config
 	handler database.SQLHandler
 	server  *gin.Engine
-	keep    map[string]string
+	keep    map[string]interface{}
 }
 
 func (a *apiFeature) start() {
@@ -42,7 +42,7 @@ func (a *apiFeature) start() {
 	a.config = c
 	a.handler = h
 	a.server = r
-	a.keep = make(map[string]string)
+	a.keep = make(map[string]interface{})
 }
 
 func (a *apiFeature) stop() {
@@ -59,7 +59,12 @@ func (a *apiFeature) reset(m *messages.Pickle) {
 
 func (a *apiFeature) replace(str string) string {
 	for k, v := range a.keep {
-		str = strings.Replace(str, k, v, -1)
+		switch val := v.(type) {
+		case string:
+			str = strings.Replace(str, k, val, -1)
+		default:
+			continue
+		}
 	}
 
 	return str
@@ -108,9 +113,9 @@ func (a *apiFeature) ResponseShouldMatchJson(body *messages.PickleStepArgument_P
 }
 
 func (a *apiFeature) Keep(key, as string) error {
-	var actual map[string]string
+	var actual map[string]interface{}
 	if err := json.Unmarshal(a.resp.Body.Bytes(), &actual); err != nil {
-		return err
+		return fmt.Errorf("body=%s, unmarshal: %v", a.resp.Body.String(), err)
 	}
 
 	for k, v := range actual {
