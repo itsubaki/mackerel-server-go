@@ -1,5 +1,5 @@
 Feature:
-  In order to monitor the service
+  In order to monitor the role
   As an API user
   I need to be able to request services
 
@@ -26,7 +26,26 @@ Feature:
       }
       """
 
-  Scenario: should get services
+  Scenario: should register role
+    Given I set "Content-Type" header with "application/json"
+    Given I set request body:
+      """
+      {
+        "name": "ExampleRole",
+        "memo": "This is an example"
+      }
+      """
+    When I send "POST" request to "/api/v0/services/ExampleService/roles"
+    Then the response code should be 200
+    Then the response should match json:
+      """
+      {
+        "name": "ExampleRole",
+        "memo": "This is an example"
+      }
+      """
+
+  Scenario: should get services with roles
     When I send "GET" request to "/api/v0/services"
     Then the response code should be 200
     Then the response should match json:
@@ -36,7 +55,9 @@ Feature:
           {
             "name": "ExampleService",
             "memo": "This is an example",
-            "roles": []
+            "roles": [
+              "ExampleRole"
+            ]
           }
         ]
       }
@@ -50,7 +71,9 @@ Feature:
       {
         "name": "ExampleService",
         "memo": "This is an example",
-        "roles": []
+        "roles": [
+          "ExampleRole"
+        ]
       }
       """
 
