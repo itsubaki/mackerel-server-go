@@ -91,25 +91,6 @@ Feature:
       }
       """
 
-  Scenario: should update host roles
-    Given I set "Content-Type" header with "application/json"
-    Given I set request body:
-      """
-      {
-        "roleFullnames": [
-          "Hatena-Bookmark:db-master"
-        ]
-      }
-      """
-    When I send "PUT" request to "/api/v0/hosts/$HOST_ID/role-fullnames"
-    Then the response code should be 200
-    Then the response should match json:
-      """
-      {
-        "success": true
-      }
-      """
-
   Scenario: should get updated host information
     When I send "GET" request to "/api/v0/hosts/$HOST_ID"
     Then the response code should be 200
@@ -124,13 +105,7 @@ Feature:
           "createdAt": "@number@",
           "isRetired": false,
           "roles": {
-            "Hatena-Bookmark": [
-              "db-master"
-            ]
           },
-          "roleFullnames": [
-              "Hatena-Bookmark:db-master"
-          ],
           "meta": {
             "agent-name": "mackerel-agent/0.27.0 (Revision dfbccea)",
             "agent-revision": "2f531c6",
@@ -169,42 +144,12 @@ Feature:
           "createdAt": "@number@",
           "isRetired": true,
           "roles": {
-            "Hatena-Bookmark": [
-              "db-master"
-            ]
           },
-          "roleFullnames": [
-              "Hatena-Bookmark:db-master"
-          ],
           "meta": {
             "agent-name": "mackerel-agent/0.27.0 (Revision dfbccea)",
             "agent-revision": "2f531c6",
             "agent-version": "0.4.2"
           }
         }
-      }
-      """
-
-  Scenario: should delete services
-    When I send "DELETE" request to "/api/v0/services/Hatena-Bookmark"
-    Then the response code should be 200
-    Then the response should match json:
-      """
-      {
-        "name": "Hatena-Bookmark",
-        "memo": "",
-        "roles": [
-          "db-master"
-        ]
-      }
-      """
-
-  Scenario: should get empty services
-    When I send "GET" request to "/api/v0/services"
-    Then the response code should be 200
-    Then the response should match json:
-      """
-      {
-        "services": []
       }
       """
