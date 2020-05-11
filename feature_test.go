@@ -10,6 +10,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/itsubaki/mackerel-api/pkg/domain"
+
 	"github.com/cucumber/godog"
 	messages "github.com/cucumber/messages-go/v10"
 	"github.com/gin-gonic/gin"
@@ -129,6 +131,28 @@ func (a *apiFeature) Keep(key, as string) error {
 	return nil
 }
 
+func (a *apiFeature) AlertsExists(alerts *messages.PickleStepArgument_PickleTable) error {
+	list := make([]domain.Alert, 0)
+	for i := 1; i < len(alerts.Rows); i++ {
+		list = append(list, domain.Alert{
+			OrgID:     alerts.Rows[i].Cells[0].Value,
+			ID:        alerts.Rows[i].Cells[1].Value,
+			Status:    alerts.Rows[i].Cells[2].Value,
+			MonitorID: alerts.Rows[i].Cells[3].Value,
+			Type:      alerts.Rows[i].Cells[4].Value,
+		})
+	}
+
+	r := database.AlertRepository{SQLHandler: a.handler}
+	for i := range list {
+		if _, err := r.Save(list[i].OrgID, &list[i]); err != nil {
+			return fmt.Errorf("save alert: %v", err)
+		}
+	}
+
+	return nil
+}
+
 func FeatureContext(s *godog.Suite) {
 	gin.SetMode(gin.ReleaseMode)
 	os.Setenv("DATABASE", "mackerel_test")
@@ -145,6 +169,7 @@ func FeatureContext(s *godog.Suite) {
 	s.BeforeSuite(a.start)
 
 	s.BeforeScenario(a.reset)
+	s.Step(`^the following alerts exist:$`, a.AlertsExists)
 	s.Step(`^I set "([^"]*)" header with "([^"]*)"$`, a.SetHeader)
 	s.Step(`^I set request body:$`, a.SetRequestBody)
 	s.Step(`^I send "([^"]*)" request to "([^"]*)"$`, a.Request)
