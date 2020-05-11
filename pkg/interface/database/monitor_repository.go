@@ -34,7 +34,7 @@ func NewMonitorRepository(handler SQLHandler) *MonitorRepository {
 				missing_duration_warning          int,
 				missing_duration_critical         int,
 				url                               text,
-				method                            enum('GET', 'PUT', 'POST', 'DELETE') not null default 'GET',
+				method                            enum('GET', 'PUT', 'POST', 'DELETE', ''),
 				service                           text,
 				response_time_warning             int,
 				response_time_critical            int,
