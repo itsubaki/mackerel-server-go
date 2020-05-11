@@ -78,7 +78,7 @@ Feature:
       }
       """
 
-  Scenario: should get latest host metric names
+  Scenario: should get host metric names
     When I send "GET" request to "/api/v0/hosts/$HOST_ID/metric-names"
     Then the response code should be 200
     Then the response should match json:
