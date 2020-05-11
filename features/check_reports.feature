@@ -18,7 +18,7 @@ Feature:
               "hostId": "12345678901"
             },
             "name": "check-tcp_mysql",
-            "status": "WARNING",
+            "status": "CRITICAL",
             "message": "TCP CRITICAL: dial tcp [::1]:3306",
             "occurredAt": 1351700100
           }
