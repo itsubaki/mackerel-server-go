@@ -78,6 +78,23 @@ Feature:
       }
       """
 
+  Scenario: should get host metric values
+    When I send "GET" request to "/api/v0/hosts/$HOST_ID/metrics?name=cpu&from=1351700000&to=1351700100"
+    Then the response code should be 200
+    Then the response should match json:
+      """
+      {
+        "metrics": [
+          {
+            "hostId": "$HOST_ID",
+            "name": "cpu",
+            "time": 1351700030,
+            "value": 1.234
+          }
+        ]
+      }
+      """
+
   Scenario: should get host metric names
     When I send "GET" request to "/api/v0/hosts/$HOST_ID/metric-names"
     Then the response code should be 200
