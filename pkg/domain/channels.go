@@ -25,6 +25,7 @@ func (c *Channel) Cast() interface{} {
 			Type:    c.Type,
 			Events:  c.Events,
 			UserIDs: c.UserIDs,
+			Emails:  c.Emails,
 		}
 	}
 
