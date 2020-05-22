@@ -10,11 +10,10 @@ import (
 	"os"
 	"strings"
 
-	"github.com/itsubaki/mackerel-api/pkg/domain"
-
 	"github.com/cucumber/godog"
 	messages "github.com/cucumber/messages-go/v10"
 	"github.com/gin-gonic/gin"
+	"github.com/itsubaki/mackerel-api/pkg/domain"
 	"github.com/itsubaki/mackerel-api/pkg/infrastructure"
 	"github.com/itsubaki/mackerel-api/pkg/infrastructure/config"
 	"github.com/itsubaki/mackerel-api/pkg/infrastructure/handler"
@@ -78,12 +77,14 @@ func (a *apiFeature) SetHeader(k, v string) error {
 }
 
 func (a *apiFeature) SetRequestBody(b *messages.PickleStepArgument_PickleDocString) error {
-	a.body = bytes.NewBuffer([]byte(a.replace(b.Content)))
+	r := a.replace(b.Content)
+	a.body = bytes.NewBuffer([]byte(r))
 	return nil
 }
 
 func (a *apiFeature) Request(method, endpoint string) error {
-	req := httptest.NewRequest(method, a.replace(endpoint), a.body)
+	r := a.replace(endpoint)
+	req := httptest.NewRequest(method, r, a.body)
 	req.Header = a.header
 
 	a.server.ServeHTTP(a.resp, req)
