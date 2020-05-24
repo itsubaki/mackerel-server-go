@@ -26,7 +26,7 @@ Feature:
         "roleScopes": [ "db" ],
         "roleExcludeScopes": [ "application" ],
         "monitorScopes": [ "12345678901" ],
-        "monitorScopes": [ "12345678902" ]
+        "monitorExcludeScopes": [ "12345678902" ]
       }
       """
     When I send "POST" request to "/api/v0/downtimes"
@@ -50,7 +50,7 @@ Feature:
         "roleScopes": [ "Hatena-Bookmark:db-master" ],
         "roleExcludeScopes": [ "Hatena-Blog:db-master" ],
         "monitorScopes": [ "12345678901" ],
-        "monitorScopes": [ "12345678902" ]
+        "monitorExcludeScopes": [ "12345678902" ]
       }
       """
     Then I keep the JSON response at "id" as "$DOWNTIME_ID"
@@ -79,7 +79,7 @@ Feature:
             "roleScopes": [ "Hatena-Bookmark:db-master" ],
             "roleExcludeScopes": [ "Hatena-Blog:db-master" ],
             "monitorScopes": [ "12345678901" ],
-            "monitorScopes": [ "12345678902" ]
+            "monitorExcludeScopes": [ "12345678902" ]
           }
         ]
       }

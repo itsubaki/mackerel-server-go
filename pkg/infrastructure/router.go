@@ -177,6 +177,10 @@ func CheckMonitors(v0 *gin.RouterGroup, handler database.SQLHandler) {
 	exp.GET("", func(c *gin.Context) { check.Expression(c) })
 }
 
+func Downtimes(v0 *gin.RouterGroup, handler database.SQLHandler) {
+
+}
+
 func UseAPIKey(g *gin.Engine, handler database.SQLHandler) {
 	apikey := controller.NewAPIKeyController(handler)
 
@@ -225,6 +229,7 @@ func Router(handler database.SQLHandler) *gin.Engine {
 	Invitations(v0, handler)
 	Users(v0, handler)
 	Organizations(v0, handler)
+	Downtimes(v0, handler)
 
 	// advance
 	CheckMonitors(v0, handler)
