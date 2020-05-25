@@ -11,6 +11,7 @@ func (s *DowntimeInteractor) List(orgID string) (*domain.Downtimes, error) {
 }
 
 func (s *DowntimeInteractor) Save(orgID string, downtime *domain.Downtime) (*domain.Downtime, error) {
+	downtime.ID = domain.NewRandomID(11)
 	return s.DowntimeRepository.Save(orgID, downtime)
 }
 

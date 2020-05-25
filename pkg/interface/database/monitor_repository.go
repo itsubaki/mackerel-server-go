@@ -90,9 +90,9 @@ func (repo *MonitorRepository) List(orgID string) (*domain.Monitors, error) {
 		}
 		defer rows.Close()
 
-		var scopes, exclude, service, headers, body string
 		for rows.Next() {
 			var monitor domain.Monitoring
+			var scopes, exclude, service, headers, body string
 			if err := rows.Scan(
 				&monitor.OrgID,
 				&monitor.ID,
@@ -356,7 +356,7 @@ func (repo *MonitorRepository) Update(orgID string, monitor *domain.Monitoring) 
 			orgID,
 			monitor.ID,
 		); err != nil {
-			return fmt.Errorf("insert into monitors: %v", err)
+			return fmt.Errorf("update monitors: %v", err)
 
 		}
 

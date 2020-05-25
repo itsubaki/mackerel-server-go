@@ -1,5 +1,5 @@
 Feature:
-  In order to notify with downtime
+  In order to set downtime
   As an API user
   I need to be able to request downtimes
 
@@ -21,10 +21,10 @@ Feature:
           "weekdays": [ "Sunday", "Monday" ],
           "until": 1351700100
         },
-        "serviceScopes": [ "production" ],
-        "serviceExcludeScopes": [ "develop" ],
-        "roleScopes": [ "db" ],
-        "roleExcludeScopes": [ "application" ],
+        "serviceScopes": [ "Hatena-Bookmark" ],
+        "serviceExcludeScopes": [ "Hatena-Blog" ],
+        "roleScopes": [ "Hatena-Bookmark:db-master" ],
+        "roleExcludeScopes": [ "Hatena-Blog:db-master" ],
         "monitorScopes": [ "12345678901" ],
         "monitorExcludeScopes": [ "12345678902" ]
       }
@@ -93,7 +93,7 @@ Feature:
         "name": "example",
         "memo": "my first downtime",
         "start": 1351700100,
-        "duration": 60,
+        "duration": 60
       }
       """
     When I send "PUT" request to "/api/v0/downtimes/$DOWNTIME_ID"
@@ -101,7 +101,11 @@ Feature:
     Then the response should match json:
       """
       {
-        "id": "$DOWNTIME_ID"
+        "id": "@string@",
+        "name": "example",
+        "memo": "my first downtime",
+        "start": 1351700100,
+        "duration": 60
       }
       """
 
