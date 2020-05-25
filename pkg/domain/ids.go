@@ -5,10 +5,6 @@ import (
 	"github.com/speps/go-hashids"
 )
 
-func NewOrgID() string {
-	return NewRandomID(11)
-}
-
 func NewHostID() string {
 	return NewRandomID(11)
 }
@@ -17,11 +13,7 @@ func NewAPIKey() string {
 	return NewRandomID(44)
 }
 
-func NewMonitorID(seed ...string) string {
-	return NewID(11, seed...)
-}
-
-func NewAlertID(seed ...string) string {
+func NewIDWith(seed ...string) string {
 	return NewID(11, seed...)
 }
 

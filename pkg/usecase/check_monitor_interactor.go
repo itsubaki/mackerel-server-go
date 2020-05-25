@@ -61,7 +61,7 @@ func (s *CheckMonitorInteractor) HostMetric(orgID string) (*domain.Success, erro
 				orgID,
 				&domain.Alert{
 					OrgID: orgID,
-					ID: domain.NewAlertID(
+					ID: domain.NewIDWith(
 						orgID,
 						h.ID,
 						m.ID,

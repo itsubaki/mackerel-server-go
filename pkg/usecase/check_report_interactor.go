@@ -24,14 +24,14 @@ func (s *CheckReportInteractor) Save(orgID string, reports *domain.CheckReports)
 	for i := range reports.Reports {
 		if _, err := s.AlertRepository.Save(orgID, &domain.Alert{
 			OrgID: orgID,
-			ID: domain.NewAlertID(
+			ID: domain.NewIDWith(
 				orgID,
 				reports.Reports[i].Source.HostID,
 				reports.Reports[i].Name,
 				strconv.FormatInt(reports.Reports[i].OccurredAt, 10),
 			),
 			Status: reports.Reports[i].Status,
-			MonitorID: domain.NewMonitorID(
+			MonitorID: domain.NewIDWith(
 				orgID,
 				reports.Reports[i].Source.HostID,
 				reports.Reports[i].Source.Type,
