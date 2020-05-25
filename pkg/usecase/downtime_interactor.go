@@ -7,21 +7,21 @@ type DowntimeInteractor struct {
 }
 
 func (s *DowntimeInteractor) List(orgID string) (*domain.Downtimes, error) {
-	return nil, nil
+	return s.DowntimeRepository.List(orgID)
 }
 
 func (s *DowntimeInteractor) Save(orgID string, downtime *domain.Downtime) (*domain.Downtime, error) {
-	return nil, nil
+	return s.DowntimeRepository.Save(orgID, downtime)
 }
 
 func (s *DowntimeInteractor) Update(orgID string, downtime *domain.Downtime) (*domain.Downtime, error) {
-	return nil, nil
+	return s.DowntimeRepository.Update(orgID, downtime)
 }
 
 func (s *DowntimeInteractor) Downtime(orgID, downtimeID string) (*domain.Downtime, error) {
-	return nil, nil
+	return s.DowntimeRepository.Downtime(orgID, downtimeID)
 }
 
 func (s *DowntimeInteractor) Delete(orgID, downtimeID string) (*domain.Downtime, error) {
-	return nil, nil
+	return s.DowntimeRepository.Delete(orgID, downtimeID)
 }
