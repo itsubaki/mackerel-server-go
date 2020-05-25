@@ -178,7 +178,14 @@ func CheckMonitors(v0 *gin.RouterGroup, handler database.SQLHandler) {
 }
 
 func Downtimes(v0 *gin.RouterGroup, handler database.SQLHandler) {
+	downtime := controller.NewDowntimeController(handler)
 
+	d := v0.Group("/downtimes")
+	d.GET("", func(c *gin.Context) { downtime.List(c) })
+	d.POST("", func(c *gin.Context) { downtime.Save(c) })
+	d.GET("/:downtimeId", func(c *gin.Context) { downtime.Downtime(c) })
+	d.PUT("/:downtimeId", func(c *gin.Context) { downtime.Update(c) })
+	d.DELETE("/:downtimeId", func(c *gin.Context) { downtime.Delete(c) })
 }
 
 func UseAPIKey(g *gin.Engine, handler database.SQLHandler) {
