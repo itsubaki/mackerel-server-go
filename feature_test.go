@@ -99,7 +99,7 @@ func (a *apiFeature) ResponseCodeShouldBe(code int) error {
 	return fmt.Errorf("expected response code to be: %d, but actual is: %d", code, a.resp.Code)
 }
 
-func (a *apiFeature) ResponseShouldMatchJson(body *messages.PickleStepArgument_PickleDocString) error {
+func (a *apiFeature) ResponseShouldMatchJSON(body *messages.PickleStepArgument_PickleDocString) error {
 	expected := a.replace(body.Content)
 	actual := a.resp.Body.String()
 
