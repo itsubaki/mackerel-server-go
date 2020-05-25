@@ -80,7 +80,7 @@ func (s *DowntimeController) Update(c Context) {
 	doResponse(c, out, err)
 }
 
-func (s DowntimeController) Downtime(c Context) {
+func (s *DowntimeController) Downtime(c Context) {
 	out, err := s.Interactor.Downtime(
 		c.GetString("org_id"),
 		c.Param("downtimeId"),
@@ -94,7 +94,7 @@ func (s DowntimeController) Downtime(c Context) {
 //STATUS CODE	DESCRIPTION
 //403	when the API key doesn't have the required permissions / when accessing from outside the permitted IP address range
 //404	when the downtime corresponding to the designated ID can't be found
-func (s DowntimeController) Delete(c Context) {
+func (s *DowntimeController) Delete(c Context) {
 	out, err := s.Interactor.Delete(
 		c.GetString("org_id"),
 		c.Param("downtimeId"),
