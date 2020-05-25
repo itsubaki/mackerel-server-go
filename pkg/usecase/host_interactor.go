@@ -39,7 +39,7 @@ func (s *HostInteractor) Save(orgID string, host *domain.Host) (*domain.HostID, 
 
 	// Create Host
 	if len(host.ID) < 1 {
-		host.ID = domain.NewHostID()
+		host.ID = domain.NewRandomID()
 		host.CreatedAt = time.Now().Unix()
 		host.RetiredAt = 0
 		host.IsRetired = false

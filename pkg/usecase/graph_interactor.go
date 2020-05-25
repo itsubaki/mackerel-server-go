@@ -24,7 +24,7 @@ func (s *GraphInteractor) List(orgID string) (*domain.GraphAnnotations, error) {
 }
 
 func (s *GraphInteractor) Save(orgID string, annotation *domain.GraphAnnotation) (*domain.GraphAnnotation, error) {
-	annotation.ID = domain.NewRandomID(11)
+	annotation.ID = domain.NewRandomID()
 	return s.GraphRepository.Save(orgID, annotation)
 }
 

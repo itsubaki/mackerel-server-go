@@ -15,7 +15,7 @@ func (s *NotificationGroupInteractor) List(orgID string) (*domain.NotificationGr
 }
 
 func (s *NotificationGroupInteractor) Save(orgID string, group *domain.NotificationGroup) (*domain.NotificationGroup, error) {
-	group.ID = domain.NewRandomID(11)
+	group.ID = domain.NewRandomID()
 	return s.NotificationGroupRepository.Save(orgID, group)
 }
 

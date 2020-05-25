@@ -16,7 +16,7 @@ func (s *ChannelInteractor) List(orgID string) (*domain.Channels, error) {
 }
 
 func (s *ChannelInteractor) Save(orgID string, channel *domain.Channel) (interface{}, error) {
-	channel.ID = domain.NewRandomID(11)
+	channel.ID = domain.NewRandomID()
 	return s.ChannelRepository.Save(orgID, channel)
 }
 

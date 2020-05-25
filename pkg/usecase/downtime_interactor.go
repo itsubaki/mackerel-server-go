@@ -10,11 +10,32 @@ func (s *DowntimeInteractor) List(orgID string) (*domain.Downtimes, error) {
 	return s.DowntimeRepository.List(orgID)
 }
 
+// TODO
+//Error
+//STATUS CODE	DESCRIPTION
+//400	when the input is invalid
+//400	when the name or memo is too long
+//400	when the downtime duration is invalid
+//400	when the recurrence configuration is invalid
+//400	when the target service/role/monitor setting of the scope is redundant or does not exist
+//400	when the service/role/monitor setting of the scope does not exist
+//403	when the API key doesn't have the required permissions / when accessing from outside the permitted IP address range
 func (s *DowntimeInteractor) Save(orgID string, downtime *domain.Downtime) (*domain.Downtime, error) {
-	downtime.ID = domain.NewRandomID(11)
+	downtime.ID = domain.NewRandomID()
 	return s.DowntimeRepository.Save(orgID, downtime)
 }
 
+// TODO
+//Error
+//STATUS CODE	DESCRIPTION
+//400	when the input is invalid
+//400	when the name or memo is too long
+//400	when the downtime duration is invalid
+//400	when the recurrence configuration is invalid
+//400	when the target service/role/monitor setting of the scope is redundant or does not exist
+//400	when the service/role/monitor setting of the scope does not exist
+//403	when the API key doesn't have the required permissions / when accessing from outside the permitted IP address range
+//404	when the downtime corresponding to the designated ID can't be found
 func (s *DowntimeInteractor) Update(orgID string, downtime *domain.Downtime) (*domain.Downtime, error) {
 	return s.DowntimeRepository.Update(orgID, downtime)
 }
@@ -23,6 +44,11 @@ func (s *DowntimeInteractor) Downtime(orgID, downtimeID string) (*domain.Downtim
 	return s.DowntimeRepository.Downtime(orgID, downtimeID)
 }
 
+// TODO
+//Error
+//STATUS CODE	DESCRIPTION
+//403	when the API key doesn't have the required permissions / when accessing from outside the permitted IP address range
+//404	when the downtime corresponding to the designated ID can't be found
 func (s *DowntimeInteractor) Delete(orgID, downtimeID string) (*domain.Downtime, error) {
 	return s.DowntimeRepository.Delete(orgID, downtimeID)
 }

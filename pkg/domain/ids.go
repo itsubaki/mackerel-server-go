@@ -5,20 +5,16 @@ import (
 	"github.com/speps/go-hashids"
 )
 
-func NewHostID() string {
-	return NewRandomID(11)
+func NewAPIKey() string {
+	return NewID(44, uuid.Must(uuid.NewRandom()).String())
 }
 
-func NewAPIKey() string {
-	return NewRandomID(44)
+func NewRandomID() string {
+	return NewID(11, uuid.Must(uuid.NewRandom()).String())
 }
 
 func NewIDWith(seed ...string) string {
 	return NewID(11, seed...)
-}
-
-func NewRandomID(digit int) string {
-	return NewID(digit, uuid.Must(uuid.NewRandom()).String())
 }
 
 func NewID(digit int, seed ...string) string {
