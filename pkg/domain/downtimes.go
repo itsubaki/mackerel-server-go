@@ -1,5 +1,9 @@
 package domain
 
+type Downtimes struct {
+	Downtimes []Downtime `json:"downtimes"`
+}
+
 type Downtime struct {
 	OrgID                string     `json:"-"`
 	ID                   string     `json:"id"`
