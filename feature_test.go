@@ -175,7 +175,7 @@ func FeatureContext(s *godog.Suite) {
 	s.Step(`^I set request body:$`, a.SetRequestBody)
 	s.Step(`^I send "([^"]*)" request to "([^"]*)"$`, a.Request)
 	s.Step(`^the response code should be (\d+)$`, a.ResponseCodeShouldBe)
-	s.Step(`^the response should match json:$`, a.ResponseShouldMatchJson)
+	s.Step(`^the response should match json:$`, a.ResponseShouldMatchJSON)
 	s.Step(`^I keep the JSON response at "([^"]*)" as "([^"]*)"$`, a.Keep)
 
 	s.AfterSuite(a.stop)
