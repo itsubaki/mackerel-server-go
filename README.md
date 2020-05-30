@@ -1,5 +1,5 @@
 # mackerel-api
-mackerel compatible monitoring service
+Mackerel API Server in Go
 
 [API](https://mackerel.io/api-docs/)
 
