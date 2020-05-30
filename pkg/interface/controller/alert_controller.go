@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/itsubaki/mackerel-api/pkg/domain"
-	"github.com/itsubaki/mackerel-api/pkg/interface/database"
-	"github.com/itsubaki/mackerel-api/pkg/usecase"
+	"github.com/itsubaki/mackerel-server-go/pkg/domain"
+	"github.com/itsubaki/mackerel-server-go/pkg/interface/database"
+	"github.com/itsubaki/mackerel-server-go/pkg/usecase"
 )
 
 type AlertController struct {

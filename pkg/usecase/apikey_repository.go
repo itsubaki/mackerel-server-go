@@ -1,6 +1,6 @@
 package usecase
 
-import "github.com/itsubaki/mackerel-api/pkg/domain"
+import "github.com/itsubaki/mackerel-server-go/pkg/domain"
 
 type APIKeyRepository interface {
 	Save(orgID, name string, write bool) (*domain.APIKey, error)

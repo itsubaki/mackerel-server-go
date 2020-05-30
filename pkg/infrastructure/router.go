@@ -4,8 +4,8 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/itsubaki/mackerel-api/pkg/interface/controller"
-	"github.com/itsubaki/mackerel-api/pkg/interface/database"
+	"github.com/itsubaki/mackerel-server-go/pkg/interface/controller"
+	"github.com/itsubaki/mackerel-server-go/pkg/interface/database"
 )
 
 func Status(g *gin.Engine) {

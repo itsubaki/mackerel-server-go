@@ -1,4 +1,4 @@
-# mackerel-api
+# mackerel-server-go
 Mackerel API Server in Go
 
 [API](https://mackerel.io/api-docs/)
@@ -34,7 +34,7 @@ Mackerel API Server in Go
 # Install
 
 ```
-$ go get github.com/itsubaki/mackerel-api
+$ go get github.com/itsubaki/mackerel-server-go
 ```
 
 # Run
@@ -59,9 +59,9 @@ docker run --name mysqld -e MYSQL_ROOT_PASSWORD=secret -p 3306:3306 -d mysql
 ```
 $ make runserver
 set -x
-rm  ${GOPATH}/bin/mackerel-api
+rm  ${GOPATH}/bin/mackerel-server-go
 go install
-GIN_MODE=debug mackerel-api
+GIN_MODE=debug mackerel-server-go
 [GIN] 2019/05/24 - 23:52:12 | 200 |   65.133982ms |             ::1 | POST     /api/v0/hosts
 [GIN] 2019/05/24 - 23:52:12 | 200 |   23.998452ms |             ::1 | GET      /api/v0/hosts/0965d1deb93
 [GIN] 2019/05/24 - 23:52:14 | 200 |   55.856843ms |             ::1 | PUT      /api/v0/hosts/0965d1deb93

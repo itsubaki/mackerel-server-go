@@ -9,9 +9,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/itsubaki/mackerel-api/pkg/infrastructure"
-	"github.com/itsubaki/mackerel-api/pkg/infrastructure/config"
-	"github.com/itsubaki/mackerel-api/pkg/infrastructure/handler"
+	"github.com/itsubaki/mackerel-server-go/pkg/infrastructure"
+	"github.com/itsubaki/mackerel-server-go/pkg/infrastructure/config"
+	"github.com/itsubaki/mackerel-server-go/pkg/infrastructure/handler"
 )
 
 func main() {
