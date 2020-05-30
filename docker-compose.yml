@@ -13,5 +13,5 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - GIN_MODE=release
-      - DATA_SOURCE_NAME=root:secret@tcp(mackerel-server-go_mysql_1:3306)/
+      - GIN_MODE=debug
+      - HOST=root:secret@tcp(mackerel-server-go_mysql_1:3306)/
