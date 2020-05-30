@@ -5,14 +5,14 @@ XAPIKEY := 2684d06cfedbee8499f326037bb6fb7e8c22e73b16bb
 
 install:
 	set -x
-	-rm $(shell go env GOPATH)/bin/mackerel-api
+	-rm $(shell go env GOPATH)/bin/mackerel-server-go
 	go install
 
 runserver:
 	set -x
-	-rm $(shell go env GOPATH)/bin/mackerel-api
+	-rm $(shell go env GOPATH)/bin/mackerel-server-go
 	go install
-	GIN_MODE=debug mackerel-api
+	GIN_MODE=debug mackerel-server-go
 
 runclient:
 	set -x
@@ -39,7 +39,7 @@ cleanup:
 
 build:
 	set -x
-	docker build -t mackerel-api .
+	docker build -t mackerel-server-go .
 
 up: build
 	set -x

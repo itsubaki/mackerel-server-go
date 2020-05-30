@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/itsubaki/mackerel-api/pkg/domain"
+	"github.com/itsubaki/mackerel-server-go/pkg/domain"
 )
 
 type HostInteractor struct {

@@ -13,11 +13,11 @@ import (
 	"github.com/cucumber/godog"
 	messages "github.com/cucumber/messages-go/v10"
 	"github.com/gin-gonic/gin"
-	"github.com/itsubaki/mackerel-api/pkg/domain"
-	"github.com/itsubaki/mackerel-api/pkg/infrastructure"
-	"github.com/itsubaki/mackerel-api/pkg/infrastructure/config"
-	"github.com/itsubaki/mackerel-api/pkg/infrastructure/handler"
-	"github.com/itsubaki/mackerel-api/pkg/interface/database"
+	"github.com/itsubaki/mackerel-server-go/pkg/domain"
+	"github.com/itsubaki/mackerel-server-go/pkg/infrastructure"
+	"github.com/itsubaki/mackerel-server-go/pkg/infrastructure/config"
+	"github.com/itsubaki/mackerel-server-go/pkg/infrastructure/handler"
+	"github.com/itsubaki/mackerel-server-go/pkg/interface/database"
 	"github.com/jfilipczyk/gomatch"
 )
 

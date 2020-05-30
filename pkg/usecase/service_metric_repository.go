@@ -1,6 +1,6 @@
 package usecase
 
-import "github.com/itsubaki/mackerel-api/pkg/domain"
+import "github.com/itsubaki/mackerel-server-go/pkg/domain"
 
 type ServiceMetricRepository interface {
 	Exists(orgID, serviceName, metricName string) bool

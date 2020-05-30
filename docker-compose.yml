@@ -9,9 +9,9 @@ services:
       - MYSQL_ROOT_PASSWORD=secret
 
   app:
-    image: mackerel-api
+    image: mackerel-server-go
     ports:
       - "8080:8080"
     environment:
       - GIN_MODE=release
-      - DATA_SOURCE_NAME=root:secret@tcp(mackerel-api_mysql_1:3306)/
+      - DATA_SOURCE_NAME=root:secret@tcp(mackerel-server-go_mysql_1:3306)/
