@@ -10,7 +10,6 @@ import (
 )
 
 type InvitationRepository struct {
-	SQLHandler
 	DB *gorm.DB
 }
 
@@ -30,87 +29,55 @@ func NewInvitationRepository(handler SQLHandler) *InvitationRepository {
 	db.AutoMigrate(&Invitation{})
 
 	return &InvitationRepository{
-		SQLHandler: handler,
-		DB:         db,
+		DB: db,
 	}
 }
 
 func (repo *InvitationRepository) List(orgID string) (*domain.Invitations, error) {
-	invitations := make([]domain.Invitation, 0)
-	if err := repo.Transact(func(tx Tx) error {
-		rows, err := tx.Query("select * from invitations where org_id=?", orgID)
-		if err != nil {
-			return fmt.Errorf("select * from invitations: %v", err)
-		}
-		defer rows.Close()
-
-		for rows.Next() {
-			var in domain.Invitation
-			if err := rows.Scan(
-				&in.OrgID,
-				&in.EMail,
-				&in.Authority,
-				&in.ExpiresAt,
-			); err != nil {
-				return fmt.Errorf("scan: %v", err)
-			}
-
-			invitations = append(invitations, in)
-		}
-
-		return nil
-	}); err != nil {
-		return nil, fmt.Errorf("transaction: %v", err)
+	result := make([]Invitation, 0)
+	if err := repo.DB.Where(&Invitation{OrgID: orgID}).Find(&result).Error; err != nil {
+		return nil, fmt.Errorf("select * from invitations: %v", err)
 	}
 
-	return &domain.Invitations{Invitations: invitations}, nil
+	out := make([]domain.Invitation, 0)
+	for _, r := range result {
+		out = append(out, domain.Invitation{
+			OrgID:     r.OrgID,
+			EMail:     r.EMail,
+			Authority: r.Authority,
+			ExpiresAt: r.ExpiresAt,
+		})
+	}
+
+	return &domain.Invitations{Invitations: out}, nil
 }
 
 func (repo *InvitationRepository) Exists(orgID, email string) bool {
-	rows, err := repo.Query("select 1 from invitations where org_id=? and email=?", orgID, email)
-	if err != nil {
-		panic(err)
-	}
-	defer rows.Close()
-
-	if rows.Next() {
-		return true
+	if repo.DB.Where(&Invitation{OrgID: orgID, EMail: email}).First(&Invitation{}).RecordNotFound() {
+		return false
 	}
 
-	return false
+	return true
 }
 
-func (repo *InvitationRepository) Save(orgID string, inv *domain.Invitation) (*domain.Invitation, error) {
-	if err := repo.Transact(func(tx Tx) error {
-		if _, err := tx.Exec(
-			"insert into invitations values(?, ?, ?, ?)",
-			orgID,
-			inv.EMail,
-			inv.Authority,
-			time.Now().Unix()+604800,
-		); err != nil {
-			return fmt.Errorf("insert into invitations: %v", err)
-		}
-
-		return nil
-	}); err != nil {
-		return inv, fmt.Errorf("transaction: %v", err)
+func (repo *InvitationRepository) Save(orgID string, i *domain.Invitation) (*domain.Invitation, error) {
+	invitation := Invitation{
+		OrgID:     orgID,
+		EMail:     i.EMail,
+		Authority: i.Authority,
+		ExpiresAt: time.Now().Unix() + 604800,
 	}
 
-	return inv, nil
+	if err := repo.DB.Create(&invitation).Error; err != nil {
+		return nil, fmt.Errorf("insert into invitations: %v", err)
+	}
+
+	return i, nil
 }
 
 func (repo *InvitationRepository) Revoke(orgID, email string) (*domain.Success, error) {
-	if err := repo.Transact(func(tx Tx) error {
-		if _, err := tx.Exec(
-			"delete from invitations where org_id=? and email=?", orgID, email,
-		); err != nil {
-			return fmt.Errorf("delete from invitations: %v", err)
-		}
-
-		return nil
-	}); err != nil {
-		return nil, fmt.Errorf("transaction: %v", err)
+	if err := repo.DB.Delete(&Invitation{OrgID: orgID, EMail: email}).Error; err != nil {
+		return nil, fmt.Errorf("delete from invitations: %v", err)
 	}
 
 	return &domain.Success{Success: true}, nil
