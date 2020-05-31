@@ -27,8 +27,7 @@ func NewOrgRepository(handler SQLHandler) *OrgRepository {
 		panic(fmt.Errorf("auto migrate org: %v", err))
 	}
 
-	org := Org{ID: "4b825dc642c", Name: "mackerel"}
-	if err := db.Where(&org).Assign(&org).FirstOrCreate(&org).Error; err != nil {
+	if err := db.Where(&Org{ID: "4b825dc642c"}).Assign(&Org{Name: "mackerel"}).FirstOrCreate(&Org{}).Error; err != nil {
 		panic(fmt.Errorf("first or create: %v", err))
 	}
 

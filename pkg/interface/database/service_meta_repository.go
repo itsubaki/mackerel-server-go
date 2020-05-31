@@ -4,146 +4,93 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/jinzhu/gorm"
+
 	"github.com/itsubaki/mackerel-server-go/pkg/domain"
 )
 
 type ServiceMetaRepository struct {
 	SQLHandler
+	DB *gorm.DB
+}
+
+type ServiceMeta struct {
+	OrgID       string `gorm:"column:org_id;       type:varchar(16);  not null; primary_key"`
+	ServiceName string `gorm:"column:service_name; type:varchar(16);  not null; primary_key"`
+	Namespace   string `gorm:"column:namespace;    type:varchar(128); not null; primary_key"`
+	Metadata    string `gorm:"column:meta;         type:text"`
 }
 
 func NewServiceMetaRepository(handler SQLHandler) *ServiceMetaRepository {
-	if err := handler.Transact(func(tx Tx) error {
-		if _, err := tx.Exec(
-			`
-			create table if not exists service_meta (
-				org_id       varchar(16)  not null,
-				service_name varchar(16)  not null,
-				namespace    varchar(128) not null,
-				meta         text,
-				primary key(org_id, service_name, namespace)
-			)
-			`,
-		); err != nil {
-			return fmt.Errorf("create table service_meta: %v", err)
-		}
-
-		return nil
-	}); err != nil {
-		panic(fmt.Errorf("transaction: %v", err))
+	db, err := gorm.Open(handler.Dialect(), handler.Raw())
+	if err != nil {
+		panic(err)
+	}
+	db.LogMode(handler.IsDebugging())
+	if err := db.AutoMigrate(&ServiceMeta{}).Error; err != nil {
+		panic(fmt.Errorf("auto migrate service_meta: %v", err))
 	}
 
 	return &ServiceMetaRepository{
 		SQLHandler: handler,
+		DB:         db,
 	}
 }
 
-// select * from service_metadata where service_name=${serviceName} and namespace=${namespace} limit=1
 func (repo *ServiceMetaRepository) Exists(orgID, serviceName, namespace string) bool {
-	rows, err := repo.Query("select 1 from service_meta where org_id=? and service_name=? and namespace=?", orgID, serviceName, namespace)
-	if err != nil {
-		panic(err)
-	}
-	defer rows.Close()
-
-	if rows.Next() {
-		return true
+	if repo.DB.Where(&ServiceMeta{OrgID: orgID, ServiceName: serviceName, Namespace: namespace}).First(&ServiceMeta{}).RecordNotFound() {
+		return false
 	}
 
-	return false
+	return true
 }
 
-// select namespace from service_metadata where service_name=${serviceName}
 func (repo *ServiceMetaRepository) List(orgID, serviceName string) (*domain.ServiceMetadataList, error) {
-	values := make([]domain.ServiceMetadata, 0)
-	if err := repo.Transact(func(tx Tx) error {
-		rows, err := tx.Query("select namespace from service_meta where org_id=? and service_name=?", orgID, serviceName)
-		if err != nil {
-			return fmt.Errorf("select namespace from service_meta: %v", err)
-		}
-		defer rows.Close()
-
-		for rows.Next() {
-			var namespace string
-			if err := rows.Scan(
-				&namespace,
-			); err != nil {
-				return fmt.Errorf("scan: %v", err)
-			}
-
-			values = append(values, domain.ServiceMetadata{Namespace: namespace})
-		}
-
-		return nil
-	}); err != nil {
-		return nil, fmt.Errorf("transaction: %v", err)
+	result := make([]ServiceMeta, 0)
+	if err := repo.DB.Where(&ServiceMeta{OrgID: orgID, ServiceName: serviceName}).Find(&result).Error; err != nil {
+		return nil, fmt.Errorf("select * from service_meta: %#v", err)
 	}
 
-	return &domain.ServiceMetadataList{Metadata: values}, nil
+	out := make([]domain.ServiceMetadata, 0)
+	for _, r := range result {
+		out = append(out, domain.ServiceMetadata{
+			Namespace: r.Namespace,
+		})
+	}
+
+	return &domain.ServiceMetadataList{Metadata: out}, nil
 }
 
-// select * from service_metadata where service_name=${serviceName} and namespace=${namespace}
 func (repo *ServiceMetaRepository) Metadata(orgID, serviceName, namespace string) (interface{}, error) {
-	var meta string
-	if err := repo.Transact(func(tx Tx) error {
-		row := tx.QueryRow("select meta from service_meta where org_id=? and service_name=? and namespace=?", orgID, serviceName, namespace)
-		if err := row.Scan(&meta); err != nil {
-			return fmt.Errorf("scan: %v", err)
-		}
-
-		return nil
-	}); err != nil {
-		return nil, fmt.Errorf("transaction: %v", err)
+	result := ServiceMeta{}
+	if err := repo.DB.Where(&ServiceMeta{OrgID: orgID, ServiceName: serviceName, Namespace: namespace}).Find(&result).Error; err != nil {
+		return nil, fmt.Errorf("select * from serviec_meta: %v", err)
 	}
 
 	var out interface{}
-	if err := json.Unmarshal([]byte(meta), &out); err != nil {
+	if err := json.Unmarshal([]byte(result.Metadata), &out); err != nil {
 		return nil, fmt.Errorf("unmarshal: %v", err)
 	}
 
 	return out, nil
 }
 
-// insert into service_metadata values(${serviceName}, ${namespace}, ${metadata})
 func (repo *ServiceMetaRepository) Save(orgID, serviceName, namespace string, metadata interface{}) (*domain.Success, error) {
 	meta, err := json.Marshal(metadata)
 	if err != nil {
 		return &domain.Success{Success: false}, fmt.Errorf("marshal: %v", err)
 	}
 
-	if err := repo.Transact(func(tx Tx) error {
-		if _, err := tx.Exec(
-			"insert into service_meta values(?, ?, ?, ?)",
-			orgID,
-			serviceName,
-			namespace,
-			string(meta),
-		); err != nil {
-			return fmt.Errorf("insert into service_meta: %v", err)
-		}
-
-		return nil
-	}); err != nil {
-		return &domain.Success{Success: false}, fmt.Errorf("transaction: %v", err)
+	if err := repo.DB.Where(&ServiceMeta{OrgID: orgID, ServiceName: serviceName, Namespace: namespace}).Assign(&ServiceMeta{Metadata: string(meta)}).FirstOrCreate(&ServiceMeta{}).Error; err != nil {
+		return &domain.Success{Success: false}, fmt.Errorf("first or create: %v", err)
 	}
 
 	return &domain.Success{Success: true}, nil
 }
 
-// delete from service_metadata where service_name=${serviceName} and namespace=${namespace}
 func (repo *ServiceMetaRepository) Delete(orgID, serviceName, namespace string) (*domain.Success, error) {
-	if err := repo.Transact(func(tx Tx) error {
-		if _, err := tx.Exec(
-			"delete from service_meta where org_id=? and service_name=? and namespace=?",
-			orgID,
-			serviceName,
-			namespace,
-		); err != nil {
-			return fmt.Errorf("delete from service_meta: %v", err)
-		}
-
-		return nil
-	}); err != nil {
-		return &domain.Success{Success: false}, fmt.Errorf("transaction: %v", err)
+	if err := repo.DB.Delete(&ServiceMeta{OrgID: orgID, ServiceName: serviceName, Namespace: namespace}).Error; err != nil {
+		return &domain.Success{Success: false}, fmt.Errorf("delete from service_meta: %v", err)
 	}
 
 	return &domain.Success{Success: true}, nil

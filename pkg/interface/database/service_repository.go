@@ -53,13 +53,7 @@ func (repo *ServiceRepository) List(orgID string) (*domain.Services, error) {
 }
 
 func (repo *ServiceRepository) Save(orgID string, s *domain.Service) error {
-	service := Service{
-		OrgID: orgID,
-		Name:  s.Name,
-		Memo:  s.Memo,
-	}
-
-	if err := repo.DB.Where(&service).Assign(&service).FirstOrCreate(&service).Error; err != nil {
+	if err := repo.DB.Where(&Service{OrgID: orgID, Name: s.Name}).Assign(&Service{Memo: s.Memo}).FirstOrCreate(&Service{}).Error; err != nil {
 		panic(fmt.Errorf("first or create: %v", err))
 	}
 
@@ -83,7 +77,7 @@ func (repo *ServiceRepository) Service(orgID, serviceName string) (*domain.Servi
 }
 
 func (repo *ServiceRepository) Exists(orgID, serviceName string) bool {
-	if repo.DB.Where(&Service{OrgID: orgID, Name: serviceName}).First(&Invitation{}).RecordNotFound() {
+	if repo.DB.Where(&Service{OrgID: orgID, Name: serviceName}).First(&Service{}).RecordNotFound() {
 		return false
 	}
 
