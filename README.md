@@ -21,7 +21,7 @@ Mackerel API Server in Go
    - [x] Notification Groups
    - [ ] Dashboards
    - [x] Graph Annotations
-   - [x] Users
+   - [ ] Users
    - [x] Invitations
    - [x] Organizations
    - [ ] Downtime
