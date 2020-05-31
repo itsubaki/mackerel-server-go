@@ -4,36 +4,34 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/jinzhu/gorm"
+
 	"github.com/itsubaki/mackerel-server-go/pkg/domain"
 )
 
 type InvitationRepository struct {
 	SQLHandler
+	DB *gorm.DB
+}
+
+type Invitation struct {
+	OrgID     string `gorm:"column:org_id;    type:varchar(16);not null;primary_key"`
+	EMail     string `gorm:"column:email;     type:varchar(64);not null;primary_key"`
+	Authority string `gorm:"column:authority; type:enum('manager', 'collaborator', 'viewer');not null"`
+	ExpiresAt int64  `gorm:"column:expires_at;type:bigint"`
 }
 
 func NewInvitationRepository(handler SQLHandler) *InvitationRepository {
-	if err := handler.Transact(func(tx Tx) error {
-		if _, err := tx.Exec(
-			`
-			create table if not exists invitations (
-				org_id     varchar(16) not null,
-				email      varchar(64) not null,
-				authority  enum('manager', 'collaborator', 'viewer') not null,
-				expires_at bigint,
-				primary key(org_id, email)
-			)
-			`,
-		); err != nil {
-			return fmt.Errorf("create table invitations: %v", err)
-		}
-
-		return nil
-	}); err != nil {
-		panic(fmt.Errorf("transaction: %v", err))
+	db, err := gorm.Open(handler.Dialect(), handler.Raw())
+	if err != nil {
+		panic(err)
 	}
+	db.LogMode(handler.IsDebug())
+	db.AutoMigrate(&Invitation{})
 
 	return &InvitationRepository{
 		SQLHandler: handler,
+		DB:         db,
 	}
 }
 

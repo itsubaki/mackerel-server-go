@@ -6,6 +6,9 @@ type SQLHandler interface {
 	QueryRow(query string, args ...interface{}) Row
 	Close() error
 	Begin() (Tx, error)
+	Raw() interface{}
+	IsDebug() bool
+	Dialect() string
 }
 
 type Tx interface {

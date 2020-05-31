@@ -13,6 +13,8 @@ import (
 
 type SQLHandler struct {
 	DB      *sql.DB
+	Driver  string
+	Debug   bool
 	Timeout time.Duration
 	Sleep   time.Duration
 }
@@ -57,6 +59,8 @@ func Open(driver, dsn string) (database.SQLHandler, error) {
 
 	h := &SQLHandler{
 		DB:      db,
+		Driver:  driver,
+		Debug:   false,
 		Timeout: 10 * time.Minute,
 		Sleep:   10 * time.Second,
 	}
@@ -134,6 +138,18 @@ func (h *SQLHandler) Begin() (database.Tx, error) {
 	}
 
 	return &Tx{tx}, nil
+}
+
+func (h *SQLHandler) Raw() interface{} {
+	return h.DB
+}
+
+func (h *SQLHandler) IsDebug() bool {
+	return h.Debug
+}
+
+func (h *SQLHandler) Dialect() string {
+	return h.Driver
 }
 
 type Tx struct {
