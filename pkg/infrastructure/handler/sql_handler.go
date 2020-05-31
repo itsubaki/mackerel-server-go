@@ -60,7 +60,7 @@ func Open(driver, dsn string) (database.SQLHandler, error) {
 	h := &SQLHandler{
 		DB:      db,
 		Driver:  driver,
-		Debug:   false,
+		Debug:   true,
 		Timeout: 10 * time.Minute,
 		Sleep:   10 * time.Second,
 	}
@@ -144,7 +144,7 @@ func (h *SQLHandler) Raw() interface{} {
 	return h.DB
 }
 
-func (h *SQLHandler) IsDebug() bool {
+func (h *SQLHandler) IsDebugging() bool {
 	return h.Debug
 }
 

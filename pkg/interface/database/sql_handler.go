@@ -7,7 +7,7 @@ type SQLHandler interface {
 	Close() error
 	Begin() (Tx, error)
 	Raw() interface{}
-	IsDebug() bool
+	IsDebugging() bool
 	Dialect() string
 }
 
