@@ -4,40 +4,39 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/jinzhu/gorm"
+
 	"github.com/itsubaki/mackerel-server-go/pkg/domain"
 )
 
 type UserRepository struct {
-	SQLHandler
+	DB *gorm.DB
+}
+
+type User struct {
+	OrgID                   string `gorm:"column:org_id;                     type:varchar(16);  not null"`
+	ID                      string `gorm:"column:id;                         type:varchar(128); not null; primary_key"`
+	ScreenName              string `gorm:"column:screen_name;                type:varchar(128)"`
+	Email                   string `gorm:"column:email;                      type:varchar(128)"`
+	Authority               string `gorm:"column:authority;                  type:enum('owner', 'manager', 'collaborator', 'viewer'); not null"`
+	IsInRegistrationProcess bool   `gorm:"column:is_in_registration_process; type:boolean"`
+	IsMFAEnabled            bool   `gorm:"column:is_mfa_enabled;             type:boolean"`
+	AuthenticationMethods   string `gorm:"column:authentication_methods;     type:varchar(128); not null"`
+	JoinedAt                int64  `gorm:"column:joined_at;                  type:bigint"`
 }
 
 func NewUserRepository(handler SQLHandler) *UserRepository {
-	if err := handler.Transact(func(tx Tx) error {
-		if _, err := tx.Exec(
-			`
-			create table if not exists users (
-				org_id                     varchar(16)  not null,
-				id                         varchar(128) not null primary key,
-				screen_name                varchar(128),
-				email                      varchar(128),
-				authority                  enum('owner', 'manager', 'collaborator', 'viewer') not null,
-				is_in_registration_process boolean,
-				is_mfa_enabled             boolean,
-				authentication_methods     enum('password', 'github', 'idcf', ' google', 'nifty', ' yammer', 'kddi') not null,
-				joined_at                  bigint
-			)
-			`,
-		); err != nil {
-			return fmt.Errorf("create table users: %v", err)
-		}
-
-		return nil
-	}); err != nil {
-		panic(fmt.Errorf("transaction: %v", err))
+	db, err := gorm.Open(handler.Dialect(), handler.Raw())
+	if err != nil {
+		panic(err)
+	}
+	db.LogMode(handler.IsDebugging())
+	if err := db.AutoMigrate(&User{}).Error; err != nil {
+		panic(fmt.Errorf("auto migrate user: %v", err))
 	}
 
 	return &UserRepository{
-		SQLHandler: handler,
+		DB: db,
 	}
 }
 
@@ -49,110 +48,77 @@ func NewUserRepository(handler SQLHandler) *UserRepository {
 // +----+-------------+-------+------------+------+---------------+------+---------+------+------+----------+-------+
 // 1 row in set, 1 warning (0.01 sec)
 func (repo *UserRepository) List(orgID string) (*domain.Users, error) {
+	result := make([]User, 0)
+	if err := repo.DB.Where(&User{OrgID: orgID}).Find(&result).Error; err != nil {
+		return nil, fmt.Errorf("select * from users: %v", err)
+	}
+
 	users := make([]domain.User, 0)
-	if err := repo.Transact(func(tx Tx) error {
-		rows, err := tx.Query("select * from users where org_id=?", orgID)
-		if err != nil {
-			return fmt.Errorf("select * from users: %v", err)
-		}
-		defer rows.Close()
-
-		for rows.Next() {
-			var user domain.User
-			var method string
-			if err := rows.Scan(
-				&user.OrgID,
-				&user.ID,
-				&user.ScreenName,
-				&user.Email,
-				&user.Authority,
-				&user.IsInRegistrationProcess,
-				&user.IsMFAEnabled,
-				&method,
-				&user.JoinedAt,
-			); err != nil {
-				return fmt.Errorf("scan: %v", err)
-			}
-			user.AuthenticationMethods = strings.Split(method, ",")
-
-			users = append(users, user)
-		}
-
-		return nil
-	}); err != nil {
-		return nil, fmt.Errorf("transaction: %v", err)
+	for _, r := range result {
+		users = append(users, domain.User{
+			OrgID:                   r.OrgID,
+			ID:                      r.ID,
+			ScreenName:              r.ScreenName,
+			Email:                   r.Email,
+			Authority:               r.Authority,
+			IsInRegistrationProcess: r.IsInRegistrationProcess,
+			IsMFAEnabled:            r.IsMFAEnabled,
+			AuthenticationMethods:   strings.Split(r.AuthenticationMethods, ","),
+			JoinedAt:                0,
+		})
 	}
 
 	return &domain.Users{Users: users}, nil
 }
 
 func (repo *UserRepository) Exists(orgID, userID string) bool {
-	rows, err := repo.Query("select 1 from users where org_id=? and id=? limit 1", orgID, userID)
-	if err != nil {
-		panic(err)
-	}
-	defer rows.Close()
-
-	if rows.Next() {
-		return true
+	if repo.DB.Where(&User{OrgID: orgID, ID: userID}).First(&User{}).RecordNotFound() {
+		return false
 	}
 
-	return false
+	return true
 }
 
 func (repo *UserRepository) Save(orgID string, user *domain.User) error {
-	if err := repo.Transact(func(tx Tx) error {
-		if _, err := tx.Exec(
-			"insert into users values (?. ?, ?, ?, ?, ?, ?, ?, ?)",
-			orgID,
-			user.ID,
-			user.ScreenName,
-			user.Email,
-			user.Authority,
-			user.IsInRegistrationProcess,
-			user.IsMFAEnabled,
-			strings.Join(user.AuthenticationMethods, ","),
-			user.JoinedAt,
-		); err != nil {
-			return fmt.Errorf("transaction: %v", err)
-		}
+	u := User{
+		OrgID:                   orgID,
+		ID:                      user.ID,
+		ScreenName:              user.ScreenName,
+		Email:                   user.Email,
+		Authority:               user.Authority,
+		IsInRegistrationProcess: user.IsInRegistrationProcess,
+		IsMFAEnabled:            user.IsMFAEnabled,
+		AuthenticationMethods:   strings.Join(user.AuthenticationMethods, ","),
+		JoinedAt:                user.JoinedAt,
+	}
 
-		return nil
-	}); err != nil {
-		return fmt.Errorf("transaction: %v", err)
+	if err := repo.DB.Create(&u).Error; err != nil {
+		return fmt.Errorf("insert into users: %v", err)
 	}
 
 	return nil
 }
 
 func (repo *UserRepository) Delete(orgID, userID string) (*domain.User, error) {
-	var user domain.User
-	if err := repo.Transact(func(tx Tx) error {
-		row := tx.QueryRow("select * from users where org_id=? and id=?", orgID, userID)
-		var method string
-		if err := row.Scan(
-			&user.OrgID,
-			&user.ID,
-			&user.ScreenName,
-			&user.Email,
-			&user.Authority,
-			&user.IsInRegistrationProcess,
-			&user.IsMFAEnabled,
-			&method,
-			&user.JoinedAt,
-		); err != nil {
-			return fmt.Errorf("scan: %v", err)
-		}
+	result := User{}
+	if err := repo.DB.Where(&User{OrgID: orgID, ID: userID}).First(&result).Error; err != nil {
+		return nil, fmt.Errorf("select * from users: %v", err)
+	}
 
-		user.AuthenticationMethods = strings.Split(method, ",")
+	if err := repo.DB.Delete(&User{OrgID: orgID, ID: userID}).Error; err != nil {
+		return nil, fmt.Errorf("delete from users: %v", err)
+	}
 
-		if _, err := tx.Exec("delete from users where org_id=? and id=?", orgID, userID); err != nil {
-			return fmt.Errorf("delete from users: %v", err)
-		}
-
-		return nil
-	}); err != nil {
-		return nil, fmt.Errorf("transaction: %v", err)
+	user := domain.User{
+		OrgID:                   orgID,
+		ID:                      result.ID,
+		ScreenName:              result.ScreenName,
+		Email:                   result.Email,
+		Authority:               result.Authority,
+		IsInRegistrationProcess: result.IsInRegistrationProcess,
+		IsMFAEnabled:            result.IsMFAEnabled,
+		AuthenticationMethods:   strings.Split(result.AuthenticationMethods, ","),
+		JoinedAt:                result.JoinedAt,
 	}
 
 	return &user, nil
