@@ -14,10 +14,10 @@ type InvitationRepository struct {
 }
 
 type Invitation struct {
-	OrgID     string `gorm:"column:org_id;    type:varchar(16);not null;primary_key"`
-	EMail     string `gorm:"column:email;     type:varchar(64);not null;primary_key"`
-	Authority string `gorm:"column:authority; type:enum('manager', 'collaborator', 'viewer');not null"`
-	ExpiresAt int64  `gorm:"column:expires_at;type:bigint"`
+	OrgID     string `gorm:"column:org_id;     type:varchar(16); not null; primary_key"`
+	EMail     string `gorm:"column:email;      type:varchar(64); not null; primary_key"`
+	Authority string `gorm:"column:authority;  type:enum('manager', 'collaborator', 'viewer'); not null"`
+	ExpiresAt int64  `gorm:"column:expires_at; type:bigint"`
 }
 
 func NewInvitationRepository(handler SQLHandler) *InvitationRepository {
