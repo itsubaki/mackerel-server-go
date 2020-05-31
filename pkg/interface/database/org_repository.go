@@ -3,64 +3,45 @@ package database
 import (
 	"fmt"
 
+	"github.com/jinzhu/gorm"
+
 	"github.com/itsubaki/mackerel-server-go/pkg/domain"
 )
 
 type OrgRepository struct {
-	SQLHandler
+	DB *gorm.DB
+}
+
+type Org struct {
+	ID   string `gorm:"column:id;   type:varchar(16); not null; primary_key"`
+	Name string `gorm:"column:name; type:varchar(16); not null; unique"`
 }
 
 func NewOrgRepository(handler SQLHandler) *OrgRepository {
-	if err := handler.Transact(func(tx Tx) error {
-		if _, err := tx.Exec(
-			`
-			create table if not exists orgs (
-				id   varchar(16) not null primary key,
-				name varchar(16) not null unique
-			)
-			`,
-		); err != nil {
-			return fmt.Errorf("create table orgs: %v", err)
-		}
+	db, err := gorm.Open(handler.Dialect(), handler.Raw())
+	if err != nil {
+		panic(err)
+	}
+	db.LogMode(handler.IsDebugging())
+	if err := db.AutoMigrate(&Org{}).Error; err != nil {
+		panic(fmt.Errorf("auto migrate org: %v", err))
+	}
 
-		if _, err := tx.Exec(
-			`
-			insert into orgs (
-				id,
-				name
-			) values (?, ?)
-			on duplicate key update
-				name = values(name)
-			`,
-			"4b825dc642c",
-			"mackerel",
-		); err != nil {
-			return fmt.Errorf("insert into orgs: %v", err)
-		}
-
-		return nil
-	}); err != nil {
-		panic(fmt.Errorf("transaction: %v", err))
+	org := Org{ID: "4b825dc642c", Name: "mackerel"}
+	if err := db.Where(&org).Assign(&org).FirstOrCreate(&org).Error; err != nil {
+		panic(fmt.Errorf("first or create: %v", err))
 	}
 
 	return &OrgRepository{
-		handler,
+		DB: db,
 	}
 }
 
 func (repo *OrgRepository) Org(orgID string) (*domain.Org, error) {
-	var name string
-	if err := repo.Transact(func(tx Tx) error {
-		row := tx.QueryRow(`select name from orgs where id=?`, orgID)
-		if err := row.Scan(
-			&name,
-		); err != nil {
-			return fmt.Errorf("select name from orgs where id=?: %v", err)
-		}
-
-		return nil
-	}); err != nil {
-		return nil, fmt.Errorf("transaction: %v", err)
+	result := Org{}
+	if err := repo.DB.Where(&Org{ID: orgID}).First(&result).Error; err != nil {
+		return nil, fmt.Errorf("select * from orgs: %v", err)
 	}
-	return &domain.Org{ID: orgID, Name: name}, nil
+
+	return &domain.Org{ID: orgID, Name: result.Name}, nil
 }
