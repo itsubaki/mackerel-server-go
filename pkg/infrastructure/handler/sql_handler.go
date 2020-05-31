@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -14,7 +15,7 @@ import (
 type SQLHandler struct {
 	DB      *sql.DB
 	Driver  string
-	Debug   bool
+	Mode    string
 	Timeout time.Duration
 	Sleep   time.Duration
 }
@@ -60,7 +61,7 @@ func Open(driver, dsn string) (database.SQLHandler, error) {
 	h := &SQLHandler{
 		DB:      db,
 		Driver:  driver,
-		Debug:   true,
+		Mode:    os.Getenv("SQL_MODE"),
 		Timeout: 10 * time.Minute,
 		Sleep:   10 * time.Second,
 	}
@@ -145,7 +146,12 @@ func (h *SQLHandler) Raw() interface{} {
 }
 
 func (h *SQLHandler) IsDebugging() bool {
-	return h.Debug
+	debug := false
+	if h.Mode == "debug" {
+		debug = true
+	}
+
+	return debug
 }
 
 func (h *SQLHandler) Dialect() string {

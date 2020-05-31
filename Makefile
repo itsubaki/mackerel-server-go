@@ -12,7 +12,7 @@ runserver:
 	set -x
 	-rm $(shell go env GOPATH)/bin/mackerel-server-go
 	go install
-	GIN_MODE=debug mackerel-server-go
+	GIN_MODE=debug SQL_MODE=debug mackerel-server-go
 
 runclient:
 	set -x

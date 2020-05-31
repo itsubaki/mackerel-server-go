@@ -14,4 +14,5 @@ services:
       - "8080:8080"
     environment:
       - GIN_MODE=debug
+      - SQL_MODE=debug
       - HOST=root:secret@tcp(mackerel-server-go_mysql_1:3306)/
