@@ -3,172 +3,96 @@ package database
 import (
 	"fmt"
 
+	"github.com/jinzhu/gorm"
+
 	"github.com/itsubaki/mackerel-server-go/pkg/domain"
 )
 
 type ServiceRepository struct {
-	SQLHandler
+	DB *gorm.DB
+}
+
+type Service struct {
+	OrgID string `gorm:"column:org_id; type:varchar(16);  not null; primary_key"`
+	Name  string `gorm:"column:name;   type:varchar(128); not null; primary_key"`
+	Memo  string `gorm:"column:memo;   type:varchar(218); not null; default:''"`
 }
 
 func NewServiceRepository(handler SQLHandler) *ServiceRepository {
-	if err := handler.Transact(func(tx Tx) error {
-		if _, err := tx.Exec(
-			`
-			create table if not exists services (
-				org_id varchar(16)  not null,
-				name   varchar(128) not null,
-				memo   varchar(128) not null default '',
-				primary key(org_id, name)
-			)
-			`,
-		); err != nil {
-			return fmt.Errorf("create table services: %v", err)
-		}
-
-		return nil
-	}); err != nil {
-		panic(fmt.Errorf("transaction: %v", err))
+	db, err := gorm.Open(handler.Dialect(), handler.Raw())
+	if err != nil {
+		panic(err)
+	}
+	db.LogMode(handler.IsDebugging())
+	if err := db.AutoMigrate(&Service{}).Error; err != nil {
+		panic(fmt.Errorf("auto migrate service: %v", err))
 	}
 
 	return &ServiceRepository{
-		SQLHandler: handler,
+		DB: db,
 	}
 }
 
-// mysql> explain select service_name, name from roles;
-// +----+-------------+-------+------------+-------+---------------+---------+---------+------+------+----------+-------------+
-// | id | select_type | table | partitions | type  | possible_keys | key     | key_len | ref  | rows | filtered | Extra       |
-// +----+-------------+-------+------------+-------+---------------+---------+---------+------+------+----------+-------------+
-// |  1 | SIMPLE      | roles | NULL       | index | NULL          | PRIMARY | 1028    | NULL |    4 |   100.00 | Using index |
-// +----+-------------+-------+------------+-------+---------------+---------+---------+------+------+----------+-------------+
-// 1 row in set, 1 warning (0.00 sec)
-// mysql> explain select memo from services where name='My-Service';
-// +----+-------------+----------+------------+-------+---------------+---------+---------+-------+------+----------+-------+
-// | id | select_type | table    | partitions | type  | possible_keys | key     | key_len | ref   | rows | filtered | Extra |
-// +----+-------------+----------+------------+-------+---------------+---------+---------+-------+------+----------+-------+
-// |  1 | SIMPLE      | services | NULL       | const | PRIMARY       | PRIMARY | 514     | const |    1 |   100.00 | NULL  |
-// +----+-------------+----------+------------+-------+---------------+---------+---------+-------+------+----------+-------+
-// 1 row in set, 1 warning (0.01 sec)
 func (repo *ServiceRepository) List(orgID string) (*domain.Services, error) {
-	services := make([]domain.Service, 0)
-
-	if err := repo.Transact(func(tx Tx) error {
-		rows, err := tx.Query("select name, memo from services where org_id=?", orgID)
-		if err != nil {
-			return fmt.Errorf("select * from services: %v", err)
-		}
-		defer rows.Close()
-
-		for rows.Next() {
-			service := domain.Service{
-				Roles: make([]string, 0),
-			}
-
-			if err := rows.Scan(
-				&service.Name,
-				&service.Memo,
-			); err != nil {
-				return fmt.Errorf("scan: %v", err)
-			}
-
-			services = append(services, service)
-		}
-
-		return nil
-	}); err != nil {
-		return nil, fmt.Errorf("transaction: %v", err)
+	result := make([]Service, 0)
+	if err := repo.DB.Where(&Service{OrgID: orgID}).Find(&result).Error; err != nil {
+		return nil, fmt.Errorf("select * from services: %v", err)
 	}
 
-	return &domain.Services{Services: services}, nil
+	out := make([]domain.Service, 0)
+	for _, r := range result {
+		out = append(out, domain.Service{
+			OrgID: r.OrgID,
+			Name:  r.Name,
+			Memo:  r.Memo,
+			Roles: make([]string, 0),
+		})
+	}
+
+	return &domain.Services{Services: out}, nil
 }
 
-// insert into services values()
 func (repo *ServiceRepository) Save(orgID string, s *domain.Service) error {
-	if err := repo.Transact(func(tx Tx) error {
-		if _, err := tx.Exec(
-			`
-			insert into services (
-				org_id,
-				name,
-				memo
-			)
-			values (?, ?, ?)
-			on duplicate key update
-				memo = values(memo)
-			`,
-			orgID, s.Name, s.Memo,
-		); err != nil {
-			return fmt.Errorf("insert into services: %v", err)
-		}
+	service := Service{
+		OrgID: orgID,
+		Name:  s.Name,
+		Memo:  s.Memo,
+	}
 
-		return nil
-	}); err != nil {
-		return fmt.Errorf("transaction: %v", err)
+	if err := repo.DB.Where(&service).Assign(&service).FirstOrCreate(&service).Error; err != nil {
+		panic(fmt.Errorf("first or create: %v", err))
 	}
 
 	return nil
 }
 
-// mysql> explain select name from roles where service_name='My-Service';
-// +----+-------------+-------+------------+------+---------------+---------+---------+-------+------+----------+-------------+
-// | id | select_type | table | partitions | type | possible_keys | key     | key_len | ref   | rows | filtered | Extra       |
-// +----+-------------+-------+------------+------+---------------+---------+---------+-------+------+----------+-------------+
-// |  1 | SIMPLE      | roles | NULL       | ref  | PRIMARY       | PRIMARY | 514     | const |    2 |   100.00 | Using index |
-// +----+-------------+-------+------------+------+---------------+---------+---------+-------+------+----------+-------------+
-// 1 row in set, 1 warning (0.00 sec)
 func (repo *ServiceRepository) Service(orgID, serviceName string) (*domain.Service, error) {
-	service := domain.Service{
-		Roles: []string{},
+	result := Service{}
+	if err := repo.DB.Where(&Service{OrgID: orgID, Name: serviceName}).Find(&result).Error; err != nil {
+		return nil, fmt.Errorf("select * from serviecs: %v", err)
 	}
 
-	if err := repo.Transact(func(tx Tx) error {
-		row := tx.QueryRow("select name, memo from services where org_id=? and name=?", orgID, serviceName)
-		if err := row.Scan(
-			&service.Name,
-			&service.Memo,
-		); err != nil {
-			return fmt.Errorf("scan: %v", err)
-		}
-
-		return nil
-	}); err != nil {
-		return nil, fmt.Errorf("transaction: %v", err)
+	service := domain.Service{
+		OrgID: result.OrgID,
+		Name:  result.Name,
+		Memo:  result.Memo,
+		Roles: make([]string, 0),
 	}
 
 	return &service, nil
 }
 
-// mysql> explain select * from services where name='My-Service' limit 1;
-// +----+-------------+----------+------------+-------+---------------+---------+---------+-------+------+----------+-------+
-// | id | select_type | table    | partitions | type  | possible_keys | key     | key_len | ref   | rows | filtered | Extra |
-// +----+-------------+----------+------------+-------+---------------+---------+---------+-------+------+----------+-------+
-// |  1 | SIMPLE      | services | NULL       | const | PRIMARY       | PRIMARY | 514     | const |    1 |   100.00 | NULL  |
-// +----+-------------+----------+------------+-------+---------------+---------+---------+-------+------+----------+-------+
-// 1 row in set, 1 warning (0.00 sec)
 func (repo *ServiceRepository) Exists(orgID, serviceName string) bool {
-	rows, err := repo.Query("select 1 from services where org_id=? and name=? limit 1", orgID, serviceName)
-	if err != nil {
-		panic(err)
-	}
-	defer rows.Close()
-
-	if rows.Next() {
-		return true
+	if repo.DB.Where(&Service{OrgID: orgID, Name: serviceName}).First(&Invitation{}).RecordNotFound() {
+		return false
 	}
 
-	return false
+	return true
 }
 
-// delete from services where service_name=${serviceName}
 func (repo *ServiceRepository) Delete(orgID, serviceName string) error {
-	if err := repo.Transact(func(tx Tx) error {
-		if _, err := tx.Exec("delete from services where org_id=? and name=?", orgID, serviceName); err != nil {
-			return fmt.Errorf("delete from services: %v", err)
-		}
-
-		return nil
-	}); err != nil {
-		return fmt.Errorf("transaction: %v", err)
+	if err := repo.DB.Delete(&Service{OrgID: orgID, Name: serviceName}).Error; err != nil {
+		return fmt.Errorf("delete from services: %v", err)
 	}
 
 	return nil

@@ -110,7 +110,7 @@ func (repo *UserRepository) Delete(orgID, userID string) (*domain.User, error) {
 	}
 
 	user := domain.User{
-		OrgID:                   orgID,
+		OrgID:                   result.OrgID,
 		ID:                      result.ID,
 		ScreenName:              result.ScreenName,
 		Email:                   result.Email,
