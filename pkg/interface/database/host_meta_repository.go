@@ -4,146 +4,91 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/jinzhu/gorm"
+
 	"github.com/itsubaki/mackerel-server-go/pkg/domain"
 )
 
 type HostMetaRepository struct {
-	SQLHandler
+	DB *gorm.DB
+}
+
+type HostMeta struct {
+	OrgID     string `gorm:"column:org_id;    type:varchar(16);  not null;"`
+	HostID    string `gorm:"column:host_id;   type:varchar(16);  not null; primary_key"`
+	Namespace string `gorm:"column:namespace; type:varchar(128); not null; primary_key"`
+	Metadata  string `gorm:"column:meta;      type:text"`
 }
 
 func NewHostMetaRepository(handler SQLHandler) *HostMetaRepository {
-	if err := handler.Transact(func(tx Tx) error {
-		if _, err := tx.Exec(
-			`
-			create table if not exists host_meta (
-				org_id    varchar(16)  not null,
-				host_id   varchar(16)  not null,
-				namespace varchar(128) not null,
-				meta      text,
-				primary key(host_id, namespace)
-			)
-			`,
-		); err != nil {
-			return fmt.Errorf("create table host_meta: %v", err)
-		}
-
-		return nil
-	}); err != nil {
-		panic(fmt.Errorf("transaction: %v", err))
-	}
-
-	return &HostMetaRepository{
-		SQLHandler: handler,
-	}
-}
-
-// select * from host_metadata where host_id=${hostID} and namespace=${namespace} limit=1
-func (repo *HostMetaRepository) Exists(orgID, hostID, namespace string) bool {
-	rows, err := repo.Query("select 1 from host_meta where org_id=? and host_id=? and namespace=?", orgID, hostID, namespace)
+	db, err := gorm.Open(handler.Dialect(), handler.Raw())
 	if err != nil {
 		panic(err)
 	}
-	defer rows.Close()
-
-	if rows.Next() {
-		return true
+	db.LogMode(handler.IsDebugging())
+	if err := db.AutoMigrate(&HostMeta{}).Error; err != nil {
+		panic(fmt.Errorf("auto migrate host_meta: %v", err))
 	}
 
-	return false
+	return &HostMetaRepository{
+		DB: db,
+	}
 }
 
-// select namespace from host_metadata where host_id=${hostID}
+func (repo *HostMetaRepository) Exists(orgID, hostID, namespace string) bool {
+	if repo.DB.Where(&HostMeta{OrgID: orgID, HostID: hostID, Namespace: namespace}).First(&HostMeta{}).RecordNotFound() {
+		return false
+	}
+
+	return true
+}
+
 func (repo *HostMetaRepository) List(orgID, hostID string) (*domain.HostMetadataList, error) {
-	values := make([]domain.Namespace, 0)
-	if err := repo.Transact(func(tx Tx) error {
-		rows, err := tx.Query("select namespace from host_meta where org_id=? and host_id=?", orgID, hostID)
-		if err != nil {
-			return fmt.Errorf("select namespace from host_meta: %v", err)
-		}
-		defer rows.Close()
-
-		for rows.Next() {
-			var namespace string
-			if err := rows.Scan(
-				&namespace,
-			); err != nil {
-				return fmt.Errorf("scan: %v", err)
-			}
-
-			values = append(values, domain.Namespace{Namespace: namespace})
-		}
-
-		return nil
-	}); err != nil {
-		return nil, fmt.Errorf("transaction: %v", err)
+	result := make([]HostMeta, 0)
+	if err := repo.DB.Where(&HostMeta{OrgID: orgID, HostID: hostID}).Find(&result).Error; err != nil {
+		return nil, fmt.Errorf("select * from host_meta: %v", err)
 	}
 
-	return &domain.HostMetadataList{Metadata: values}, nil
+	out := make([]domain.Namespace, 0)
+	for _, r := range result {
+		out = append(out, domain.Namespace{
+			Namespace: r.Namespace,
+		})
+	}
+
+	return &domain.HostMetadataList{Metadata: out}, nil
 }
 
-// select * from host_metadata where host_id=${hostID} and namespace=${namespace}
 func (repo *HostMetaRepository) Metadata(orgID, hostID, namespace string) (interface{}, error) {
-	var meta string
-	if err := repo.Transact(func(tx Tx) error {
-		row := tx.QueryRow("select meta from host_meta where org_id=? and host_id=? and namespace=?", orgID, hostID, namespace)
-		if err := row.Scan(&meta); err != nil {
-			return fmt.Errorf("scan: %v", err)
-		}
-
-		return nil
-	}); err != nil {
-		return nil, fmt.Errorf("transaction: %v", err)
+	result := HostMeta{}
+	if err := repo.DB.Where(&HostMeta{OrgID: orgID, HostID: hostID, Namespace: namespace}).Find(&result).Error; err != nil {
+		return nil, fmt.Errorf("select * from host_meta: %v", err)
 	}
 
 	var out interface{}
-	if err := json.Unmarshal([]byte(meta), &out); err != nil {
+	if err := json.Unmarshal([]byte(result.Metadata), &out); err != nil {
 		return nil, fmt.Errorf("unmarshal: %v", err)
 	}
 
 	return out, nil
 }
 
-// insert into host_metadata values(${hostID}, ${namespace}, ${metadata})
 func (repo *HostMetaRepository) Save(orgID, hostID, namespace string, metadata interface{}) (*domain.Success, error) {
 	meta, err := json.Marshal(metadata)
 	if err != nil {
 		return &domain.Success{Success: false}, fmt.Errorf("marshal: %v", err)
 	}
 
-	if err := repo.Transact(func(tx Tx) error {
-		if _, err := tx.Exec(
-			"insert into host_meta values(?, ?, ?, ?)",
-			orgID,
-			hostID,
-			namespace,
-			string(meta),
-		); err != nil {
-			return fmt.Errorf("insert into host_meta: %v", err)
-		}
-
-		return nil
-	}); err != nil {
-		return &domain.Success{Success: false}, fmt.Errorf("transaction: %v", err)
+	if err := repo.DB.Where(&HostMeta{OrgID: orgID, HostID: hostID, Namespace: namespace}).Assign(&HostMeta{Metadata: string(meta)}).FirstOrCreate(&HostMeta{}).Error; err != nil {
+		return &domain.Success{Success: false}, fmt.Errorf("first or create: %v", err)
 	}
 
 	return &domain.Success{Success: true}, nil
 }
 
-// delete from host_metadata where host_id=${hostID} and namespace=${namespace}
 func (repo *HostMetaRepository) Delete(orgID, hostID, namespace string) (*domain.Success, error) {
-	if err := repo.Transact(func(tx Tx) error {
-		if _, err := tx.Exec(
-			"delete from host_meta where org_id=? and host_id=? and namespace=?",
-			orgID,
-			hostID,
-			namespace,
-		); err != nil {
-			return fmt.Errorf("delete from host_meta: %v", err)
-		}
-
-		return nil
-	}); err != nil {
-		return &domain.Success{Success: false}, fmt.Errorf("transaction: %v", err)
+	if err := repo.DB.Delete(&HostMeta{OrgID: orgID, HostID: hostID, Namespace: namespace}).Error; err != nil {
+		return &domain.Success{Success: false}, fmt.Errorf("delete from host_meta: %v", err)
 	}
 
 	return &domain.Success{Success: true}, nil

@@ -40,13 +40,6 @@ func NewUserRepository(handler SQLHandler) *UserRepository {
 	}
 }
 
-// mysql> explain select * from users;
-// +----+-------------+-------+------------+------+---------------+------+---------+------+------+----------+-------+
-// | id | select_type | table | partitions | type | possible_keys | key  | key_len | ref  | rows | filtered | Extra |
-// +----+-------------+-------+------------+------+---------------+------+---------+------+------+----------+-------+
-// |  1 | SIMPLE      | users | NULL       | ALL  | NULL          | NULL | NULL    | NULL |    1 |   100.00 | NULL  |
-// +----+-------------+-------+------------+------+---------------+------+---------+------+------+----------+-------+
-// 1 row in set, 1 warning (0.01 sec)
 func (repo *UserRepository) List(orgID string) (*domain.Users, error) {
 	result := make([]User, 0)
 	if err := repo.DB.Where(&User{OrgID: orgID}).Find(&result).Error; err != nil {

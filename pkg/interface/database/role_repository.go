@@ -10,6 +10,13 @@ type RoleRepository struct {
 	SQLHandler
 }
 
+type Role struct {
+	OrgID       string `gorm:"column:org_id; type:varchar(16); not null; primary_key"`
+	ServiceName string `gorm:"column:service_name; type:varchar(128); not null; primary_key"`
+	Name        string `gorm:"column:name;   type:varchar(128); not null; primary_key"`
+	Memo        string `gorm:"column:memo;   type:varchar(128); not null; default:''"`
+}
+
 func NewRoleRepository(handler SQLHandler) *RoleRepository {
 	if err := handler.Transact(func(tx Tx) error {
 		if _, err := tx.Exec(

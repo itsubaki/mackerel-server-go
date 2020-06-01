@@ -4,154 +4,75 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/jinzhu/gorm"
+
 	"github.com/itsubaki/mackerel-server-go/pkg/domain"
 )
 
 type APIKeyRepository struct {
-	SQLHandler
+	DB *gorm.DB
+}
+
+type APIKey struct {
+	OrgID      string `gorm:"column:org_id;      type:varchar(16); not null"`
+	Name       string `gorm:"column:name;        type:varchar(16); not null"`
+	APIKey     string `gorm:"column:api_key;     type:varchar(45); not null; primary key"`
+	Read       bool   `gorm:"column:xread;       type:varchar(16); not null; default:1"`
+	Write      bool   `gorm:"column:xwrite;      type:varchar(16); not null; default:1"`
+	LastAccess int64  `gorm:"column:last_access; type:varchar(16); not null; default:0"`
 }
 
 func NewAPIKeyRepository(handler SQLHandler) *APIKeyRepository {
-	if err := handler.Transact(func(tx Tx) error {
-		if _, err := tx.Exec(
-			`
-			create table if not exists apikeys (
-				org_id      varchar(16) not null,
-				name        varchar(16) not null,
-				api_key     varchar(45) not null primary key,
-				xread       boolean     not null default 1,
-				xwrite      boolean     not null default 1,
-				last_access bigint      not null default 0
-			)
-			`,
-		); err != nil {
-			return fmt.Errorf("create table apikeys: %v", err)
-		}
+	db, err := gorm.Open(handler.Dialect(), handler.Raw())
+	if err != nil {
+		panic(err)
+	}
+	db.LogMode(handler.IsDebugging())
+	if err := db.AutoMigrate(&APIKey{}).Error; err != nil {
+		panic(fmt.Errorf("auto migrate apikey: %v", err))
+	}
 
-		if _, err := tx.Exec(
-			`
-			insert into apikeys (
-				org_id,
-				name,
-				api_key,
-				xread,
-				xwrite
-			) values (?, ?, ?, ?, ?)
-			on duplicate key update
-				org_id  = values(org_id),
-				name    = values(name),
-				api_key = values(api_key),
-				xread   = values(xread),
-				xwrite  = values(xwrite)
-			`,
-			"4b825dc642c",
-			"default",
-			"2684d06cfedbee8499f326037bb6fb7e8c22e73b16bb",
-			1,
-			1,
-		); err != nil {
-			return fmt.Errorf("insert into apikeys: %v", err)
-		}
+	apikey := APIKey{
+		OrgID:      "4b825dc642c",
+		Name:       "default",
+		APIKey:     "2684d06cfedbee8499f326037bb6fb7e8c22e73b16bb",
+		Read:       true,
+		Write:      true,
+		LastAccess: time.Now().Unix(),
+	}
 
-		return nil
-	}); err != nil {
-		panic(fmt.Errorf("transaction: %v", err))
+	if err := db.Where(&apikey).Assign(&apikey).FirstOrCreate(&APIKey{}).Error; err != nil {
+		panic(fmt.Errorf("first or create: %v", err))
 	}
 
 	return &APIKeyRepository{
-		SQLHandler: handler,
+		DB: db,
 	}
 }
 
-func (repo *APIKeyRepository) Save(orgID, name string, write bool) (*domain.APIKey, error) {
-	apikey := domain.NewAPIKey()
-	if err := repo.Transact(func(tx Tx) error {
-		if _, err := tx.Exec(
-			`
-			insert into apikeys (
-				org_id,
-				name,
-				api_key,
-				xread,
-				xwrite
-			) values (?, ?, ?, ?, ?)
-		`,
-			orgID,
-			name,
-			apikey,
-			true,
-			write,
-		); err != nil {
-			return fmt.Errorf("insert into apikeys: %v", err)
-		}
-
-		return nil
-	}); err != nil {
-		return nil, fmt.Errorf("transaction: %v", err)
+func (repo *APIKeyRepository) APIKey(apikey string) (*domain.APIKey, error) {
+	if len(apikey) < 1 {
+		return nil, fmt.Errorf("apikey is empty")
 	}
 
-	return &domain.APIKey{
-		OrgID:  orgID,
-		Name:   name,
-		APIKey: apikey,
-		Read:   true,
-		Write:  write,
-	}, nil
-}
-
-func (repo *APIKeyRepository) List(orgID string) ([]domain.APIKey, error) {
-	keys := make([]domain.APIKey, 0)
-	rows, err := repo.Query(`select * from apikeys where org_id=?`, orgID)
-	if err != nil {
-		return nil, fmt.Errorf("select * from apikeys: %v", err)
+	result := APIKey{}
+	if err := repo.DB.Where(&APIKey{APIKey: apikey}).First(&result).Error; err != nil {
+		return nil, fmt.Errorf("select * from api_keys: %v", err)
 	}
 
-	for rows.Next() {
-		var key domain.APIKey
-		if err := rows.Scan(
-			&key.OrgID,
-			&key.Name,
-			&key.APIKey,
-			&key.Read,
-			&key.Write,
-			&key.LastAccess,
-		); err != nil {
-			return nil, fmt.Errorf("scan: %v", err)
-		}
+	now := time.Now().Unix()
+	if err := repo.DB.Where(&APIKey{APIKey: apikey}).Assign(&APIKey{LastAccess: now}).FirstOrCreate(&APIKey{}).Error; err != nil {
+		return nil, fmt.Errorf("first or create: %v", err)
 	}
 
-	return keys, nil
-}
-
-func (repo *APIKeyRepository) APIKey(xapikey string) (*domain.APIKey, error) {
-	var key domain.APIKey
-	if err := repo.Transact(func(tx Tx) error {
-		row := tx.QueryRow(`select * from apikeys where api_key=?`, xapikey)
-		if err := row.Scan(
-			&key.OrgID,
-			&key.Name,
-			&key.APIKey,
-			&key.Read,
-			&key.Write,
-			&key.LastAccess,
-		); err != nil {
-			return fmt.Errorf("select * from apikeys: %v", err)
-		}
-
-		if _, err := tx.Exec(
-			`
-			update apikeys set last_access=? where api_key=?
-			`,
-			time.Now().Unix(),
-			xapikey,
-		); err != nil {
-			return fmt.Errorf("update apykeys: %v", err)
-		}
-
-		return nil
-	}); err != nil {
-		return nil, fmt.Errorf("transaction: %v", err)
+	out := domain.APIKey{
+		OrgID:      result.OrgID,
+		Name:       result.Name,
+		APIKey:     result.APIKey,
+		Read:       result.Read,
+		Write:      result.Write,
+		LastAccess: now,
 	}
 
-	return &key, nil
+	return &out, nil
 }
