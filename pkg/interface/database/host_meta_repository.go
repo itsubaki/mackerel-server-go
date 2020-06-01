@@ -26,6 +26,7 @@ func NewHostMetaRepository(handler SQLHandler) *HostMetaRepository {
 		panic(err)
 	}
 	db.LogMode(handler.IsDebugging())
+
 	if err := db.AutoMigrate(&HostMeta{}).Error; err != nil {
 		panic(fmt.Errorf("auto migrate host_meta: %v", err))
 	}

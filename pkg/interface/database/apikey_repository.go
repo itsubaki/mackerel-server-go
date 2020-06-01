@@ -28,6 +28,7 @@ func NewAPIKeyRepository(handler SQLHandler) *APIKeyRepository {
 		panic(err)
 	}
 	db.LogMode(handler.IsDebugging())
+
 	if err := db.AutoMigrate(&APIKey{}).Error; err != nil {
 		panic(fmt.Errorf("auto migrate apikey: %v", err))
 	}

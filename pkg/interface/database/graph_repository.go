@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/jinzhu/gorm"
+
 	"github.com/itsubaki/mackerel-server-go/pkg/domain"
 )
 
@@ -12,43 +14,38 @@ type GraphRepository struct {
 	SQLHandler
 }
 
+type GraphDef struct {
+	OrgID       string `gorm:"column:org_id;       type:varchar(16); not null; primary_key"`
+	Name        string `gorm:"column:name;         type:varchar(64); not null; primary_key"`
+	DisplayName string `gorm:"column:display_name; type:varchar(64);"`
+	Unit        string `gorm:"column:unit;         type:varchar(64);"`
+	Metrics     string `gorm:"column:metrics;      type:text;"`
+}
+
+type GraphAnnotation struct {
+	OrgID       string `gorm:"column:org_id;      type:varchar(16); not null;"`
+	ID          string `gorm:"column:id;          type:varchar(16); not null; primary_key"`
+	Title       string `gorm:"column:title;       type:varchar(64); not null;"`
+	Description string `gorm:"column:description; type:varchar(64);"`
+	From        int64  `gorm:"column:time_from;   type:bigint;"`
+	To          int64  `gorm:"column:time_to;     type:bigint;"`
+	Service     string `gorm:"column:service;     type:varchar(128); not null;"`
+	Roles       string `gorm:"column:roles;       type:text;"`
+}
+
 func NewGraphRepository(handler SQLHandler) *GraphRepository {
-	if err := handler.Transact(func(tx Tx) error {
-		if _, err := tx.Exec(
-			`
-			create table if not exists graph_defs (
-				org_id       varchar(16) not null,
-				name         varchar(64) not null,
-				display_name varchar(64),
-				unit         varchar(64),
-				metrics      text,
-				primary key(org_id, name)
-			)
-			`,
-		); err != nil {
-			return fmt.Errorf("create table graph_defs: %v", err)
-		}
+	db, err := gorm.Open(handler.Dialect(), handler.Raw())
+	if err != nil {
+		panic(err)
+	}
+	db.LogMode(handler.IsDebugging())
 
-		if _, err := tx.Exec(
-			`
-			create table if not exists graph_annotations (
-				org_id      varchar(16) not null,
-				id          varchar(16) not null primary key,
-				title       varchar(64) not null,
-				description varchar(64),
-				time_from   bigint,
-				time_to     bigint,
-				service     varchar(128) not null,
-				roles       text
-			)
-			`,
-		); err != nil {
-			return fmt.Errorf("create table graph_annotations: %v", err)
-		}
+	if err := db.AutoMigrate(&GraphDef{}).Error; err != nil {
+		panic(fmt.Errorf("auto migrate graph_def: %v", err))
+	}
 
-		return nil
-	}); err != nil {
-		panic(fmt.Errorf("transaction: %v", err))
+	if err := db.AutoMigrate(&GraphAnnotation{}).Error; err != nil {
+		panic(fmt.Errorf("auto migrate graph_annotation: %v", err))
 	}
 
 	return &GraphRepository{

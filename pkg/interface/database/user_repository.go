@@ -31,6 +31,7 @@ func NewUserRepository(handler SQLHandler) *UserRepository {
 		panic(err)
 	}
 	db.LogMode(handler.IsDebugging())
+
 	if err := db.AutoMigrate(&User{}).Error; err != nil {
 		panic(fmt.Errorf("auto migrate user: %v", err))
 	}

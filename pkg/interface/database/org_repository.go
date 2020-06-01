@@ -23,6 +23,7 @@ func NewOrgRepository(handler SQLHandler) *OrgRepository {
 		panic(err)
 	}
 	db.LogMode(handler.IsDebugging())
+
 	if err := db.AutoMigrate(&Org{}).Error; err != nil {
 		panic(fmt.Errorf("auto migrate org: %v", err))
 	}

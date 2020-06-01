@@ -27,6 +27,7 @@ func NewServiceMetaRepository(handler SQLHandler) *ServiceMetaRepository {
 		panic(err)
 	}
 	db.LogMode(handler.IsDebugging())
+
 	if err := db.AutoMigrate(&ServiceMeta{}).Error; err != nil {
 		panic(fmt.Errorf("auto migrate service_meta: %v", err))
 	}

@@ -4,399 +4,309 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/jinzhu/gorm"
+
 	"github.com/itsubaki/mackerel-server-go/pkg/domain"
 )
 
 type DowntimeRepository struct {
-	SQLHandler
+	DB *gorm.DB
+}
+
+type Downtime struct {
+	OrgID                string `gorm:"column:org_id;                 type:varchar(16);  not null"`
+	ID                   string `gorm:"column:id;                     type:varchar(128); not null; primary key"`
+	Name                 string `gorm:"column:name;                   type:varchar(128); not null"`
+	Memo                 string `gorm:"column:memo;                   type:text;"`
+	Start                int64  `gorm:"column:start;                  type:bigint;"`
+	Duration             int64  `gorm:"column:duration;               type:bigint;"`
+	Recurrence           string `gorm:"column:recurrence;             type:text;"`
+	ServiceScopes        string `gorm:"column:service_scopes;         type:text;"`
+	ServiceExcludeScopes string `gorm:"column:service_exclude_scopes; type:text;"`
+	RoleScopes           string `gorm:"column:role_scopes;            type:text;"`
+	RoleExcludeScopes    string `gorm:"column:role_exclude_scopes;    type:text;"`
+	MonitorScopes        string `gorm:"column:monitor_scopes;         type:text;"`
+	MonitorExcludeScopes string `gorm:"column:monitor_exclude_scopes; type:text;"`
 }
 
 func NewDowntimeRepository(handler SQLHandler) *DowntimeRepository {
-	if err := handler.Transact(func(tx Tx) error {
-		if _, err := tx.Exec(
-			`
-			create table if not exists downtimes (
-				org_id                 varchar(16)  not null,
-				id                     varchar(128) not null primary key,
-				name                   varchar(128) not null,
-				memo				   text,
-				start                  bigint,
-				duration               bigint,
-				recurrence             text,
-				service_scopes         text,
-				service_exclude_scopes text,
-				role_scopes            text,
-				role_exclude_scopes    text,
-				monitor_scopes         text,
-				monitor_exclude_scopes text
-			)
-			`,
-		); err != nil {
-			return fmt.Errorf("create table downtimes: %v", err)
-		}
+	db, err := gorm.Open(handler.Dialect(), handler.Raw())
+	if err != nil {
+		panic(err)
+	}
+	db.LogMode(handler.IsDebugging())
 
-		return nil
-	}); err != nil {
-		panic(fmt.Errorf("transaction: %v", err))
+	if err := db.AutoMigrate(&Downtime{}).Error; err != nil {
+		panic(fmt.Errorf("auto migrate downtime: %v", err))
 	}
 
 	return &DowntimeRepository{
-		SQLHandler: handler,
+		DB: db,
 	}
 }
 
 func (repo *DowntimeRepository) List(orgID string) (*domain.Downtimes, error) {
-	downtimes := make([]domain.Downtime, 0)
-	if err := repo.Transact(func(tx Tx) error {
-		rows, err := tx.Query("select * from downtimes where org_id=?", orgID)
-		if err != nil {
-			return fmt.Errorf("select * from downtimes: %v", err)
-		}
-		defer rows.Close()
-
-		for rows.Next() {
-			var downtime domain.Downtime
-			var recurrence, serviceScopes, serviceExcludeScopes, roleScopes, roleExcludeScopes, monitorScopes, monitorExcludeScopes string
-			if err := rows.Scan(
-				&downtime.OrgID,
-				&downtime.ID,
-				&downtime.Name,
-				&downtime.Memo,
-				&downtime.Start,
-				&downtime.Duration,
-				&recurrence,
-				&serviceScopes,
-				&serviceExcludeScopes,
-				&roleScopes,
-				&roleExcludeScopes,
-				&monitorScopes,
-				&monitorExcludeScopes,
-			); err != nil {
-				return fmt.Errorf("select * from downtimes: %v", err)
-			}
-
-			if err := json.Unmarshal([]byte(recurrence), &downtime.Recurrence); err != nil {
-				return fmt.Errorf("unmarshal downitme.Recurrence: %v", err)
-			}
-
-			if err := json.Unmarshal([]byte(serviceScopes), &downtime.ServiceScopes); err != nil {
-				return fmt.Errorf("unmarshal downitme.ServiceScopes: %v", err)
-			}
-
-			if err := json.Unmarshal([]byte(serviceExcludeScopes), &downtime.ServiceExcludeScopes); err != nil {
-				return fmt.Errorf("unmarshal downitme.ServiceExcludeScopes: %v", err)
-			}
-
-			if err := json.Unmarshal([]byte(roleScopes), &downtime.RoleScopes); err != nil {
-				return fmt.Errorf("unmarshal downitme.RoleScopes: %v", err)
-			}
-
-			if err := json.Unmarshal([]byte(roleExcludeScopes), &downtime.RoleExcludeScopes); err != nil {
-				return fmt.Errorf("unmarshal downitme.RoleExcludeScopes: %v", err)
-			}
-
-			if err := json.Unmarshal([]byte(monitorScopes), &downtime.MonitorScopes); err != nil {
-				return fmt.Errorf("unmarshal downitme.MonitorScopes: %v", err)
-			}
-
-			if err := json.Unmarshal([]byte(monitorExcludeScopes), &downtime.MonitorExcludeScopes); err != nil {
-				return fmt.Errorf("unmarshal downitme.MonitorExcludeScopes: %v", err)
-			}
-
-			downtimes = append(downtimes, downtime)
-		}
-
-		return nil
-	}); err != nil {
-		return nil, fmt.Errorf("transaction: %v", err)
+	result := make([]Downtime, 0)
+	if err := repo.DB.Where(&Downtime{OrgID: orgID}).Find(&result).Error; err != nil {
+		return nil, fmt.Errorf("select * from downtimes: %v", err)
 	}
 
-	return &domain.Downtimes{Downtimes: downtimes}, nil
+	out := make([]domain.Downtime, 0)
+	for _, r := range result {
+		downtime := domain.Downtime{
+			OrgID:    r.OrgID,
+			ID:       r.ID,
+			Name:     r.Name,
+			Memo:     r.Memo,
+			Start:    r.Start,
+			Duration: r.Duration,
+		}
+
+		if err := json.Unmarshal([]byte(r.Recurrence), &downtime.Recurrence); err != nil {
+			return nil, fmt.Errorf("unmarshal downitme.Recurrence: %v", err)
+		}
+
+		if err := json.Unmarshal([]byte(r.ServiceScopes), &downtime.ServiceScopes); err != nil {
+			return nil, fmt.Errorf("unmarshal downitme.ServiceScopes: %v", err)
+		}
+
+		if err := json.Unmarshal([]byte(r.ServiceExcludeScopes), &downtime.ServiceExcludeScopes); err != nil {
+			return nil, fmt.Errorf("unmarshal downitme.ServiceExcludeScopes: %v", err)
+		}
+
+		if err := json.Unmarshal([]byte(r.RoleScopes), &downtime.RoleScopes); err != nil {
+			return nil, fmt.Errorf("unmarshal downitme.RoleScopes: %v", err)
+		}
+
+		if err := json.Unmarshal([]byte(r.RoleExcludeScopes), &downtime.RoleExcludeScopes); err != nil {
+			return nil, fmt.Errorf("unmarshal downitme.RoleExcludeScopes: %v", err)
+		}
+
+		if err := json.Unmarshal([]byte(r.MonitorScopes), &downtime.MonitorScopes); err != nil {
+			return nil, fmt.Errorf("unmarshal downitme.MonitorScopes: %v", err)
+		}
+
+		if err := json.Unmarshal([]byte(r.MonitorExcludeScopes), &downtime.MonitorExcludeScopes); err != nil {
+			return nil, fmt.Errorf("unmarshal downitme.MonitorExcludeScopes: %v", err)
+		}
+
+		out = append(out, downtime)
+	}
+
+	return &domain.Downtimes{Downtimes: out}, nil
 }
 
 func (repo *DowntimeRepository) Save(orgID string, downtime *domain.Downtime) (*domain.Downtime, error) {
-	if err := repo.Transact(func(tx Tx) error {
-		recurrence, err := json.Marshal(downtime.Recurrence)
-		if err != nil {
-			return fmt.Errorf("marshal downtime.Recurrenc: %v", err)
-		}
+	recurrence, err := json.Marshal(downtime.Recurrence)
+	if err != nil {
+		return nil, fmt.Errorf("marshal downtime.Recurrenc: %v", err)
+	}
 
-		serviceScopes, err := json.Marshal(downtime.ServiceScopes)
-		if err != nil {
-			return fmt.Errorf("marshal downtime.ServiceScopes: %v", err)
-		}
+	serviceScopes, err := json.Marshal(downtime.ServiceScopes)
+	if err != nil {
+		return nil, fmt.Errorf("marshal downtime.ServiceScopes: %v", err)
+	}
 
-		serviceExcludeScopes, err := json.Marshal(downtime.ServiceExcludeScopes)
-		if err != nil {
-			return fmt.Errorf("marshal downtime.ServiceExcludeScopes: %v", err)
-		}
+	serviceExcludeScopes, err := json.Marshal(downtime.ServiceExcludeScopes)
+	if err != nil {
+		return nil, fmt.Errorf("marshal downtime.ServiceExcludeScopes: %v", err)
+	}
 
-		roleScopes, err := json.Marshal(downtime.RoleScopes)
-		if err != nil {
-			return fmt.Errorf("marshal downtime.RoleScopes: %v", err)
-		}
+	roleScopes, err := json.Marshal(downtime.RoleScopes)
+	if err != nil {
+		return nil, fmt.Errorf("marshal downtime.RoleScopes: %v", err)
+	}
 
-		roleExcludeScopes, err := json.Marshal(downtime.RoleExcludeScopes)
-		if err != nil {
-			return fmt.Errorf("marshal downtime.RoleExcludeScopes: %v", err)
-		}
+	roleExcludeScopes, err := json.Marshal(downtime.RoleExcludeScopes)
+	if err != nil {
+		return nil, fmt.Errorf("marshal downtime.RoleExcludeScopes: %v", err)
+	}
 
-		monitorScopes, err := json.Marshal(downtime.MonitorScopes)
-		if err != nil {
-			return fmt.Errorf("marshal downtime.MonitorScopes: %v", err)
-		}
+	monitorScopes, err := json.Marshal(downtime.MonitorScopes)
+	if err != nil {
+		return nil, fmt.Errorf("marshal downtime.MonitorScopes: %v", err)
+	}
 
-		monitorExcludeScopes, err := json.Marshal(downtime.MonitorExcludeScopes)
-		if err != nil {
-			return fmt.Errorf("marshal downtime.MonitorExcludeScopes: %v", err)
-		}
+	monitorExcludeScopes, err := json.Marshal(downtime.MonitorExcludeScopes)
+	if err != nil {
+		return nil, fmt.Errorf("marshal downtime.MonitorExcludeScopes: %v", err)
+	}
 
-		if _, err := tx.Exec(
-			`
-			insert into downtimes (
-				org_id,
-				id,
-				name,
-				memo,
-				start,
-				duration,
-				recurrence,
-				service_scopes,
-				service_exclude_scopes,
-				role_scopes,
-				role_exclude_scopes,
-				monitor_scopes,
-				monitor_exclude_scopes
-			)
-			values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-			`,
-			orgID,
-			downtime.ID,
-			downtime.Name,
-			downtime.Memo,
-			downtime.Start,
-			downtime.Duration,
-			recurrence,
-			serviceScopes,
-			serviceExcludeScopes,
-			roleScopes,
-			roleExcludeScopes,
-			monitorScopes,
-			monitorExcludeScopes,
-		); err != nil {
-			return fmt.Errorf("insert into downtimes: %v", err)
+	create := Downtime{
+		OrgID:                orgID,
+		ID:                   downtime.ID,
+		Name:                 downtime.Name,
+		Memo:                 downtime.Memo,
+		Start:                downtime.Start,
+		Duration:             downtime.Duration,
+		Recurrence:           string(recurrence),
+		ServiceScopes:        string(serviceScopes),
+		ServiceExcludeScopes: string(serviceExcludeScopes),
+		RoleScopes:           string(roleScopes),
+		RoleExcludeScopes:    string(roleExcludeScopes),
+		MonitorScopes:        string(monitorScopes),
+		MonitorExcludeScopes: string(monitorExcludeScopes),
+	}
 
-		}
-
-		return nil
-	}); err != nil {
-		return nil, fmt.Errorf("transaction: %v", err)
+	if err := repo.DB.Create(&create).Error; err != nil {
+		return nil, fmt.Errorf("insert into downtimes: %v", err)
 	}
 
 	return downtime, nil
 }
 
 func (repo *DowntimeRepository) Update(orgID string, downtime *domain.Downtime) (*domain.Downtime, error) {
-	if err := repo.Transact(func(tx Tx) error {
-		recurrence, err := json.Marshal(downtime.Recurrence)
-		if err != nil {
-			return fmt.Errorf("marshal downtime.Recurrence: %v", err)
-		}
+	recurrence, err := json.Marshal(downtime.Recurrence)
+	if err != nil {
+		return nil, fmt.Errorf("marshal downtime.Recurrence: %v", err)
+	}
 
-		serviceScopes, err := json.Marshal(downtime.ServiceScopes)
-		if err != nil {
-			return fmt.Errorf("marshal downtime.ServiceScopes: %v", err)
-		}
+	serviceScopes, err := json.Marshal(downtime.ServiceScopes)
+	if err != nil {
+		return nil, fmt.Errorf("marshal downtime.ServiceScopes: %v", err)
+	}
 
-		serviceExcludeScopes, err := json.Marshal(downtime.ServiceExcludeScopes)
-		if err != nil {
-			return fmt.Errorf("marshal downtime.ServiceExcludeScopes: %v", err)
-		}
+	serviceExcludeScopes, err := json.Marshal(downtime.ServiceExcludeScopes)
+	if err != nil {
+		return nil, fmt.Errorf("marshal downtime.ServiceExcludeScopes: %v", err)
+	}
 
-		roleScopes, err := json.Marshal(downtime.RoleScopes)
-		if err != nil {
-			return fmt.Errorf("marshal downtime.RoleScopes: %v", err)
-		}
+	roleScopes, err := json.Marshal(downtime.RoleScopes)
+	if err != nil {
+		return nil, fmt.Errorf("marshal downtime.RoleScopes: %v", err)
+	}
 
-		roleExcludeScopes, err := json.Marshal(downtime.RoleExcludeScopes)
-		if err != nil {
-			return fmt.Errorf("marshal downtime.RoleExcludeScopes: %v", err)
-		}
+	roleExcludeScopes, err := json.Marshal(downtime.RoleExcludeScopes)
+	if err != nil {
+		return nil, fmt.Errorf("marshal downtime.RoleExcludeScopes: %v", err)
+	}
 
-		monitorScopes, err := json.Marshal(downtime.MonitorScopes)
-		if err != nil {
-			return fmt.Errorf("marshal downtime.MonitorScopes: %v", err)
-		}
+	monitorScopes, err := json.Marshal(downtime.MonitorScopes)
+	if err != nil {
+		return nil, fmt.Errorf("marshal downtime.MonitorScopes: %v", err)
+	}
 
-		monitorExcludeScopes, err := json.Marshal(downtime.MonitorExcludeScopes)
-		if err != nil {
-			return fmt.Errorf("marshal downtime.MonitorExcludeScopes: %v", err)
-		}
+	monitorExcludeScopes, err := json.Marshal(downtime.MonitorExcludeScopes)
+	if err != nil {
+		return nil, fmt.Errorf("marshal downtime.MonitorExcludeScopes: %v", err)
+	}
 
-		if _, err := tx.Exec(
-			`
-			update downtimes set
-				name=?,
-				memo=?,
-				start=?,
-				duration=?,
-				recurrence=?,
-				service_scopes=?,
-				service_exclude_scopes=?,
-				role_scopes=?,
-				role_exclude_scopes=?,
-				monitor_scopes=?,
-				monitor_exclude_scopes=?
-			where org_id=? and id=?
-			`,
-			downtime.Name,
-			downtime.Memo,
-			downtime.Start,
-			downtime.Duration,
-			recurrence,
-			serviceScopes,
-			serviceExcludeScopes,
-			roleScopes,
-			roleExcludeScopes,
-			monitorScopes,
-			monitorExcludeScopes,
-			orgID,
-			downtime.ID,
-		); err != nil {
-			return fmt.Errorf("update downtimes: %v", err)
+	update := Downtime{
+		Name:                 downtime.Name,
+		Memo:                 downtime.Memo,
+		Start:                downtime.Start,
+		Duration:             downtime.Duration,
+		Recurrence:           string(recurrence),
+		ServiceScopes:        string(serviceScopes),
+		ServiceExcludeScopes: string(serviceExcludeScopes),
+		RoleScopes:           string(roleScopes),
+		RoleExcludeScopes:    string(roleExcludeScopes),
+		MonitorScopes:        string(monitorScopes),
+		MonitorExcludeScopes: string(monitorExcludeScopes),
+	}
 
-		}
-
-		return nil
-	}); err != nil {
-		return nil, fmt.Errorf("transaction: %v", err)
+	if err := repo.DB.Where(&Downtime{OrgID: orgID, ID: downtime.ID}).Assign(&update).FirstOrCreate(&Downtime{}).Error; err != nil {
+		return nil, fmt.Errorf("first or create: %v", err)
 	}
 
 	return downtime, nil
 }
 
 func (repo *DowntimeRepository) Downtime(orgID, downtimeID string) (*domain.Downtime, error) {
-	var downtime domain.Downtime
+	result := Downtime{}
+	if err := repo.DB.Where(&Downtime{OrgID: orgID, ID: downtimeID}).First(&result).Error; err != nil {
+		return nil, fmt.Errorf("select * from downitmes: %v", err)
+	}
 
-	if err := repo.Transact(func(tx Tx) error {
-		row := tx.QueryRow("select * from downtimes where org_id=? and id=?", orgID, downtimeID)
-		var recurrence, serviceScopes, serviceExcludeScopes, roleScopes, roleExcludeScopes, monitorScopes, monitorExcludeScopes string
-		if err := row.Scan(
-			&downtime.OrgID,
-			&downtime.ID,
-			&downtime.Name,
-			&downtime.Memo,
-			&downtime.Start,
-			&downtime.Duration,
-			&recurrence,
-			&serviceScopes,
-			&serviceExcludeScopes,
-			&roleScopes,
-			&roleExcludeScopes,
-			&monitorScopes,
-			&monitorExcludeScopes,
-		); err != nil {
-			return fmt.Errorf("select * from downtimes: %v", err)
-		}
+	downtime := domain.Downtime{
+		OrgID:    result.OrgID,
+		ID:       result.ID,
+		Name:     result.Name,
+		Memo:     result.Memo,
+		Start:    result.Start,
+		Duration: result.Duration,
+	}
 
-		if err := json.Unmarshal([]byte(recurrence), &downtime.Recurrence); err != nil {
-			return fmt.Errorf("unmarshal downitme.Recurrence: %v", err)
-		}
-		if len(downtime.Recurrence.Type) < 1 {
-			downtime.Recurrence = nil
-		}
+	if err := json.Unmarshal([]byte(result.Recurrence), &downtime.Recurrence); err != nil {
+		return nil, fmt.Errorf("unmarshal downitme.Recurrence: %v", err)
+	}
 
-		if err := json.Unmarshal([]byte(serviceScopes), &downtime.ServiceScopes); err != nil {
-			return fmt.Errorf("unmarshal downitme.ServiceScopes: %v", err)
-		}
+	if len(downtime.Recurrence.Type) < 1 {
+		downtime.Recurrence = nil
+	}
 
-		if err := json.Unmarshal([]byte(serviceExcludeScopes), &downtime.ServiceExcludeScopes); err != nil {
-			return fmt.Errorf("unmarshal downitme.ServiceExcludeScopes: %v", err)
-		}
+	if err := json.Unmarshal([]byte(result.ServiceScopes), &downtime.ServiceScopes); err != nil {
+		return nil, fmt.Errorf("unmarshal downitme.ServiceScopes: %v", err)
+	}
 
-		if err := json.Unmarshal([]byte(roleScopes), &downtime.RoleScopes); err != nil {
-			return fmt.Errorf("unmarshal downitme.RoleScopes: %v", err)
-		}
+	if err := json.Unmarshal([]byte(result.ServiceExcludeScopes), &downtime.ServiceExcludeScopes); err != nil {
+		return nil, fmt.Errorf("unmarshal downitme.ServiceExcludeScopes: %v", err)
+	}
 
-		if err := json.Unmarshal([]byte(roleExcludeScopes), &downtime.RoleExcludeScopes); err != nil {
-			return fmt.Errorf("unmarshal downitme.RoleExcludeScopes: %v", err)
-		}
+	if err := json.Unmarshal([]byte(result.RoleScopes), &downtime.RoleScopes); err != nil {
+		return nil, fmt.Errorf("unmarshal downitme.RoleScopes: %v", err)
+	}
 
-		if err := json.Unmarshal([]byte(monitorScopes), &downtime.MonitorScopes); err != nil {
-			return fmt.Errorf("unmarshal downitme.MonitorScopes: %v", err)
-		}
+	if err := json.Unmarshal([]byte(result.RoleExcludeScopes), &downtime.RoleExcludeScopes); err != nil {
+		return nil, fmt.Errorf("unmarshal downitme.RoleExcludeScopes: %v", err)
+	}
 
-		if err := json.Unmarshal([]byte(monitorExcludeScopes), &downtime.MonitorExcludeScopes); err != nil {
-			return fmt.Errorf("unmarshal downitme.MonitorExcludeScopes: %v", err)
-		}
+	if err := json.Unmarshal([]byte(result.MonitorScopes), &downtime.MonitorScopes); err != nil {
+		return nil, fmt.Errorf("unmarshal downitme.MonitorScopes: %v", err)
+	}
 
-		return nil
-	}); err != nil {
-		return nil, fmt.Errorf("transaction: %v", err)
+	if err := json.Unmarshal([]byte(result.MonitorExcludeScopes), &downtime.MonitorExcludeScopes); err != nil {
+		return nil, fmt.Errorf("unmarshal downitme.MonitorExcludeScopes: %v", err)
 	}
 
 	return &downtime, nil
 }
 
 func (repo *DowntimeRepository) Delete(orgID, downtimeID string) (*domain.Downtime, error) {
-	var downtime domain.Downtime
+	result := Downtime{}
+	if err := repo.DB.Where(&Downtime{OrgID: orgID, ID: downtimeID}).First(&result).Error; err != nil {
+		return nil, fmt.Errorf("select * from downitmes: %v", err)
+	}
 
-	if err := repo.Transact(func(tx Tx) error {
-		row := tx.QueryRow("select * from downtimes where org_id=? and id=?", orgID, downtimeID)
-		var recurrence, serviceScopes, serviceExcludeScopes, roleScopes, roleExcludeScopes, monitorScopes, monitorExcludeScopes string
-		if err := row.Scan(
-			&downtime.OrgID,
-			&downtime.ID,
-			&downtime.Name,
-			&downtime.Memo,
-			&downtime.Start,
-			&downtime.Duration,
-			&recurrence,
-			&serviceScopes,
-			&serviceExcludeScopes,
-			&roleScopes,
-			&roleExcludeScopes,
-			&monitorScopes,
-			&monitorExcludeScopes,
-		); err != nil {
-			return fmt.Errorf("select * from downtimes: %v", err)
-		}
+	if err := repo.DB.Delete(&Downtime{OrgID: orgID, ID: downtimeID}).Error; err != nil {
+		return nil, fmt.Errorf("delete from downtimes: %v", err)
+	}
 
-		if err := json.Unmarshal([]byte(recurrence), &downtime.Recurrence); err != nil {
-			return fmt.Errorf("unmarshal downitme.Recurrence: %v", err)
-		}
+	downtime := domain.Downtime{
+		OrgID:    result.OrgID,
+		ID:       result.ID,
+		Name:     result.Name,
+		Memo:     result.Memo,
+		Start:    result.Start,
+		Duration: result.Duration,
+	}
 
-		if err := json.Unmarshal([]byte(serviceScopes), &downtime.ServiceScopes); err != nil {
-			return fmt.Errorf("unmarshal downitme.ServiceScopes: %v", err)
-		}
+	if err := json.Unmarshal([]byte(result.Recurrence), &downtime.Recurrence); err != nil {
+		return nil, fmt.Errorf("unmarshal downitme.Recurrence: %v", err)
+	}
 
-		if err := json.Unmarshal([]byte(serviceExcludeScopes), &downtime.ServiceExcludeScopes); err != nil {
-			return fmt.Errorf("unmarshal downitme.ServiceExcludeScopes: %v", err)
-		}
+	if err := json.Unmarshal([]byte(result.ServiceScopes), &downtime.ServiceScopes); err != nil {
+		return nil, fmt.Errorf("unmarshal downitme.ServiceScopes: %v", err)
+	}
 
-		if err := json.Unmarshal([]byte(roleScopes), &downtime.RoleScopes); err != nil {
-			return fmt.Errorf("unmarshal downitme.RoleScopes: %v", err)
-		}
+	if err := json.Unmarshal([]byte(result.ServiceExcludeScopes), &downtime.ServiceExcludeScopes); err != nil {
+		return nil, fmt.Errorf("unmarshal downitme.ServiceExcludeScopes: %v", err)
+	}
 
-		if err := json.Unmarshal([]byte(roleExcludeScopes), &downtime.RoleExcludeScopes); err != nil {
-			return fmt.Errorf("unmarshal downitme.RoleExcludeScopes: %v", err)
-		}
+	if err := json.Unmarshal([]byte(result.RoleScopes), &downtime.RoleScopes); err != nil {
+		return nil, fmt.Errorf("unmarshal downitme.RoleScopes: %v", err)
+	}
 
-		if err := json.Unmarshal([]byte(monitorScopes), &downtime.MonitorScopes); err != nil {
-			return fmt.Errorf("unmarshal downitme.MonitorScopes: %v", err)
-		}
+	if err := json.Unmarshal([]byte(result.RoleExcludeScopes), &downtime.RoleExcludeScopes); err != nil {
+		return nil, fmt.Errorf("unmarshal downitme.RoleExcludeScopes: %v", err)
+	}
 
-		if err := json.Unmarshal([]byte(monitorExcludeScopes), &downtime.MonitorExcludeScopes); err != nil {
-			return fmt.Errorf("unmarshal downitme.MonitorExcludeScopes: %v", err)
-		}
+	if err := json.Unmarshal([]byte(result.MonitorScopes), &downtime.MonitorScopes); err != nil {
+		return nil, fmt.Errorf("unmarshal downitme.MonitorScopes: %v", err)
+	}
 
-		if _, err := tx.Exec("delete from downtimes where org_id=? and id=?", orgID, downtimeID); err != nil {
-			return fmt.Errorf("delete from downtimes: %v", err)
-		}
-
-		return nil
-	}); err != nil {
-		return nil, fmt.Errorf("transaction: %v", err)
+	if err := json.Unmarshal([]byte(result.MonitorExcludeScopes), &downtime.MonitorExcludeScopes); err != nil {
+		return nil, fmt.Errorf("unmarshal downitme.MonitorExcludeScopes: %v", err)
 	}
 
 	return &downtime, nil

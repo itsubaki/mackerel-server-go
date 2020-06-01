@@ -24,6 +24,7 @@ func NewServiceRepository(handler SQLHandler) *ServiceRepository {
 		panic(err)
 	}
 	db.LogMode(handler.IsDebugging())
+
 	if err := db.AutoMigrate(&Service{}).Error; err != nil {
 		panic(fmt.Errorf("auto migrate service: %v", err))
 	}
@@ -54,7 +55,7 @@ func (repo *ServiceRepository) List(orgID string) (*domain.Services, error) {
 
 func (repo *ServiceRepository) Save(orgID string, s *domain.Service) error {
 	if err := repo.DB.Where(&Service{OrgID: orgID, Name: s.Name}).Assign(&Service{Memo: s.Memo}).FirstOrCreate(&Service{}).Error; err != nil {
-		panic(fmt.Errorf("first or create: %v", err))
+		return fmt.Errorf("first or create: %v", err)
 	}
 
 	return nil

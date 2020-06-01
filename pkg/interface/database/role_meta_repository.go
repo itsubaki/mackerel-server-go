@@ -27,6 +27,7 @@ func NewRoleMetaRepository(handler SQLHandler) *RoleMetaRepository {
 		panic(err)
 	}
 	db.LogMode(handler.IsDebugging())
+
 	if err := db.AutoMigrate(&RoleMeta{}).Error; err != nil {
 		panic(fmt.Errorf("auto migrate role_meta: %v", err))
 	}

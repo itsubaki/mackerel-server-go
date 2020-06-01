@@ -3,49 +3,38 @@ package database
 import (
 	"fmt"
 
+	"github.com/jinzhu/gorm"
+
 	"github.com/itsubaki/mackerel-server-go/pkg/domain"
 )
 
 type DashboardRepository struct {
-	SQLHandler
+	DB *gorm.DB
+}
+
+type Dashboard struct {
+	OrgID     string `gorm:"column:org_id;     type:varchar(16);  not null"`
+	ID        string `gorm:"column:id;         type:varchar(128); not null; primary key"`
+	Title     string `gorm:"column:title;      type:varchar(128); not null"`
+	Memo      string `gorm:"column:memo;       type:varchar(128); not null; default:''"`
+	URLPath   string `gorm:"column:url_path;   type:text"`
+	CreatedAt int64  `gorm:"column:created_at; type:bigint"`
+	UpdatedAt int64  `gorm:"column:updated_at; type:bigint"`
 }
 
 func NewDashboardRepository(handler SQLHandler) *DashboardRepository {
-	if err := handler.Transact(func(tx Tx) error {
-		if _, err := tx.Exec(
-			`
-			create table if not exists dashboards (
-				org_id   varchar(16)  not null,
-				id       varchar(128) not null primary key,
-				title    varchar(128) not null,
-				memo     varchar(128) not null default '',
-				url_path text,
-				created_at bigint,
-				updated_at bigint
-			)
-			`,
-		); err != nil {
-			return fmt.Errorf("create table dashboards: %v", err)
-		}
+	db, err := gorm.Open(handler.Dialect(), handler.Raw())
+	if err != nil {
+		panic(err)
+	}
+	db.LogMode(handler.IsDebugging())
 
-		if _, err := tx.Exec(
-			`
-			create table if not exists dashboard_widgets (
-				org_id       varchar(16)  not null,
-				dashboard_id varchar(128) not null
-			)
-			`,
-		); err != nil {
-			return fmt.Errorf("create table dashboard_widgets: %v", err)
-		}
-
-		return nil
-	}); err != nil {
-		panic(fmt.Errorf("transaction: %v", err))
+	if err := db.AutoMigrate(&Dashboard{}).Error; err != nil {
+		panic(fmt.Errorf("auto migrate dashboard: %v", err))
 	}
 
 	return &DashboardRepository{
-		SQLHandler: handler,
+		DB: db,
 	}
 }
 

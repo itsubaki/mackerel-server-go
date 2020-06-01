@@ -3,114 +3,89 @@ package database
 import (
 	"fmt"
 
+	"github.com/jinzhu/gorm"
+
 	"github.com/itsubaki/mackerel-server-go/pkg/domain"
 )
 
 type CheckReportRepository struct {
-	SQLHandler
+	DB *gorm.DB
+}
+
+type CheckReport struct {
+	OrgID                string `gorm:"column:org_id;     type:varchar(16);  not null"`
+	HostID               string `gorm:"column:host_id;    type:varchar(16);  not null; primary key"`
+	Type                 string `gorm:"column:type;       type:enum('host'); not null"`
+	Name                 string `gorm:"column:name;       type:varchar(128); not null; primary key"`
+	Status               string `gorm:"column:status;     type:enum('OK', 'CRITICAL', 'WARNING', 'UNKNOWN'); not null"`
+	Message              string `gorm:"column:message;    type:text;"`
+	OccurredAt           int64  `gorm:"column:occurred_at;           type:bigint;"`
+	NotificationInterval int64  `gorm:"column:notification_interval; type:bigint;"`
+	MaxCheckAttempts     int64  `gorm:"column:max_check_attempts;    type:bigint;"`
 }
 
 func NewCheckReportRepository(handler SQLHandler) *CheckReportRepository {
-	if err := handler.Transact(func(tx Tx) error {
-		if _, err := tx.Exec(
-			`
-			create table if not exists check_reports (
-				org_id                varchar(16)  not null,
-				host_id               varchar(16)  not null,
-				type                  enum('host') not null,
-				name                  varchar(128) not null,
-				status                enum('OK', 'CRITICAL', 'WARNING', 'UNKNOWN') not null,
-				message               text,
-				occurred_at           bigint,
-				notification_interval bigint,
-				max_check_attempts    bigint,
-				primary key(host_id, name)
-			)
-			`,
-		); err != nil {
-			return fmt.Errorf("create table check_reports: %v", err)
-		}
+	db, err := gorm.Open(handler.Dialect(), handler.Raw())
+	if err != nil {
+		panic(err)
+	}
+	db.LogMode(handler.IsDebugging())
 
-		return nil
-	}); err != nil {
-		panic(fmt.Errorf("transaction: %v", err))
+	if err := db.AutoMigrate(&CheckReport{}).Error; err != nil {
+		panic(fmt.Errorf("auto migrate check_report: %v", err))
 	}
 
 	return &CheckReportRepository{
-		SQLHandler: handler,
+		DB: db,
 	}
 }
 
 func (repo *CheckReportRepository) CheckReport(orgID string) (*domain.CheckReports, error) {
-	reports := make([]domain.CheckReport, 0)
-	if err := repo.Transact(func(tx Tx) error {
-		rows, err := tx.Query("select * from check_reports where org_id=? and status not in('OK')", orgID)
-		if err != nil {
-			return fmt.Errorf("select * from check_reports: %v", err)
-		}
-
-		for rows.Next() {
-			var report domain.CheckReport
-			if err := rows.Scan(
-				&report.OrgID,
-				&report.Source.HostID,
-				&report.Source.Type,
-				&report.Name,
-				&report.Status,
-				&report.Message,
-				&report.OccurredAt,
-				&report.NotificationInterval,
-				&report.MaxCheckAttempts,
-			); err != nil {
-				return fmt.Errorf("scan: %v", err)
-			}
-
-			reports = append(reports, report)
-		}
-
-		return nil
-	}); err != nil {
-		return nil, fmt.Errorf("transaction: %v", err)
+	result := make([]CheckReport, 0)
+	if err := repo.DB.Where(&CheckReport{OrgID: orgID}).Not("status", []string{"OK"}).Find(&result).Error; err != nil {
+		return nil, fmt.Errorf("select * from check_reports: %v", err)
 	}
 
-	return &domain.CheckReports{Reports: reports}, nil
+	out := make([]domain.CheckReport, 0)
+	for _, r := range result {
+		out = append(out, domain.CheckReport{
+			OrgID: r.OrgID,
+			Source: domain.Source{
+				HostID: r.HostID,
+				Type:   r.Type,
+			},
+			Name:                 r.Name,
+			Status:               r.Status,
+			Message:              r.Message,
+			OccurredAt:           r.OccurredAt,
+			NotificationInterval: r.NotificationInterval,
+			MaxCheckAttempts:     r.MaxCheckAttempts,
+		})
+	}
+
+	return &domain.CheckReports{Reports: out}, nil
 }
 
 func (repo *CheckReportRepository) Save(orgID string, reports *domain.CheckReports) (*domain.Success, error) {
-	if err := repo.Transact(func(tx Tx) error {
-		for i := range reports.Reports {
-			if _, err := tx.Exec(
-				`
-				insert into check_reports (
-					org_id,
-					host_id,
-					type,
-					name,
-					status,
-					message,
-					occurred_at,
-					notification_interval,
-					max_check_attempts
-				)
-				values (?, ?, ?, ?, ?, ?, ?, ?, ?)
-				on duplicate key update
-					status = values(status),
-					message = values(message),
-					occurred_at = values(occurred_at),
-					notification_interval = values(notification_interval),
-					max_check_attempts = values(max_check_attempts)
-				`,
-				orgID,
-				reports.Reports[i].Source.HostID,
-				reports.Reports[i].Source.Type,
-				reports.Reports[i].Name,
-				reports.Reports[i].Status,
-				reports.Reports[i].Message,
-				reports.Reports[i].OccurredAt,
-				reports.Reports[i].NotificationInterval,
-				reports.Reports[i].MaxCheckAttempts,
-			); err != nil {
-				return fmt.Errorf("insert into check_reports: %v", err)
+	if err := repo.DB.Transaction(func(tx *gorm.DB) error {
+		for _, r := range reports.Reports {
+			where := CheckReport{
+				OrgID:  orgID,
+				HostID: r.Source.HostID,
+				Type:   r.Source.Type,
+				Name:   r.Name,
+			}
+
+			update := CheckReport{
+				Status:               r.Status,
+				Message:              r.Message,
+				OccurredAt:           r.OccurredAt,
+				NotificationInterval: r.NotificationInterval,
+				MaxCheckAttempts:     r.MaxCheckAttempts,
+			}
+
+			if err := tx.Where(&where).Assign(&update).FirstOrCreate(&CheckReport{}).Error; err != nil {
+				return fmt.Errorf("firts or create: %v", err)
 			}
 		}
 
