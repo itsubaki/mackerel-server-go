@@ -10,7 +10,6 @@ import (
 )
 
 type ServiceMetaRepository struct {
-	SQLHandler
 	DB *gorm.DB
 }
 
@@ -33,8 +32,7 @@ func NewServiceMetaRepository(handler SQLHandler) *ServiceMetaRepository {
 	}
 
 	return &ServiceMetaRepository{
-		SQLHandler: handler,
-		DB:         db,
+		DB: db,
 	}
 }
 

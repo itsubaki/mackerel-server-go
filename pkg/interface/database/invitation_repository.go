@@ -63,14 +63,14 @@ func (repo *InvitationRepository) Exists(orgID, email string) bool {
 }
 
 func (repo *InvitationRepository) Save(orgID string, i *domain.Invitation) (*domain.Invitation, error) {
-	invitation := Invitation{
+	create := Invitation{
 		OrgID:     orgID,
 		EMail:     i.EMail,
 		Authority: i.Authority,
 		ExpiresAt: time.Now().Unix() + 604800,
 	}
 
-	if err := repo.DB.Create(&invitation).Error; err != nil {
+	if err := repo.DB.Create(&create).Error; err != nil {
 		return nil, fmt.Errorf("insert into invitations: %v", err)
 	}
 
