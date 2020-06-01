@@ -5,185 +5,145 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/jinzhu/gorm"
+
 	"github.com/itsubaki/mackerel-server-go/pkg/domain"
 )
 
 type HostRepository struct {
 	SQLHandler
+	DB *gorm.DB
+}
+
+type Host struct {
+	OrgID            string `gorm:"column:org_id;            type:varchar(16);  not null;"`
+	ID               string `gorm:"column:id;                type:varchar(16);  not null; primary key"`
+	Name             string `gorm:"column:name;              type:varchar(128);  not null;"`
+	Status           string `gorm:"column:status;            type:enum('working', 'standby', 'maintenance', 'poweroff');  not null;"`
+	Memo             string `gorm:"column:memo;              type:varchar(128);  not null; default:''"`
+	DisplayName      string `gorm:"column:display_name;      type:varchar(128);"`
+	CustomIdentifier string `gorm:"column:custom_identifier; type:varchar(128);"`
+	CreatedAt        int64  `gorm:"column:created_at;        type:bigint;"`
+	RetiredAt        int64  `gorm:"column:retired_at;        type:bigint;"`
+	IsRetired        bool   `gorm:"column:is_retired;        type:boolean;"`
+	Roles            string `gorm:"column:roles;             type:text;"`
+	RoleFullNames    string `gorm:"column:role_fullnames;    type:text;"`
+	Interfaces       string `gorm:"column:interfaces;        type:text;"`
+	Checks           string `gorm:"column:checks;            type:text;"`
+	Meta             string `gorm:"column:meta;              type:text;"`
 }
 
 func NewHostRepository(handler SQLHandler) *HostRepository {
-	if err := handler.Transact(func(tx Tx) error {
-		if _, err := tx.Exec(
-			`
-			create table if not exists hosts (
-				org_id            varchar(16)  not null,
-				id                varchar(16)  not null primary key,
-				name              varchar(128) not null,
-				status            enum('working', 'standby', 'maintenance', 'poweroff') not null,
-				memo              varchar(128) not null default '',
-				display_name      varchar(128),
-				custom_identifier varchar(128),
-				created_at        bigint,
-				retired_at        bigint,
-				is_retired        boolean,
-				roles             text,
-				role_fullnames    text,
-				interfaces        text,
-				checks            text,
-				meta              text
-			)
-			`,
-		); err != nil {
-			return fmt.Errorf("create table hosts: %v", err)
-		}
+	db, err := gorm.Open(handler.Dialect(), handler.Raw())
+	if err != nil {
+		panic(err)
+	}
+	db.LogMode(handler.IsDebugging())
 
-		return nil
-	}); err != nil {
-		panic(fmt.Errorf("transaction: %v", err))
+	if err := db.AutoMigrate(&Host{}).Error; err != nil {
+		panic(fmt.Errorf("auto migrate host: %v", err))
 	}
 
 	return &HostRepository{
 		SQLHandler: handler,
+		DB:         db,
 	}
 }
 
 func (repo *HostRepository) ActiveList(orgID string) (*domain.Hosts, error) {
-	hosts := make([]domain.Host, 0)
-
-	if err := repo.Transact(func(tx Tx) error {
-		rows, err := tx.Query("select * from hosts where org_id=? and is_retired=0", orgID)
-		if err != nil {
-			return fmt.Errorf("select * from hosts: %v", err)
-		}
-		defer rows.Close()
-
-		for rows.Next() {
-			var host domain.Host
-			var roles, roleFullnames, interfaces, checks, meta string
-			if err := rows.Scan(
-				&host.OrgID,
-				&host.ID,
-				&host.Name,
-				&host.Status,
-				&host.Memo,
-				&host.DisplayName,
-				&host.CustomIdentifier,
-				&host.CreatedAt,
-				&host.RetiredAt,
-				&host.IsRetired,
-				&roles,
-				&roleFullnames,
-				&interfaces,
-				&checks,
-				&meta,
-			); err != nil {
-				return fmt.Errorf("scan: %v", err)
-			}
-
-			if err := json.Unmarshal([]byte(roles), &host.Roles); err != nil {
-				return fmt.Errorf("unmarshal host.Roles: %v", err)
-			}
-
-			if err := json.Unmarshal([]byte(roleFullnames), &host.RoleFullNames); err != nil {
-				return fmt.Errorf("unmarshal host.RoleFullNames: %v", err)
-			}
-
-			if err := json.Unmarshal([]byte(interfaces), &host.Interfaces); err != nil {
-				return fmt.Errorf("unmarshal host.Interfaces: %v", err)
-			}
-
-			if err := json.Unmarshal([]byte(checks), &host.Checks); err != nil {
-				return fmt.Errorf("unmarshal host.Checks: %v", err)
-			}
-
-			if err := json.Unmarshal([]byte(meta), &host.Meta); err != nil {
-				return fmt.Errorf("unmarshal host.Meta: %v", err)
-			}
-
-			hosts = append(hosts, host)
-		}
-
-		return nil
-	}); err != nil {
-		return nil, fmt.Errorf("transaction: %v", err)
+	result := make([]Host, 0)
+	if err := repo.DB.Where(&Host{OrgID: orgID, IsRetired: false}).Find(&result).Error; err != nil {
+		return nil, fmt.Errorf("select * from hosts: %v", err)
 	}
 
-	return &domain.Hosts{Hosts: hosts}, nil
+	out := make([]domain.Host, 0)
+	for _, r := range result {
+		host := domain.Host{
+			OrgID:            r.OrgID,
+			ID:               r.ID,
+			Name:             r.Name,
+			Status:           r.Status,
+			Memo:             r.Memo,
+			DisplayName:      r.DisplayName,
+			CustomIdentifier: r.CustomIdentifier,
+			CreatedAt:        r.CreatedAt,
+			RetiredAt:        r.RetiredAt,
+			IsRetired:        r.IsRetired,
+		}
+
+		if err := json.Unmarshal([]byte(r.Roles), &host.Roles); err != nil {
+			return nil, fmt.Errorf("unmarshal host.Roles: %v", err)
+		}
+
+		if err := json.Unmarshal([]byte(r.RoleFullNames), &host.RoleFullNames); err != nil {
+			return nil, fmt.Errorf("unmarshal host.RoleFullNames: %v", err)
+		}
+
+		if err := json.Unmarshal([]byte(r.Interfaces), &host.Interfaces); err != nil {
+			return nil, fmt.Errorf("unmarshal host.Interfaces: %v", err)
+		}
+
+		if err := json.Unmarshal([]byte(r.Checks), &host.Checks); err != nil {
+			return nil, fmt.Errorf("unmarshal host.Checks: %v", err)
+		}
+
+		if err := json.Unmarshal([]byte(r.Meta), &host.Meta); err != nil {
+			return nil, fmt.Errorf("unmarshal host.Meta: %v", err)
+		}
+
+		out = append(out, host)
+	}
+
+	return &domain.Hosts{Hosts: out}, nil
 }
 
-// mysql> explain select * from hosts;
-// +----+-------------+-------+------------+------+---------------+------+---------+------+------+----------+-------+
-// | id | select_type | table | partitions | type | possible_keys | key  | key_len | ref  | rows | filtered | Extra |
-// +----+-------------+-------+------------+------+---------------+------+---------+------+------+----------+-------+
-// |  1 | SIMPLE      | hosts | NULL       | ALL  | NULL          | NULL | NULL    | NULL |    4 |   100.00 | NULL  |
-// +----+-------------+-------+------------+------+---------------+------+---------+------+------+----------+-------+
-// 1 row in set, 1 warning (0.01 sec)
 func (repo *HostRepository) List(orgID string) (*domain.Hosts, error) {
-	hosts := make([]domain.Host, 0)
-
-	if err := repo.Transact(func(tx Tx) error {
-		rows, err := tx.Query("select * from hosts where org_id=?", orgID)
-		if err != nil {
-			return fmt.Errorf("select * from hosts: %v", err)
-		}
-		defer rows.Close()
-
-		for rows.Next() {
-			var host domain.Host
-			var roles, roleFullnames, interfaces, checks, meta string
-			if err := rows.Scan(
-				&host.OrgID,
-				&host.ID,
-				&host.Name,
-				&host.Status,
-				&host.Memo,
-				&host.DisplayName,
-				&host.CustomIdentifier,
-				&host.CreatedAt,
-				&host.RetiredAt,
-				&host.IsRetired,
-				&roles,
-				&roleFullnames,
-				&interfaces,
-				&checks,
-				&meta,
-			); err != nil {
-				return fmt.Errorf("scan: %v", err)
-			}
-
-			if err := json.Unmarshal([]byte(roles), &host.Roles); err != nil {
-				return fmt.Errorf("unmarshal host.Roles: %v", err)
-			}
-
-			if err := json.Unmarshal([]byte(roleFullnames), &host.RoleFullNames); err != nil {
-				return fmt.Errorf("unmarshal host.RoleFullNames: %v", err)
-			}
-
-			if err := json.Unmarshal([]byte(interfaces), &host.Interfaces); err != nil {
-				return fmt.Errorf("unmarshal host.Interfaces: %v", err)
-			}
-
-			if err := json.Unmarshal([]byte(checks), &host.Checks); err != nil {
-				return fmt.Errorf("unmarshal host.Checks: %v", err)
-			}
-
-			if err := json.Unmarshal([]byte(meta), &host.Meta); err != nil {
-				return fmt.Errorf("unmarshal host.Meta: %v", err)
-			}
-
-			hosts = append(hosts, host)
-		}
-
-		return nil
-	}); err != nil {
-		return nil, fmt.Errorf("transaction: %v", err)
+	result := make([]Host, 0)
+	if err := repo.DB.Where(&Host{OrgID: orgID}).Find(&result).Error; err != nil {
+		return nil, fmt.Errorf("select * from hosts: %v", err)
 	}
 
-	return &domain.Hosts{Hosts: hosts}, nil
+	out := make([]domain.Host, 0)
+	for _, r := range result {
+		host := domain.Host{
+			OrgID:            r.OrgID,
+			ID:               r.ID,
+			Name:             r.Name,
+			Status:           r.Status,
+			Memo:             r.Memo,
+			DisplayName:      r.DisplayName,
+			CustomIdentifier: r.CustomIdentifier,
+			CreatedAt:        r.CreatedAt,
+			RetiredAt:        r.RetiredAt,
+			IsRetired:        r.IsRetired,
+		}
+
+		if err := json.Unmarshal([]byte(r.Roles), &host.Roles); err != nil {
+			return nil, fmt.Errorf("unmarshal host.Roles: %v", err)
+		}
+
+		if err := json.Unmarshal([]byte(r.RoleFullNames), &host.RoleFullNames); err != nil {
+			return nil, fmt.Errorf("unmarshal host.RoleFullNames: %v", err)
+		}
+
+		if err := json.Unmarshal([]byte(r.Interfaces), &host.Interfaces); err != nil {
+			return nil, fmt.Errorf("unmarshal host.Interfaces: %v", err)
+		}
+
+		if err := json.Unmarshal([]byte(r.Checks), &host.Checks); err != nil {
+			return nil, fmt.Errorf("unmarshal host.Checks: %v", err)
+		}
+
+		if err := json.Unmarshal([]byte(r.Meta), &host.Meta); err != nil {
+			return nil, fmt.Errorf("unmarshal host.Meta: %v", err)
+		}
+
+		out = append(out, host)
+	}
+
+	return &domain.Hosts{Hosts: out}, nil
 }
 
-// insert into hosts values(${name}, ${meta}, ${interface}, ${checks}, ${display_name}, ${custom_identifier}, ${created_at}, ${id}, ${status}, ${memo}, ${roles}, ${is_retired}, ${retired_at} )
 func (repo *HostRepository) Save(orgID string, host *domain.Host) (*domain.HostID, error) {
 	if err := repo.Transact(func(tx Tx) error {
 		roles, err := json.Marshal(host.Roles)
@@ -271,123 +231,74 @@ func (repo *HostRepository) Save(orgID string, host *domain.Host) (*domain.HostI
 	return &domain.HostID{ID: host.ID}, nil
 }
 
-// mysql> explain select * from hosts where id='de3d16e34dc';
-// +----+-------------+-------+------------+-------+---------------+---------+---------+-------+------+----------+-------+
-// | id | select_type | table | partitions | type  | possible_keys | key     | key_len | ref   | rows | filtered | Extra |
-// +----+-------------+-------+------------+-------+---------------+---------+---------+-------+------+----------+-------+
-// |  1 | SIMPLE      | hosts | NULL       | const | PRIMARY       | PRIMARY | 66      | const |    1 |   100.00 | NULL  |
-// +----+-------------+-------+------------+-------+---------------+---------+---------+-------+------+----------+-------+
-// 1 row in set, 1 warning (0.01 sec)
 func (repo *HostRepository) Host(orgID, hostID string) (*domain.Host, error) {
-	var host domain.Host
+	result := Host{}
+	if err := repo.DB.Where(&Host{OrgID: orgID, ID: hostID}).First(&result).Error; err != nil {
+		return nil, fmt.Errorf("select * from hosts: %v", err)
+	}
 
-	if err := repo.Transact(func(tx Tx) error {
-		row := tx.QueryRow("select * from hosts where org_id=? and id=?", orgID, hostID)
-		var roles, roleFullnames, interfaces, checks, meta string
-		if err := row.Scan(
-			&host.OrgID,
-			&host.ID,
-			&host.Name,
-			&host.Status,
-			&host.Memo,
-			&host.DisplayName,
-			&host.CustomIdentifier,
-			&host.CreatedAt,
-			&host.RetiredAt,
-			&host.IsRetired,
-			&roles,
-			&roleFullnames,
-			&interfaces,
-			&checks,
-			&meta,
-		); err != nil {
-			return fmt.Errorf("select * from hosts: %v", err)
-		}
+	host := domain.Host{
+		OrgID:            result.OrgID,
+		ID:               result.ID,
+		Name:             result.Name,
+		Status:           result.Status,
+		Memo:             result.Memo,
+		DisplayName:      result.DisplayName,
+		CustomIdentifier: result.CustomIdentifier,
+		CreatedAt:        result.CreatedAt,
+		RetiredAt:        result.RetiredAt,
+		IsRetired:        result.IsRetired,
+	}
 
-		if err := json.Unmarshal([]byte(roles), &host.Roles); err != nil {
-			return fmt.Errorf("unmarshal host.Roles: %v", err)
-		}
+	if err := json.Unmarshal([]byte(result.Roles), &host.Roles); err != nil {
+		return nil, fmt.Errorf("unmarshal host.Roles: %v", err)
+	}
 
-		if err := json.Unmarshal([]byte(roleFullnames), &host.RoleFullNames); err != nil {
-			return fmt.Errorf("unmarshal host.RoleFullNames: %v", err)
-		}
+	if err := json.Unmarshal([]byte(result.RoleFullNames), &host.RoleFullNames); err != nil {
+		return nil, fmt.Errorf("unmarshal host.RoleFullNames: %v", err)
+	}
 
-		if err := json.Unmarshal([]byte(interfaces), &host.Interfaces); err != nil {
-			return fmt.Errorf("unmarshal host.Interfaces: %v", err)
-		}
+	if err := json.Unmarshal([]byte(result.Interfaces), &host.Interfaces); err != nil {
+		return nil, fmt.Errorf("unmarshal host.Interfaces: %v", err)
+	}
 
-		if err := json.Unmarshal([]byte(checks), &host.Checks); err != nil {
-			return fmt.Errorf("unmarshal host.Checks: %v", err)
-		}
+	if err := json.Unmarshal([]byte(result.Checks), &host.Checks); err != nil {
+		return nil, fmt.Errorf("unmarshal host.Checks: %v", err)
+	}
 
-		if err := json.Unmarshal([]byte(meta), &host.Meta); err != nil {
-			return fmt.Errorf("unmarshal host.Meta: %v", err)
-		}
-
-		return nil
-	}); err != nil {
-		return nil, fmt.Errorf("transaction: %v", err)
+	if err := json.Unmarshal([]byte(result.Meta), &host.Meta); err != nil {
+		return nil, fmt.Errorf("unmarshal host.Meta: %v", err)
 	}
 
 	return &host, nil
 }
 
-// mysql> explain select * from hosts where id='de3d16e34dc' limit 1;
-// +----+-------------+-------+------------+-------+---------------+---------+---------+-------+------+----------+-------+
-// | id | select_type | table | partitions | type  | possible_keys | key     | key_len | ref   | rows | filtered | Extra |
-// +----+-------------+-------+------------+-------+---------------+---------+---------+-------+------+----------+-------+
-// |  1 | SIMPLE      | hosts | NULL       | const | PRIMARY       | PRIMARY | 66      | const |    1 |   100.00 | NULL  |
-// +----+-------------+-------+------------+-------+---------------+---------+---------+-------+------+----------+-------+
-// 1 row in set, 1 warning (0.00 sec)
 func (repo *HostRepository) Exists(orgID, hostID string) bool {
-	rows, err := repo.Query("select 1 from hosts where org_id=? and id=? limit 1", orgID, hostID)
-	if err != nil {
-		panic(err)
-	}
-	defer rows.Close()
-
-	if rows.Next() {
-		return true
+	if repo.DB.Where(&Host{OrgID: orgID, ID: hostID}).First(&Host{}).RecordNotFound() {
+		return false
 	}
 
-	return false
+	return true
 }
 
-// update hosts set status=${status} where id=${hostID}
 func (repo *HostRepository) Status(orgID, hostID, status string) (*domain.Success, error) {
-	if err := repo.Transact(func(tx Tx) error {
-		if _, err := tx.Exec("update hosts set status=? where org_id=? and id=?", status, orgID, hostID); err != nil {
-			return fmt.Errorf("update hosts: %v", err)
-		}
-
-		return nil
-	}); err != nil {
-		return &domain.Success{Success: false}, fmt.Errorf("transaction: %v", err)
+	if err := repo.DB.Where(&Host{OrgID: orgID, ID: hostID}).Assign(&Host{Status: status}).FirstOrCreate(&Host{}).Error; err != nil {
+		return &domain.Success{Success: false}, fmt.Errorf("update hosts: %v", err)
 	}
 
 	return &domain.Success{Success: true}, nil
 }
 
-// update hosts set is_retired=true, retired_at=time.Now().Unix() where id=${hostID}
 func (repo *HostRepository) Retire(orgID, hostID string, retire *domain.HostRetire) (*domain.Success, error) {
-	if err := repo.Transact(func(tx Tx) error {
-		if _, err := tx.Exec("update hosts set is_retired=?, retired_at=? where org_id=? and id=?", true, time.Now().Unix(), orgID, hostID); err != nil {
-			return fmt.Errorf("update hosts: %v", err)
-		}
-
-		return nil
-	}); err != nil {
-		return &domain.Success{Success: false}, fmt.Errorf("transaction: %v", err)
+	if err := repo.DB.Where(&Host{OrgID: orgID, ID: hostID}).Assign(&Host{IsRetired: true, RetiredAt: time.Now().Unix()}).FirstOrCreate(&Host{}).Error; err != nil {
+		return &domain.Success{Success: false}, fmt.Errorf("update hosts: %v", err)
 	}
 
 	return &domain.Success{Success: true}, nil
 }
 
-// update hosts set roles=${roles} where id=${hostID}
 func (repo *HostRepository) SaveRoleFullNames(orgID, hostID string, names *domain.RoleFullNames) (*domain.Success, error) {
-	roles := names.Roles()
-
-	mroles, err := json.Marshal(roles)
+	roles, err := json.Marshal(names.Roles())
 	if err != nil {
 		return &domain.Success{Success: false}, fmt.Errorf("marshal: %v", err)
 	}
@@ -397,19 +308,7 @@ func (repo *HostRepository) SaveRoleFullNames(orgID, hostID string, names *domai
 		return &domain.Success{Success: false}, fmt.Errorf("marshal: %v", err)
 	}
 
-	if err := repo.Transact(func(tx Tx) error {
-		if _, err := tx.Exec(
-			"update hosts set role_fullnames=?, roles=? where org_id=? and id=?",
-			string(roleFullnames),
-			string(mroles),
-			orgID,
-			hostID,
-		); err != nil {
-			return fmt.Errorf("update hosts: %v", err)
-		}
-
-		return nil
-	}); err != nil {
+	if err := repo.DB.Where(&Host{OrgID: orgID, ID: hostID}).Assign(&Host{RoleFullNames: string(roleFullnames), Roles: string(roles)}).FirstOrCreate(&Host{}).Error; err != nil {
 		return &domain.Success{Success: false}, fmt.Errorf("transaction: %v", err)
 	}
 

@@ -134,7 +134,7 @@ func (repo *GraphRepository) Update(orgID string, annotation *domain.GraphAnnota
 		Roles:       strings.Join(annotation.Roles, ","),
 	}
 
-	if err := repo.DB.Where(GraphAnnotation{OrgID: orgID, ID: annotation.ID}).Assign(&update).FirstOrCreate(&GraphAnnotation{}).Error; err != nil {
+	if err := repo.DB.Where(&GraphAnnotation{OrgID: orgID, ID: annotation.ID}).Assign(&update).FirstOrCreate(&GraphAnnotation{}).Error; err != nil {
 		return nil, fmt.Errorf("update graph_annotations: %v", err)
 	}
 
