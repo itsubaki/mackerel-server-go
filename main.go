@@ -26,6 +26,10 @@ func main() {
 	}
 	log.Printf("db connected")
 
+	h.SetMaxIdleConns(10)
+	h.SetMaxOpenConns(10)
+	h.SetConnMaxLifetime(10 * time.Minute)
+
 	s := &http.Server{
 		Addr:    c.Port,
 		Handler: infrastructure.Router(h),

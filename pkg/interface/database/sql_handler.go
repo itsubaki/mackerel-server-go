@@ -1,14 +1,19 @@
 package database
 
+import "time"
+
 type SQLHandler interface {
 	Transact(txFunc func(tx Tx) error) error
 	Query(query string, args ...interface{}) (Rows, error)
 	QueryRow(query string, args ...interface{}) Row
 	Close() error
 	Begin() (Tx, error)
+	SetMaxIdleConns(n int)
+	SetMaxOpenConns(n int)
+	SetConnMaxLifetime(d time.Duration)
 	Raw() interface{}
-	IsDebugging() bool
 	Dialect() string
+	IsDebugging() bool
 }
 
 type Tx interface {

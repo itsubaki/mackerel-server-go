@@ -73,6 +73,18 @@ func Open(driver, dsn string) (database.SQLHandler, error) {
 	return h, nil
 }
 
+func (h *SQLHandler) SetMaxIdleConns(n int) {
+	h.DB.SetMaxIdleConns(n)
+}
+
+func (h *SQLHandler) SetMaxOpenConns(n int) {
+	h.DB.SetMaxOpenConns(n)
+}
+
+func (h *SQLHandler) SetConnMaxLifetime(d time.Duration) {
+	h.DB.SetConnMaxLifetime(d)
+}
+
 func (h *SQLHandler) Ping() error {
 	start := time.Now()
 	for {
