@@ -5,13 +5,65 @@ import (
 	"time"
 
 	"github.com/itsubaki/mackerel-server-go/pkg/domain"
+	"github.com/jinzhu/gorm"
 )
 
 type AlertRepository struct {
 	SQLHandler
+	DB *gorm.DB
+}
+
+type Alert struct {
+	OrgID     string  `gorm:"column:org_id;     type:varchar(16); not null"`
+	ID        string  `gorm:"column:id;         type:varchar(16); not null;"`
+	Status    string  `gorm:"column:status;     type:enum('OK', 'CRITICAL', 'WARNING', 'UNKNOWN'); not null"`
+	MonitorID string  `gorm:"column:monitor_id; type:varchar(16); not null;"`
+	Type      string  `gorm:"column:type;       type:enum('connectivity', 'host', 'service', 'external', 'check', 'expression'); not null;"`
+	HostID    string  `gorm:"column:host_id;    type:varchar(16);"`
+	Value     float64 `gorm:"column:value;      type:double;"`
+	Message   string  `gorm:"column:message;    type:text;"`
+	Reason    string  `gorm:"column:reason;     type:text;"`
+	OpenedAt  int64   `gorm:"column:opened_at;  type:bigint;"`
+	ClosedAt  int64   `gorm:"column:closed_at;  type:bigint;"`
+}
+
+func (a Alert) Domain() domain.Alert {
+	return domain.Alert{
+		OrgID:     a.OrgID,
+		ID:        a.ID,
+		Status:    a.Status,
+		MonitorID: a.MonitorID,
+		Type:      a.Type,
+		HostID:    a.HostID,
+		Value:     a.Value,
+		Message:   a.Message,
+		Reason:    a.Reason,
+		OpenedAt:  a.OpenedAt,
+		ClosedAt:  a.ClosedAt,
+	}
+}
+
+type AlertHistory struct {
+	OrgID     string `gorm:"column:org_id;     type:varchar(16); not null"`
+	AlertID   string `gorm:"column:alert_id;   type:varchar(16); not null;"`
+	Status    string `gorm:"column:status;     type:enum('OK', 'CRITICAL', 'WARNING', 'UNKNOWN'); not null"`
+	MonitorID string `gorm:"column:monitor_id; type:varchar(16); not null;"`
+	HostID    string `gorm:"column:host_id;    type:varchar(16);"`
+	Time      int64  `gorm:"column:time;       type:bigint; not null"`
+	Message   string `gorm:"column:message;    type:text;"`
+}
+
+func (a AlertHistory) TableName() string {
+	return "alert_history"
 }
 
 func NewAlertRepository(handler SQLHandler) *AlertRepository {
+	db, err := gorm.Open(handler.Dialect(), handler.Raw())
+	if err != nil {
+		panic(err)
+	}
+	db.LogMode(handler.IsDebugging())
+
 	if err := handler.Transact(func(tx Tx) error {
 		if _, err := tx.Exec(
 			`
@@ -58,21 +110,16 @@ func NewAlertRepository(handler SQLHandler) *AlertRepository {
 
 	return &AlertRepository{
 		SQLHandler: handler,
+		DB:         db,
 	}
 }
 
 func (repo *AlertRepository) Exists(orgID, alertID string) bool {
-	rows, err := repo.Query("select 1 from alerts where org_id=? and id=?", orgID, alertID)
-	if err != nil {
-		panic(err)
-	}
-	defer rows.Close()
-
-	if rows.Next() {
-		return true
+	if repo.DB.Where(&Alert{OrgID: orgID, ID: alertID}).First(&Alert{}).RecordNotFound() {
+		return false
 	}
 
-	return false
+	return true
 }
 
 func (repo *AlertRepository) Save(orgID string, alert *domain.Alert) (*domain.Alert, error) {
@@ -238,39 +285,14 @@ func (repo *AlertRepository) List(orgID string, withClosed bool, nextID string, 
 		status = "OK"
 	}
 
-	rows, err := repo.Query(
-		`
-		select * from alerts where org_id=? and status in ('CRITICAL', 'WARNING', 'UNKNOWN', ?) order by opened_at desc limit ?
-		`,
-		orgID,
-		status,
-		limit+1,
-	)
-	if err != nil {
+	result := make([]Alert, 0)
+	if err := repo.DB.Where(&Alert{OrgID: orgID}).Where("status IN ('CRITICAL', 'WARNING', 'UNKNOWN', ?)", status).Order("opened_at desc").Limit(limit).Find(&result).Error; err != nil {
 		return nil, fmt.Errorf("select * from alerts: %v", err)
 	}
-	defer rows.Close()
 
 	alerts := make([]domain.Alert, 0)
-	for rows.Next() {
-		var alert domain.Alert
-		if err := rows.Scan(
-			&alert.OrgID,
-			&alert.ID,
-			&alert.Status,
-			&alert.MonitorID,
-			&alert.Type,
-			&alert.HostID,
-			&alert.Value,
-			&alert.Message,
-			&alert.Reason,
-			&alert.OpenedAt,
-			&alert.ClosedAt,
-		); err != nil {
-			return nil, fmt.Errorf("scan: %v", err)
-		}
-
-		alerts = append(alerts, alert)
+	for _, r := range result {
+		alerts = append(alerts, r.Domain())
 	}
 
 	if len(alerts) > limit {
@@ -285,62 +307,40 @@ func (repo *AlertRepository) List(orgID string, withClosed bool, nextID string, 
 
 func (repo *AlertRepository) Close(orgID, alertID, reason string) (*domain.Alert, error) {
 	var alert domain.Alert
-	if err := repo.Transact(func(tx Tx) error {
-		if _, err := tx.Exec(
-			`
-			update alerts set status='OK', reason=?, closed_at=? where org_id=? and id=?
-			`,
-			reason,
-			time.Now().Unix(),
-			orgID,
-			alertID,
-		); err != nil {
+	if err := repo.DB.Transaction(func(tx *gorm.DB) error {
+		update := Alert{
+			Status:   "OK",
+			Reason:   reason,
+			ClosedAt: time.Now().Unix(),
+		}
+
+		if err := tx.Model(&Alert{}).Where(&Alert{OrgID: orgID, ID: alertID}).Update(&update).Error; err != nil {
 			return fmt.Errorf("update alerts: %v", err)
 		}
 
-		row := tx.QueryRow("select * from alerts where org_id=? and id=?", orgID, alertID)
-		if err := row.Scan(
-			&alert.OrgID,
-			&alert.ID,
-			&alert.Status,
-			&alert.MonitorID,
-			&alert.Type,
-			&alert.HostID,
-			&alert.Value,
-			&alert.Message,
-			&alert.Reason,
-			&alert.OpenedAt,
-			&alert.ClosedAt,
-		); err != nil {
-			return fmt.Errorf("scan: %v", err)
+		result := Alert{}
+		if err := tx.Where(&Alert{OrgID: orgID, ID: alertID}).First(&result).Error; err != nil {
+			return fmt.Errorf("select * from alerts: %v", err)
 		}
 
-		if _, err := tx.Exec(
-			`
-				insert into alert_history (
-					org_id,
-					alert_id,
-					status,
-					monitor_id,
-					host_id,
-					time,
-					message
-				) values (?, ?, ?, ?, ?, ?, ?)
-				`,
-			orgID,
-			alertID,
-			"OK",
-			alert.MonitorID,
-			alert.HostID,
-			alert.ClosedAt,
-			alert.Message,
-		); err != nil {
+		create := AlertHistory{
+			OrgID:     result.OrgID,
+			AlertID:   result.ID,
+			Status:    "OK",
+			MonitorID: result.MonitorID,
+			Time:      result.ClosedAt,
+			Message:   result.Message,
+		}
+
+		if err := tx.Create(&create).Error; err != nil {
 			return fmt.Errorf("insert into alert_history: %v", err)
 		}
 
+		alert = result.Domain()
+
 		return nil
 	}); err != nil {
-		return nil, fmt.Errorf("transaction: %v", err)
+		return nil, fmt.Errorf("insert into alert_history: %v", err)
 	}
 
 	return &alert, nil

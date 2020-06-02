@@ -62,7 +62,7 @@ func (repo *ServiceMetricRepository) Exists(orgID, serviceName, metricName strin
 
 func (repo *ServiceMetricRepository) Names(orgID, serviceName string) (*domain.ServiceMetricValueNames, error) {
 	result := make([]ServiceMetricValue, 0)
-	if err := repo.DB.Table("service_metric_values").Where(&ServiceMetricValue{OrgID: orgID, ServiceName: serviceName}).Select("distinct(name)").Find(&result).Error; err != nil {
+	if err := repo.DB.Model(&ServiceMetricValue{}).Where(&ServiceMetricValue{OrgID: orgID, ServiceName: serviceName}).Select("distinct(name)").Find(&result).Error; err != nil {
 		return nil, fmt.Errorf("select distinct name from service_metric_values: %v", err)
 	}
 

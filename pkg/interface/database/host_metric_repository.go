@@ -77,7 +77,7 @@ func (repo *HostMetricRepository) Exists(orgID, hostID, name string) bool {
 
 func (repo *HostMetricRepository) Names(orgID, hostID string) (*domain.MetricNames, error) {
 	result := make([]HostMetricValue, 0)
-	if err := repo.DB.Table("host_metric_values").Where(&HostMetricValue{OrgID: orgID, HostID: hostID}).Select("distinct(name)").Find(&result).Error; err != nil {
+	if err := repo.DB.Model(&HostMetricValue{}).Where(&HostMetricValue{OrgID: orgID, HostID: hostID}).Select("distinct(name)").Find(&result).Error; err != nil {
 		return nil, fmt.Errorf("select distinct name from host_metric_values: %v", err)
 	}
 
