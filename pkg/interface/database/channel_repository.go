@@ -78,62 +78,6 @@ func NewChannelRepository(handler SQLHandler) *ChannelRepository {
 	}
 }
 
-func (repo *ChannelRepository) mentions(tx *gorm.DB, orgID, channelID string) (map[string]string, error) {
-	result := make([]ChannelMention, 0)
-	if err := tx.Where(&ChannelMention{OrgID: orgID, ChannelID: channelID}).Find(&result).Error; err != nil {
-		return nil, fmt.Errorf("select * from channel_mentions: %v", err)
-	}
-
-	mentions := make(map[string]string)
-	for _, r := range result {
-		mentions[r.Status] = r.Message
-	}
-
-	return mentions, nil
-}
-
-func (repo *ChannelRepository) events(tx *gorm.DB, orgID, channelID string) ([]string, error) {
-	result := make([]ChannelEvent, 0)
-	if err := tx.Where(&ChannelEvent{OrgID: orgID, ChannelID: channelID}).Find(&result).Error; err != nil {
-		return nil, fmt.Errorf("select * from channel_events: %v", err)
-	}
-
-	events := make([]string, 0)
-	for _, r := range result {
-		events = append(events, r.Event)
-	}
-
-	return events, nil
-}
-
-func (repo *ChannelRepository) emails(tx *gorm.DB, orgID, channelID string) ([]string, error) {
-	result := make([]ChannelEmail, 0)
-	if err := tx.Where(&ChannelEmail{OrgID: orgID, ChannelID: channelID}).Find(&result).Error; err != nil {
-		return nil, fmt.Errorf("select * from channel_emails: %v", err)
-	}
-
-	emails := make([]string, 0)
-	for _, r := range result {
-		emails = append(emails, r.EMail)
-	}
-
-	return emails, nil
-}
-
-func (repo *ChannelRepository) userIDs(tx *gorm.DB, orgID, channelID string) ([]string, error) {
-	result := make([]ChannelUserID, 0)
-	if err := tx.Where(&ChannelUserID{OrgID: orgID, ChannelID: channelID}).Find(&result).Error; err != nil {
-		return nil, fmt.Errorf("select * from channel_user_ids: %v", err)
-	}
-
-	userIDs := make([]string, 0)
-	for _, r := range result {
-		userIDs = append(userIDs, r.UserID)
-	}
-
-	return userIDs, nil
-}
-
 func (repo *ChannelRepository) List(orgID string) (*domain.Channels, error) {
 	channels := make([]domain.Channel, 0)
 	if err := repo.DB.Transaction(func(tx *gorm.DB) error {
@@ -311,4 +255,60 @@ func (repo *ChannelRepository) Delete(orgID, channelID string) (interface{}, err
 	}
 
 	return channel.Cast(), nil
+}
+
+func (repo *ChannelRepository) mentions(tx *gorm.DB, orgID, channelID string) (map[string]string, error) {
+	result := make([]ChannelMention, 0)
+	if err := tx.Where(&ChannelMention{OrgID: orgID, ChannelID: channelID}).Find(&result).Error; err != nil {
+		return nil, fmt.Errorf("select * from channel_mentions: %v", err)
+	}
+
+	mentions := make(map[string]string)
+	for _, r := range result {
+		mentions[r.Status] = r.Message
+	}
+
+	return mentions, nil
+}
+
+func (repo *ChannelRepository) events(tx *gorm.DB, orgID, channelID string) ([]string, error) {
+	result := make([]ChannelEvent, 0)
+	if err := tx.Where(&ChannelEvent{OrgID: orgID, ChannelID: channelID}).Find(&result).Error; err != nil {
+		return nil, fmt.Errorf("select * from channel_events: %v", err)
+	}
+
+	events := make([]string, 0)
+	for _, r := range result {
+		events = append(events, r.Event)
+	}
+
+	return events, nil
+}
+
+func (repo *ChannelRepository) emails(tx *gorm.DB, orgID, channelID string) ([]string, error) {
+	result := make([]ChannelEmail, 0)
+	if err := tx.Where(&ChannelEmail{OrgID: orgID, ChannelID: channelID}).Find(&result).Error; err != nil {
+		return nil, fmt.Errorf("select * from channel_emails: %v", err)
+	}
+
+	emails := make([]string, 0)
+	for _, r := range result {
+		emails = append(emails, r.EMail)
+	}
+
+	return emails, nil
+}
+
+func (repo *ChannelRepository) userIDs(tx *gorm.DB, orgID, channelID string) ([]string, error) {
+	result := make([]ChannelUserID, 0)
+	if err := tx.Where(&ChannelUserID{OrgID: orgID, ChannelID: channelID}).Find(&result).Error; err != nil {
+		return nil, fmt.Errorf("select * from channel_user_ids: %v", err)
+	}
+
+	userIDs := make([]string, 0)
+	for _, r := range result {
+		userIDs = append(userIDs, r.UserID)
+	}
+
+	return userIDs, nil
 }
