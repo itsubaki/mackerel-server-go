@@ -26,6 +26,7 @@ func NewInvitationRepository(handler SQLHandler) *InvitationRepository {
 		panic(err)
 	}
 	db.LogMode(handler.IsDebugging())
+
 	if err := db.AutoMigrate(&Invitation{}).Error; err != nil {
 		panic(fmt.Errorf("auto migrate invitation: %v", err))
 	}

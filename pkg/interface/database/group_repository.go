@@ -3,232 +3,181 @@ package database
 import (
 	"fmt"
 
+	"github.com/jinzhu/gorm"
+
 	"github.com/itsubaki/mackerel-server-go/pkg/domain"
 )
 
 type NotificationGroupRepository struct {
-	SQLHandler
+	DB *gorm.DB
+}
+
+type NotificationGroup struct {
+	OrgID             string `gorm:"column:org_id; type:varchar(16);  not null;"`
+	ID                string `gorm:"column:id;     type:varchar(16);  not null; primary_key"`
+	Name              string `gorm:"column:name;   type:varchar(128); not null;"`
+	NotificationLevel string `gorm:"column:level;  type:enum('all', 'critical'); not null; default:'all'"`
+}
+
+type NotificationGroupChild struct {
+	OrgID   string `gorm:"column:org_id;   type:varchar(16);  not null;"`
+	GroupID string `gorm:"column:group_id; type:varchar(16);  not null; primary_key"`
+	ChildID string `gorm:"column:child_id; type:varchar(128); not null; primary_key"`
+}
+
+type NotificationGroupChannel struct {
+	OrgID     string `gorm:"column:org_id;     type:varchar(16); not null;"`
+	GroupID   string `gorm:"column:group_id;   type:varchar(16); not null; primary_key"`
+	ChannelID string `gorm:"column:channel_id; type:varchar(16); not null; primary_key"`
+}
+
+type NotificationGroupMonitor struct {
+	OrgID       string `gorm:"column:org_id;       type:varchar(16); not null;"`
+	GroupID     string `gorm:"column:group_id;     type:varchar(16); not null; primary_key"`
+	MonitorID   string `gorm:"column:monitor_id;   type:varchar(16); not null; primary_key"`
+	SkipDefault bool   `gorm:"column:skip_default; type:boolean; not null; default:'0'"`
+}
+
+type NotificationGroupService struct {
+	OrgID       string `gorm:"column:org_id;       type:varchar(16);  not null;"`
+	GroupID     string `gorm:"column:group_id;     type:varchar(16);  not null; primary_key"`
+	ServiceName string `gorm:"column:service_name; type:varchar(128); not null; primary_key"`
 }
 
 func NewNotificationGroupRepository(handler SQLHandler) *NotificationGroupRepository {
-	if err := handler.Transact(func(tx Tx) error {
-		if _, err := tx.Exec(
-			`
-			create table if not exists notification_groups (
-				org_id varchar(16) not null,
-				id     varchar(16) not null primary key,
-				name   varchar(128) not null,
-				level  enum('all', 'critical') not null default 'all'
-			)
-			`,
-		); err != nil {
-			return fmt.Errorf("create table notification_groups: %v", err)
-		}
+	db, err := gorm.Open(handler.Dialect(), handler.Raw())
+	if err != nil {
+		panic(err)
+	}
+	db.LogMode(handler.IsDebugging())
 
-		if _, err := tx.Exec(
-			`
-			create table if not exists notification_group_children (
-				org_id   varchar(16) not null,
-				group_id varchar(16) not null,
-				child_id varchar(16) not null,
-				primary key(group_id, child_id),
-				foreign key fk_group(group_id) references notification_groups(id) on delete cascade on update cascade
-			)
-			`,
-		); err != nil {
-			return fmt.Errorf("create table notification_group_children: %v", err)
-		}
+	if err := db.AutoMigrate(&NotificationGroup{}).Error; err != nil {
+		panic(fmt.Errorf("auto migrate notification_groups: %v", err))
+	}
 
-		if _, err := tx.Exec(
-			`
-			create table if not exists notification_group_channels (
-				org_id     varchar(16) not null,
-				group_id   varchar(16) not null,
-				channel_id varchar(16) not null,
-				primary key(group_id, channel_id),
-				foreign key fk_group(group_id) references notification_groups(id) on delete cascade on update cascade
-			)
-			`,
-		); err != nil {
-			return fmt.Errorf("create table notification_group_channels: %v", err)
-		}
+	if err := db.AutoMigrate(&NotificationGroupChild{}).AddForeignKey("group_id", "notification_groups(id)", "CASCADE", "CASCADE").Error; err != nil {
+		panic(fmt.Errorf("auto migrate notification_group_children: %v", err))
+	}
 
-		if _, err := tx.Exec(
-			`
-			create table if not exists notification_group_monitors (
-				org_id       varchar(16) not null,
-				group_id     varchar(16) not null,
-				monitor_id   varchar(16) not null,
-				skip_default boolean     not null default '0',
-				primary key(group_id, monitor_id),
-				foreign key fk_group(group_id) references notification_groups(id) on delete cascade on update cascade
-			)
-			`,
-		); err != nil {
-			return fmt.Errorf("create table notification_group_monitors: %v", err)
-		}
+	if err := db.AutoMigrate(&NotificationGroupChannel{}).AddForeignKey("group_id", "notification_groups(id)", "CASCADE", "CASCADE").Error; err != nil {
+		panic(fmt.Errorf("auto migrate notification_group_channels: %v", err))
+	}
 
-		if _, err := tx.Exec(
-			`
-			create table if not exists notification_group_services (
-				org_id       varchar(16) not null,
-				group_id     varchar(16) not null,
-				service_name varchar(128) not null,
-				primary key(group_id, service_name),
-				foreign key fk_group(group_id) references notification_groups(id) on delete cascade on update cascade
-			)
-			`,
-		); err != nil {
-			return fmt.Errorf("create table notification_group_servivces: %v", err)
-		}
+	if err := db.AutoMigrate(&NotificationGroupMonitor{}).AddForeignKey("group_id", "notification_groups(id)", "CASCADE", "CASCADE").Error; err != nil {
+		panic(fmt.Errorf("auto migrate notification_group_monitors: %v", err))
+	}
 
-		return nil
-	}); err != nil {
-		panic(fmt.Errorf("transaction: %v", err))
+	if err := db.AutoMigrate(&NotificationGroupService{}).AddForeignKey("group_id", "notification_groups(id)", "CASCADE", "CASCADE").Error; err != nil {
+		panic(fmt.Errorf("auto migrate notification_group_services: %v", err))
 	}
 
 	return &NotificationGroupRepository{
-		SQLHandler: handler,
+		DB: db,
 	}
 }
 
-func (repo *NotificationGroupRepository) groupIDs(tx Tx, orgID, groupID string) ([]string, error) {
-	rows, err := tx.Query(`select child_id from notification_group_children where org_id=? and group_id=?`, orgID, groupID)
-	if err != nil {
+func (repo *NotificationGroupRepository) groupIDs(tx *gorm.DB, orgID, groupID string) ([]string, error) {
+	result := make([]NotificationGroupChild, 0)
+	if err := tx.Where(&NotificationGroupChild{OrgID: orgID, GroupID: groupID}).Find(&result).Error; err != nil {
 		return nil, fmt.Errorf("select * from notification_group_children: %v", err)
 	}
-	defer rows.Close()
 
-	children := make([]string, 0)
-	for rows.Next() {
-		var childID string
-		if err := rows.Scan(
-			&childID,
-		); err != nil {
-			return nil, fmt.Errorf("scan: %v", err)
-		}
-
-		children = append(children, childID)
+	out := make([]string, 0)
+	for _, r := range result {
+		out = append(out, r.ChildID)
 	}
 
-	return children, nil
+	return out, nil
 }
 
-func (repo *NotificationGroupRepository) channelIDs(tx Tx, orgID, groupID string) ([]string, error) {
-	rows, err := tx.Query(`select channel_id from notification_group_channels where org_id=? and group_id=?`, orgID, groupID)
-	if err != nil {
-		return nil, fmt.Errorf("select * from notification_group_channels: %v", err)
-	}
-	defer rows.Close()
-
-	channels := make([]string, 0)
-	for rows.Next() {
-		var channelID string
-		if err := rows.Scan(
-			&channelID,
-		); err != nil {
-			return nil, fmt.Errorf("scan: %v", err)
-		}
-
-		channels = append(channels, channelID)
+func (repo *NotificationGroupRepository) channelIDs(tx *gorm.DB, orgID, groupID string) ([]string, error) {
+	result := make([]NotificationGroupChannel, 0)
+	if err := tx.Where(&NotificationGroupChannel{OrgID: orgID, GroupID: groupID}).Find(&result).Error; err != nil {
+		return nil, fmt.Errorf("select * from notification_group_children: %v", err)
 	}
 
-	return channels, nil
+	out := make([]string, 0)
+	for _, r := range result {
+		out = append(out, r.ChannelID)
+	}
+
+	return out, nil
 }
 
-func (repo *NotificationGroupRepository) monitors(tx Tx, orgID, groupID string) ([]domain.NMonitor, error) {
-	rows, err := tx.Query(`select monitor_id, skip_default from notification_group_monitors where org_id=? and group_id=?`, orgID, groupID)
-	if err != nil {
+func (repo *NotificationGroupRepository) monitors(tx *gorm.DB, orgID, groupID string) ([]domain.NotificationMonitor, error) {
+	result := make([]NotificationGroupMonitor, 0)
+	if err := tx.Where(&NotificationGroupMonitor{OrgID: orgID, GroupID: groupID}).Find(&result).Error; err != nil {
 		return nil, fmt.Errorf("select * from notification_group_monitors: %v", err)
 	}
-	defer rows.Close()
 
-	monitors := make([]domain.NMonitor, 0)
-	for rows.Next() {
-		var monitor domain.NMonitor
-		if err := rows.Scan(
-			&monitor.ID,
-			&monitor.SkipDefault,
-		); err != nil {
-			return nil, fmt.Errorf("scan: %v", err)
-		}
-
-		monitors = append(monitors, monitor)
+	out := make([]domain.NotificationMonitor, 0)
+	for _, r := range result {
+		out = append(out, domain.NotificationMonitor{
+			ID:          r.MonitorID,
+			SkipDefault: r.SkipDefault,
+		})
 	}
 
-	return monitors, nil
+	return out, nil
 }
 
-func (repo *NotificationGroupRepository) services(tx Tx, orgID, groupID string) ([]domain.NService, error) {
-	rows, err := tx.Query(`select service_name from notification_group_services where org_id=? and group_id=?`, orgID, groupID)
-	if err != nil {
+func (repo *NotificationGroupRepository) services(tx *gorm.DB, orgID, groupID string) ([]domain.NotificationService, error) {
+	result := make([]NotificationGroupService, 0)
+	if err := tx.Where(&NotificationGroupService{OrgID: orgID, GroupID: groupID}).Find(&result).Error; err != nil {
 		return nil, fmt.Errorf("select * from notification_group_services: %v", err)
 	}
-	defer rows.Close()
 
-	services := make([]domain.NService, 0)
-	for rows.Next() {
-		var service domain.NService
-		if err := rows.Scan(
-			&service.Name,
-		); err != nil {
-			return nil, fmt.Errorf("scan: %v", err)
-		}
-
-		services = append(services, service)
+	out := make([]domain.NotificationService, 0)
+	for _, r := range result {
+		out = append(out, domain.NotificationService{
+			Name: r.ServiceName,
+		})
 	}
 
-	return services, nil
+	return out, nil
 }
 
 func (repo *NotificationGroupRepository) List(orgID string) (*domain.NotificationGroups, error) {
-	groups := make([]domain.NotificationGroup, 0)
-
-	if err := repo.Transact(func(tx Tx) error {
-		rows, err := tx.Query(`select * from notification_groups where org_id=?`, orgID)
-		if err != nil {
+	out := make([]domain.NotificationGroup, 0)
+	if err := repo.DB.Transaction(func(tx *gorm.DB) error {
+		result := make([]NotificationGroup, 0)
+		if err := tx.Where(&NotificationGroup{OrgID: orgID}).Find(&result).Error; err != nil {
 			return fmt.Errorf("selet * from notification_groups: %v", err)
 		}
-		defer rows.Close()
 
-		for rows.Next() {
-			var group domain.NotificationGroup
-			if err := rows.Scan(
-				&group.OrgID,
-				&group.ID,
-				&group.Name,
-				&group.NotificationLevel,
-			); err != nil {
-				return fmt.Errorf("scan: %v", err)
-			}
-
-			groups = append(groups, group)
+		for _, r := range result {
+			out = append(out, domain.NotificationGroup{
+				OrgID:             r.OrgID,
+				ID:                r.ID,
+				Name:              r.Name,
+				NotificationLevel: r.NotificationLevel,
+			})
 		}
 
-		for i := range groups {
-			groupIDs, err := repo.groupIDs(tx, orgID, groups[i].ID)
+		for i := range out {
+			groupIDs, err := repo.groupIDs(tx, orgID, out[i].ID)
 			if err != nil {
 				return fmt.Errorf("group_id: %v", err)
 			}
-			groups[i].ChildNotificationGroupIDs = groupIDs
+			out[i].ChildNotificationGroupIDs = groupIDs
 
-			channelIDs, err := repo.channelIDs(tx, orgID, groups[i].ID)
+			channelIDs, err := repo.channelIDs(tx, orgID, out[i].ID)
 			if err != nil {
 				return fmt.Errorf("channel_id: %v", err)
 			}
-			groups[i].ChildChannelIDs = channelIDs
+			out[i].ChildChannelIDs = channelIDs
 
-			monitors, err := repo.monitors(tx, orgID, groups[i].ID)
+			monitors, err := repo.monitors(tx, orgID, out[i].ID)
 			if err != nil {
 				return fmt.Errorf("monitors: %v", err)
 			}
-			groups[i].Monitors = monitors
+			out[i].Monitors = monitors
 
-			services, err := repo.services(tx, orgID, groups[i].ID)
+			services, err := repo.services(tx, orgID, out[i].ID)
 			if err != nil {
 				return fmt.Errorf("services: %v", err)
 			}
-			groups[i].Services = services
+			out[i].Services = services
 		}
 
 		return nil
@@ -236,108 +185,43 @@ func (repo *NotificationGroupRepository) List(orgID string) (*domain.Notificatio
 		return nil, fmt.Errorf("transaction: %v", err)
 	}
 
-	return &domain.NotificationGroups{NotificationGroups: groups}, nil
+	return &domain.NotificationGroups{NotificationGroups: out}, nil
 }
 
 func (repo *NotificationGroupRepository) Exists(orgID, groupID string) bool {
-	rows, err := repo.Query("select 1 from notification_groups where org_id=? and id=?", orgID, groupID)
-	if err != nil {
-		panic(err)
-	}
-	defer rows.Close()
-
-	if rows.Next() {
-		return true
+	if repo.DB.Where(&NotificationGroup{OrgID: orgID, ID: groupID}).Find(&NotificationGroup{}).RecordNotFound() {
+		return false
 	}
 
-	return false
+	return true
 }
 
 func (repo *NotificationGroupRepository) Save(orgID string, group *domain.NotificationGroup) (*domain.NotificationGroup, error) {
-	if err := repo.Transact(func(tx Tx) error {
-		if _, err := tx.Exec(
-			`
-			insert into notification_groups (
-				org_id,
-				id,
-				name,
-				level
-			) values (?, ?, ?, ?)
-			`,
-			orgID,
-			group.ID,
-			group.Name,
-			group.NotificationLevel,
-		); err != nil {
+	if err := repo.DB.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(&NotificationGroup{OrgID: orgID, ID: group.ID, Name: group.Name, NotificationLevel: group.NotificationLevel}).Error; err != nil {
 			return fmt.Errorf("insert into notification_groups: %v", err)
 		}
 
 		for i := range group.ChildNotificationGroupIDs {
-			if _, err := tx.Exec(
-				`
-			insert into notification_group_children (
-				org_id,
-				group_id,
-				child_id
-			) values (?, ?, ?)
-			`,
-				orgID,
-				group.ID,
-				group.ChildNotificationGroupIDs[i],
-			); err != nil {
+			if err := tx.Create(&NotificationGroupChild{OrgID: orgID, GroupID: group.ID, ChildID: group.ChildNotificationGroupIDs[i]}).Error; err != nil {
 				return fmt.Errorf("insert into notification_group_children: %v", err)
 			}
 		}
 
 		for i := range group.ChildChannelIDs {
-			if _, err := tx.Exec(
-				`
-			insert into notification_group_channels (
-				org_id,
-				group_id,
-				channel_id
-			) values (?, ?, ?)
-			`,
-				orgID,
-				group.ID,
-				group.ChildChannelIDs[i],
-			); err != nil {
+			if err := tx.Create(&NotificationGroupChannel{OrgID: orgID, GroupID: group.ID, ChannelID: group.ChildChannelIDs[i]}).Error; err != nil {
 				return fmt.Errorf("insert into notification_group_channels: %v", err)
 			}
 		}
 
 		for i := range group.Monitors {
-			if _, err := tx.Exec(
-				`
-			insert into notification_group_monitors (
-				org_id,
-				group_id,
-				monitor_id,
-				skip_default
-			) values (?, ?, ?, ?)
-			`,
-				orgID,
-				group.ID,
-				group.Monitors[i].ID,
-				group.Monitors[i].SkipDefault,
-			); err != nil {
+			if err := tx.Create(&NotificationGroupMonitor{OrgID: orgID, GroupID: group.ID, MonitorID: group.Monitors[i].ID, SkipDefault: group.Monitors[i].SkipDefault}).Error; err != nil {
 				return fmt.Errorf("insert into notification_group_monitors: %v", err)
 			}
 		}
 
 		for i := range group.Services {
-			if _, err := tx.Exec(
-				`
-			insert into notification_group_services (
-				org_id,
-				group_id,
-				service_name
-			) values (?, ?, ?)
-			`,
-				orgID,
-				group.ID,
-				group.Services[i].Name,
-			); err != nil {
+			if err := tx.Create(&NotificationGroupService{OrgID: orgID, GroupID: group.ID, ServiceName: group.Services[i].Name}).Error; err != nil {
 				return fmt.Errorf("insert into notification_group_services: %v", err)
 			}
 		}
@@ -351,94 +235,35 @@ func (repo *NotificationGroupRepository) Save(orgID string, group *domain.Notifi
 }
 
 func (repo *NotificationGroupRepository) Update(orgID string, group *domain.NotificationGroup) (*domain.NotificationGroup, error) {
-	if err := repo.Transact(func(tx Tx) error {
-		if _, err := tx.Exec("delete from notification_groups where org_id=? and id=?", orgID, group.ID); err != nil {
+	if err := repo.DB.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Delete(&NotificationGroup{OrgID: orgID, ID: group.ID}).Error; err != nil {
 			return fmt.Errorf("delete from notification_groups: %v", err)
 		}
 
-		if _, err := tx.Exec(
-			`
-			insert into notification_groups (
-				org_id,
-				id,
-				name,
-				level
-			) values (?, ?, ?, ?)
-			`,
-			orgID,
-			group.ID,
-			group.Name,
-			group.NotificationLevel,
-		); err != nil {
+		if err := tx.Create(&NotificationGroup{OrgID: orgID, ID: group.ID, Name: group.Name, NotificationLevel: group.NotificationLevel}).Error; err != nil {
 			return fmt.Errorf("insert into notification_groups: %v", err)
 		}
 
 		for i := range group.ChildNotificationGroupIDs {
-			if _, err := tx.Exec(
-				`
-			insert into notification_group_children (
-				org_id,
-				group_id,
-				child_id
-			) values (?, ?, ?)
-			`,
-				orgID,
-				group.ID,
-				group.ChildNotificationGroupIDs[i],
-			); err != nil {
+			if err := tx.Create(&NotificationGroupChild{OrgID: orgID, GroupID: group.ID, ChildID: group.ChildNotificationGroupIDs[i]}).Error; err != nil {
 				return fmt.Errorf("insert into notification_group_children: %v", err)
 			}
 		}
 
 		for i := range group.ChildChannelIDs {
-			if _, err := tx.Exec(
-				`
-			insert into notification_group_channels (
-				org_id,
-				group_id,
-				channel_id
-			) values (?, ?, ?)
-			`,
-				orgID,
-				group.ID,
-				group.ChildChannelIDs[i],
-			); err != nil {
+			if err := tx.Create(&NotificationGroupChannel{OrgID: orgID, GroupID: group.ID, ChannelID: group.ChildChannelIDs[i]}).Error; err != nil {
 				return fmt.Errorf("insert into notification_group_channels: %v", err)
 			}
 		}
 
 		for i := range group.Monitors {
-			if _, err := tx.Exec(
-				`
-			insert into notification_group_monitors (
-				org_id,
-				group_id,
-				monitor_id,
-				skip_default
-			) values (?, ?, ?, ?)
-			`,
-				orgID,
-				group.ID,
-				group.Monitors[i].ID,
-				group.Monitors[i].SkipDefault,
-			); err != nil {
+			if err := tx.Create(&NotificationGroupMonitor{OrgID: orgID, GroupID: group.ID, MonitorID: group.Monitors[i].ID, SkipDefault: group.Monitors[i].SkipDefault}).Error; err != nil {
 				return fmt.Errorf("insert into notification_group_monitors: %v", err)
 			}
 		}
 
 		for i := range group.Services {
-			if _, err := tx.Exec(
-				`
-			insert into notification_group_services (
-				org_id,
-				group_id,
-				service_name
-			) values (?, ?, ?)
-			`,
-				orgID,
-				group.ID,
-				group.Services[i].Name,
-			); err != nil {
+			if err := tx.Create(&NotificationGroupService{OrgID: orgID, GroupID: group.ID, ServiceName: group.Services[i].Name}).Error; err != nil {
 				return fmt.Errorf("insert into notification_group_services: %v", err)
 			}
 		}
@@ -452,44 +277,43 @@ func (repo *NotificationGroupRepository) Update(orgID string, group *domain.Noti
 }
 
 func (repo *NotificationGroupRepository) Delete(orgID, groupID string) (*domain.NotificationGroup, error) {
-	group := domain.NotificationGroup{}
-
-	if err := repo.Transact(func(tx Tx) error {
-		row := tx.QueryRow(`select * from notification_groups where org_id=? and id=?`, orgID, groupID)
-		if err := row.Scan(
-			&group.OrgID,
-			&group.ID,
-			&group.Name,
-			&group.NotificationLevel,
-		); err != nil {
-			return fmt.Errorf("scan: %v", err)
+	out := domain.NotificationGroup{}
+	if err := repo.DB.Transaction(func(tx *gorm.DB) error {
+		result := NotificationGroup{}
+		if err := tx.Where(&NotificationGroup{OrgID: orgID, ID: groupID}).Find(&result).Error; err != nil {
+			return fmt.Errorf("selet * from notification_groups: %v", err)
 		}
 
-		groupIDs, err := repo.groupIDs(tx, orgID, groupID)
+		out.OrgID = result.OrgID
+		out.ID = result.ID
+		out.Name = result.Name
+		out.NotificationLevel = result.NotificationLevel
+
+		groupIDs, err := repo.groupIDs(tx, orgID, result.ID)
 		if err != nil {
 			return fmt.Errorf("group_id: %v", err)
 		}
-		group.ChildNotificationGroupIDs = groupIDs
+		out.ChildNotificationGroupIDs = groupIDs
 
-		channelIDs, err := repo.channelIDs(tx, orgID, groupID)
+		channelIDs, err := repo.channelIDs(tx, orgID, result.ID)
 		if err != nil {
 			return fmt.Errorf("channel_id: %v", err)
 		}
-		group.ChildChannelIDs = channelIDs
+		out.ChildChannelIDs = channelIDs
 
-		monitors, err := repo.monitors(tx, orgID, groupID)
+		monitors, err := repo.monitors(tx, orgID, result.ID)
 		if err != nil {
 			return fmt.Errorf("monitors: %v", err)
 		}
-		group.Monitors = monitors
+		out.Monitors = monitors
 
-		services, err := repo.services(tx, orgID, groupID)
+		services, err := repo.services(tx, orgID, result.ID)
 		if err != nil {
 			return fmt.Errorf("services: %v", err)
 		}
-		group.Services = services
+		out.Services = services
 
-		if _, err := tx.Exec("delete from notification_groups where org_id=? and id=?", orgID, groupID); err != nil {
+		if err := tx.Delete(&NotificationGroup{OrgID: orgID, ID: groupID}).Error; err != nil {
 			return fmt.Errorf("delete from notification_groups: %v", err)
 		}
 
@@ -498,5 +322,5 @@ func (repo *NotificationGroupRepository) Delete(orgID, groupID string) (*domain.
 		return nil, fmt.Errorf("transaction: %v", err)
 	}
 
-	return &group, nil
+	return &out, nil
 }
