@@ -41,3 +41,25 @@ Feature:
         ]
       }
       """
+
+  Scenario: should delete user
+    Given the following users exist:
+      | org_id      | id      | screen_name | email               |
+      | 4b825dc642c | 9876543 | example     | example@example.com |
+    When I send "DELETE" request to "/api/v0/users/9876543"
+    Then the response code should be 200
+    Then the response should match json:
+      """
+      {
+        "id": "9876543",
+        "screenName": "example",
+        "email": "example@example.com",
+        "authority": "owner",
+        "isInRegistrationProcess": true,
+        "isMFAEnabled": true,
+        "authenticationMethods": [
+          "google"
+        ],
+        "joinedAt": "@number@"
+      }
+      """
