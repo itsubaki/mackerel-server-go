@@ -10,7 +10,6 @@ import (
 )
 
 type MonitorRepository struct {
-	SQLHandler
 	DB *gorm.DB
 }
 
@@ -111,8 +110,7 @@ func NewMonitorRepository(handler SQLHandler) *MonitorRepository {
 	}
 
 	return &MonitorRepository{
-		SQLHandler: handler,
-		DB:         db,
+		DB: db,
 	}
 }
 
@@ -155,209 +153,132 @@ func (repo *MonitorRepository) List(orgID string) (*domain.Monitors, error) {
 }
 
 func (repo *MonitorRepository) Save(orgID string, monitor *domain.Monitoring) (interface{}, error) {
-	if err := repo.Transact(func(tx Tx) error {
-		scopes, err := json.Marshal(monitor.Scopes)
-		if err != nil {
-			return fmt.Errorf("marshal monitor.Scopes: %v", err)
-		}
+	scopes, err := json.Marshal(monitor.Scopes)
+	if err != nil {
+		return nil, fmt.Errorf("marshal monitor.Scopes: %v", err)
+	}
 
-		exclude, err := json.Marshal(monitor.ExcludeScopes)
-		if err != nil {
-			return fmt.Errorf("marshal monitor.ExcludeScopes: %v", err)
-		}
+	exclude, err := json.Marshal(monitor.ExcludeScopes)
+	if err != nil {
+		return nil, fmt.Errorf("marshal monitor.ExcludeScopes: %v", err)
+	}
 
-		service, err := json.Marshal(monitor.Service)
-		if err != nil {
-			return fmt.Errorf("marshal monitor.Service: %v", err)
-		}
+	service, err := json.Marshal(monitor.Service)
+	if err != nil {
+		return nil, fmt.Errorf("marshal monitor.Service: %v", err)
+	}
 
-		headers, err := json.Marshal(monitor.Headers)
-		if err != nil {
-			return fmt.Errorf("marshal monitor.Headers: %v", err)
-		}
+	headers, err := json.Marshal(monitor.Headers)
+	if err != nil {
+		return nil, fmt.Errorf("marshal monitor.Headers: %v", err)
+	}
 
-		body, err := json.Marshal(monitor.RequestBody)
-		if err != nil {
-			return fmt.Errorf("marshal monitor.RequestBody: %v", err)
-		}
+	body, err := json.Marshal(monitor.RequestBody)
+	if err != nil {
+		return nil, fmt.Errorf("marshal monitor.RequestBody: %v", err)
+	}
 
-		if _, err := tx.Exec(
-			`
-			insert into monitors (
-				org_id,
-				id,
-				type,
-				name,
-				memo,
-				notification_interval,
-				is_mute,
-				duration,
-				metric,
-				operator,
-				warning,
-				critical,
-				max_check_attempts,
-				scopes,
-				exclude_scopes,
-				missing_duration_warning,
-				missing_duration_critical,
-				url,
-				method,
-				service,
-				response_time_warning,
-				response_time_critical,
-				response_time_duration,
-				contains_string,
-				certification_expiration_warning,
-				certification_expiration_critical,
-				skip_certificate_verification,
-				headers,
-				request_body,
-				expression
-			)
-			values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-			`,
-			orgID,
-			monitor.ID,
-			monitor.Type,
-			monitor.Name,
-			monitor.Memo,
-			monitor.NotificationInterval,
-			monitor.IsMute,
-			monitor.Duration,
-			monitor.Metric,
-			monitor.Operator,
-			monitor.Warning,
-			monitor.Critical,
-			monitor.MaxCheckAttempts,
-			scopes,
-			exclude,
-			monitor.MissingDurationWarning,
-			monitor.MissingDurationCritical,
-			monitor.URL,
-			monitor.Method,
-			service,
-			monitor.ResponseTimeWarning,
-			monitor.ResponseTimeCritical,
-			monitor.ResponseTimeDuration,
-			monitor.ContainsString,
-			monitor.CertificationExpirationWarning,
-			monitor.CertificationExpirationCritical,
-			monitor.SkipCertificateVerification,
-			headers,
-			body,
-			monitor.Expression,
-		); err != nil {
-			return fmt.Errorf("insert into monitors: %v", err)
+	create := Monitor{
+		OrgID:                           orgID,
+		ID:                              monitor.ID,
+		Type:                            monitor.Type,
+		Name:                            monitor.Name,
+		Memo:                            monitor.Memo,
+		NotificationInterval:            monitor.NotificationInterval,
+		IsMute:                          monitor.IsMute,
+		Duration:                        monitor.Duration,
+		Metric:                          monitor.Metric,
+		Operator:                        monitor.Operator,
+		Warning:                         monitor.Warning,
+		Critical:                        monitor.Critical,
+		MaxCheckAttempts:                monitor.MaxCheckAttempts,
+		Scopes:                          string(scopes),
+		ExcludeScopes:                   string(exclude),
+		MissingDurationWarning:          monitor.MissingDurationWarning,
+		MissingDurationCritical:         monitor.MissingDurationCritical,
+		URL:                             monitor.URL,
+		Method:                          monitor.Method,
+		Service:                         string(service),
+		ResponseTimeWarning:             monitor.ResponseTimeWarning,
+		ResponseTimeCritical:            monitor.ResponseTimeCritical,
+		ResponseTimeDuration:            monitor.ResponseTimeDuration,
+		ContainsString:                  monitor.ContainsString,
+		CertificationExpirationWarning:  monitor.CertificationExpirationWarning,
+		CertificationExpirationCritical: monitor.CertificationExpirationCritical,
+		SkipCertificateVerification:     monitor.SkipCertificateVerification,
+		Headers:                         string(headers),
+		RequestBody:                     string(body),
+		Expression:                      monitor.Expression,
+	}
 
-		}
-
-		return nil
-	}); err != nil {
-		return nil, fmt.Errorf("transaction: %v", err)
+	if err := repo.DB.Create(&create).Error; err != nil {
+		return nil, fmt.Errorf("insert into monitors: %v", err)
 	}
 
 	return monitor, nil
 }
 
 func (repo *MonitorRepository) Update(orgID string, monitor *domain.Monitoring) (interface{}, error) {
-	if err := repo.Transact(func(tx Tx) error {
-		scopes, err := json.Marshal(monitor.Scopes)
-		if err != nil {
-			return fmt.Errorf("marshal monitor.Scopes: %v", err)
-		}
+	scopes, err := json.Marshal(monitor.Scopes)
+	if err != nil {
+		return nil, fmt.Errorf("marshal monitor.Scopes: %v", err)
+	}
 
-		exclude, err := json.Marshal(monitor.ExcludeScopes)
-		if err != nil {
-			return fmt.Errorf("marshal monitor.ExcludeScopes: %v", err)
-		}
+	exclude, err := json.Marshal(monitor.ExcludeScopes)
+	if err != nil {
+		return nil, fmt.Errorf("marshal monitor.ExcludeScopes: %v", err)
+	}
 
-		service, err := json.Marshal(monitor.Service)
-		if err != nil {
-			return fmt.Errorf("marshal monitor.Service: %v", err)
-		}
+	service, err := json.Marshal(monitor.Service)
+	if err != nil {
+		return nil, fmt.Errorf("marshal monitor.Service: %v", err)
+	}
 
-		headers, err := json.Marshal(monitor.Headers)
-		if err != nil {
-			return fmt.Errorf("marshal monitor.Headers: %v", err)
-		}
+	headers, err := json.Marshal(monitor.Headers)
+	if err != nil {
+		return nil, fmt.Errorf("marshal monitor.Headers: %v", err)
+	}
 
-		body, err := json.Marshal(monitor.RequestBody)
-		if err != nil {
-			return fmt.Errorf("marshal monitor.RequestBody: %v", err)
-		}
+	body, err := json.Marshal(monitor.RequestBody)
+	if err != nil {
+		return nil, fmt.Errorf("marshal monitor.RequestBody: %v", err)
+	}
 
-		if _, err := tx.Exec(
-			`
-			update monitors set
-				type=?,
-				name=?,
-				memo=?,
-				notification_interval=?,
-				is_mute=?,
-				duration=?,
-				metric=?,
-				operator=?,
-				warning=?,
-				critical=?,
-				max_check_attempts=?,
-				scopes=?,
-				exclude_scopes=?,
-				missing_duration_warning=?,
-				missing_duration_critical=?,
-				url=?,
-				method=?,
-				service=?,
-				response_time_warning=?,
-				response_time_critical=?,
-				response_time_duration=?,
-				contains_string=?,
-				certification_expiration_warning=?,
-				certification_expiration_critical=?,
-				skip_certificate_verification=?,
-				headers=?,
-				request_body=?,
-				expression=?
-			where org_id=? and id=?
-			`,
-			monitor.Type,
-			monitor.Name,
-			monitor.Memo,
-			monitor.NotificationInterval,
-			monitor.IsMute,
-			monitor.Duration,
-			monitor.Metric,
-			monitor.Operator,
-			monitor.Warning,
-			monitor.Critical,
-			monitor.MaxCheckAttempts,
-			scopes,
-			exclude,
-			monitor.MissingDurationWarning,
-			monitor.MissingDurationCritical,
-			monitor.URL,
-			monitor.Method,
-			service,
-			monitor.ResponseTimeWarning,
-			monitor.ResponseTimeCritical,
-			monitor.ResponseTimeDuration,
-			monitor.ContainsString,
-			monitor.CertificationExpirationWarning,
-			monitor.CertificationExpirationCritical,
-			monitor.SkipCertificateVerification,
-			headers,
-			body,
-			monitor.Expression,
-			orgID,
-			monitor.ID,
-		); err != nil {
-			return fmt.Errorf("update monitors: %v", err)
+	update := Monitor{
+		OrgID:                           orgID,
+		ID:                              monitor.ID,
+		Type:                            monitor.Type,
+		Name:                            monitor.Name,
+		Memo:                            monitor.Memo,
+		NotificationInterval:            monitor.NotificationInterval,
+		IsMute:                          monitor.IsMute,
+		Duration:                        monitor.Duration,
+		Metric:                          monitor.Metric,
+		Operator:                        monitor.Operator,
+		Warning:                         monitor.Warning,
+		Critical:                        monitor.Critical,
+		MaxCheckAttempts:                monitor.MaxCheckAttempts,
+		Scopes:                          string(scopes),
+		ExcludeScopes:                   string(exclude),
+		MissingDurationWarning:          monitor.MissingDurationWarning,
+		MissingDurationCritical:         monitor.MissingDurationCritical,
+		URL:                             monitor.URL,
+		Method:                          monitor.Method,
+		Service:                         string(service),
+		ResponseTimeWarning:             monitor.ResponseTimeWarning,
+		ResponseTimeCritical:            monitor.ResponseTimeCritical,
+		ResponseTimeDuration:            monitor.ResponseTimeDuration,
+		ContainsString:                  monitor.ContainsString,
+		CertificationExpirationWarning:  monitor.CertificationExpirationWarning,
+		CertificationExpirationCritical: monitor.CertificationExpirationCritical,
+		SkipCertificateVerification:     monitor.SkipCertificateVerification,
+		Headers:                         string(headers),
+		RequestBody:                     string(body),
+		Expression:                      monitor.Expression,
+	}
 
-		}
-
-		return nil
-	}); err != nil {
-		return nil, fmt.Errorf("transaction: %v", err)
+	if err := repo.DB.Where(&Monitor{OrgID: orgID, ID: monitor.ID}).Assign(&update).FirstOrCreate(&Monitor{}).Error; err != nil {
+		return nil, fmt.Errorf("first or create: %v", err)
 	}
 
 	return monitor.Cast(), nil
