@@ -9,7 +9,6 @@ import (
 )
 
 type ChannelRepository struct {
-	SQLHandler
 	DB *gorm.DB
 }
 
@@ -75,95 +74,61 @@ func NewChannelRepository(handler SQLHandler) *ChannelRepository {
 	}
 
 	return &ChannelRepository{
-		SQLHandler: handler,
-		DB:         db,
+		DB: db,
 	}
 }
 
-func (repo *ChannelRepository) mentions(tx Tx, orgID, channelID string) (map[string]string, error) {
-	rows, err := tx.Query(`select status, message from channel_mentions where org_id=? and channel_id=?`, orgID, channelID)
-	if err != nil {
+func (repo *ChannelRepository) mentions(tx *gorm.DB, orgID, channelID string) (map[string]string, error) {
+	result := make([]ChannelMention, 0)
+	if err := tx.Where(&ChannelMention{OrgID: orgID, ChannelID: channelID}).Find(&result).Error; err != nil {
 		return nil, fmt.Errorf("select * from channel_mentions: %v", err)
 	}
-	defer rows.Close()
 
 	mentions := make(map[string]string)
-	for rows.Next() {
-		var status, message string
-		if err := rows.Scan(
-			&status,
-			&message,
-		); err != nil {
-			return nil, fmt.Errorf("scan: %v", err)
-		}
-
-		mentions[status] = message
+	for _, r := range result {
+		mentions[r.Status] = r.Message
 	}
 
 	return mentions, nil
 }
 
-func (repo *ChannelRepository) events(tx Tx, orgID, channelID string) ([]string, error) {
-	rows, err := tx.Query(`select event from channel_events where org_id=? and channel_id=?`, orgID, channelID)
-	if err != nil {
+func (repo *ChannelRepository) events(tx *gorm.DB, orgID, channelID string) ([]string, error) {
+	result := make([]ChannelEvent, 0)
+	if err := tx.Where(&ChannelEvent{OrgID: orgID, ChannelID: channelID}).Find(&result).Error; err != nil {
 		return nil, fmt.Errorf("select * from channel_events: %v", err)
 	}
-	defer rows.Close()
 
 	events := make([]string, 0)
-	for rows.Next() {
-		var event string
-		if err := rows.Scan(
-			&event,
-		); err != nil {
-			return nil, fmt.Errorf("scan: %v", err)
-		}
-
-		events = append(events, event)
+	for _, r := range result {
+		events = append(events, r.Event)
 	}
 
 	return events, nil
 }
 
-func (repo *ChannelRepository) emails(tx Tx, orgID, channelID string) ([]string, error) {
-	rows, err := tx.Query(`select email from channel_emails where org_id=? and channel_id=?`, orgID, channelID)
-	if err != nil {
+func (repo *ChannelRepository) emails(tx *gorm.DB, orgID, channelID string) ([]string, error) {
+	result := make([]ChannelEmail, 0)
+	if err := tx.Where(&ChannelEmail{OrgID: orgID, ChannelID: channelID}).Find(&result).Error; err != nil {
 		return nil, fmt.Errorf("select * from channel_emails: %v", err)
 	}
-	defer rows.Close()
 
 	emails := make([]string, 0)
-	for rows.Next() {
-		var email string
-		if err := rows.Scan(
-			&email,
-		); err != nil {
-			return nil, fmt.Errorf("scan: %v", err)
-		}
-
-		emails = append(emails, email)
+	for _, r := range result {
+		emails = append(emails, r.EMail)
 	}
 
 	return emails, nil
 }
 
-func (repo *ChannelRepository) userIDs(tx Tx, orgID, channelID string) ([]string, error) {
-	rows, err := tx.Query(`select user_id from channel_user_ids where org_id=? and channel_id=?`, orgID, channelID)
-	if err != nil {
+func (repo *ChannelRepository) userIDs(tx *gorm.DB, orgID, channelID string) ([]string, error) {
+	result := make([]ChannelUserID, 0)
+	if err := tx.Where(&ChannelUserID{OrgID: orgID, ChannelID: channelID}).Find(&result).Error; err != nil {
 		return nil, fmt.Errorf("select * from channel_user_ids: %v", err)
 	}
-	defer rows.Close()
 
 	userIDs := make([]string, 0)
-	for rows.Next() {
-		var userID string
-		if err := rows.Scan(
-			&userID,
-		); err != nil {
-			return nil, fmt.Errorf("scan: %v", err)
-		}
-
-		userIDs = append(userIDs, userID)
+	for _, r := range result {
+		userIDs = append(userIDs, r.UserID)
 	}
 
 	return userIDs, nil
@@ -171,27 +136,21 @@ func (repo *ChannelRepository) userIDs(tx Tx, orgID, channelID string) ([]string
 
 func (repo *ChannelRepository) List(orgID string) (*domain.Channels, error) {
 	channels := make([]domain.Channel, 0)
-	if err := repo.Transact(func(tx Tx) error {
-		rows, err := tx.Query(`select * from channels where org_id=?`, orgID)
-		if err != nil {
+	if err := repo.DB.Transaction(func(tx *gorm.DB) error {
+		result := make([]Channel, 0)
+		if err := tx.Where(&Channel{OrgID: orgID}).Find(&result).Error; err != nil {
 			return fmt.Errorf("selet * from channels: %v", err)
 		}
-		defer rows.Close()
 
-		for rows.Next() {
-			var channel domain.Channel
-			if err := rows.Scan(
-				&channel.OrgID,
-				&channel.ID,
-				&channel.Name,
-				&channel.Type,
-				&channel.URL,
-				&channel.EnabledGraphImage,
-			); err != nil {
-				return fmt.Errorf("scan: %v", err)
-			}
-
-			channels = append(channels, channel)
+		for _, r := range result {
+			channels = append(channels, domain.Channel{
+				OrgID:             r.OrgID,
+				ID:                r.ID,
+				Name:              r.Name,
+				Type:              r.Type,
+				URL:               r.URL,
+				EnabledGraphImage: r.EnabledGraphImage,
+			})
 		}
 
 		for i := range channels {
@@ -225,104 +184,65 @@ func (repo *ChannelRepository) List(orgID string) (*domain.Channels, error) {
 		return nil, fmt.Errorf("transaction: %v", err)
 	}
 
-	chanif := make([]interface{}, 0)
+	out := make([]interface{}, 0)
 	for i := range channels {
-		chanif = append(chanif, channels[i].Cast())
+		out = append(out, channels[i].Cast())
 	}
 
-	return &domain.Channels{Channels: chanif}, nil
+	return &domain.Channels{Channels: out}, nil
 }
 
 func (repo *ChannelRepository) Save(orgID string, channel *domain.Channel) (interface{}, error) {
-	if err := repo.Transact(func(tx Tx) error {
-		if _, err := tx.Exec(
-			`
-			insert into channels (
-				org_id,
-				id,
-				name,
-				type,
-				url,
-				enabled_graph_image
-			) values (?, ?, ?, ?, ?, ?)
-			`,
-			orgID,
-			channel.ID,
-			channel.Name,
-			channel.Type,
-			channel.URL,
-			channel.EnabledGraphImage,
-		); err != nil {
+	if err := repo.DB.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(&Channel{
+			OrgID:             orgID,
+			ID:                channel.ID,
+			Name:              channel.Name,
+			Type:              channel.Type,
+			URL:               channel.URL,
+			EnabledGraphImage: channel.EnabledGraphImage,
+		}).Error; err != nil {
 			return fmt.Errorf("insert into channels: %v", err)
 		}
 
-		for status, message := range channel.Mentions {
-			if _, err := tx.Exec(
-				`
-				insert into channel_mentions (
-					org_id,
-					channel_id,
-					status,
-					message
-				) values (?, ?, ?, ?)
-				`,
-				orgID,
-				channel.ID,
-				status,
-				message,
-			); err != nil {
+		for st, mes := range channel.Mentions {
+			if err := tx.Create(&ChannelMention{
+				OrgID:     orgID,
+				ChannelID: channel.ID,
+				Status:    st,
+				Message:   mes,
+			}).Error; err != nil {
 				return fmt.Errorf("insert into channel_mentions: %v", err)
 			}
 		}
 
 		for i := range channel.Events {
-			if _, err := tx.Exec(
-				`
-				insert into channel_events (
-					org_id,
-					channel_id,
-					event
-				) values (?, ?, ?)
-				`,
-				orgID,
-				channel.ID,
-				channel.Events[i],
-			); err != nil {
+			if err := tx.Create(&ChannelEvent{
+				OrgID:     orgID,
+				ChannelID: channel.ID,
+				Event:     channel.Events[i],
+			}).Error; err != nil {
 				return fmt.Errorf("insert into channel_events: %v", err)
 			}
 		}
 
 		for i := range channel.Emails {
-			if _, err := tx.Exec(
-				`
-				insert into channel_emails (
-					org_id,
-					channel_id,
-					email
-				) values (?, ?, ?)
-				`,
-				orgID,
-				channel.ID,
-				channel.Emails[i],
-			); err != nil {
+			if err := tx.Create(&ChannelEmail{
+				OrgID:     orgID,
+				ChannelID: channel.ID,
+				EMail:     channel.Emails[i],
+			}).Error; err != nil {
 				return fmt.Errorf("insert into channel_emails: %v", err)
 			}
 		}
 
 		for i := range channel.UserIDs {
-			if _, err := tx.Exec(
-				`
-				insert into channel_user_ids (
-					org_id,
-					channel_id,
-					user_id
-				) values (?, ?, ?)
-				`,
-				orgID,
-				channel.ID,
-				channel.UserIDs[i],
-			); err != nil {
-				return fmt.Errorf("insert into channel_user_ids: %v", err)
+			if err := tx.Create(&ChannelUserID{
+				OrgID:     orgID,
+				ChannelID: channel.ID,
+				UserID:    channel.UserIDs[i],
+			}).Error; err != nil {
+				return fmt.Errorf("insert into channel_emails: %v", err)
 			}
 		}
 
@@ -344,44 +264,44 @@ func (repo *ChannelRepository) Exists(orgID, channelID string) bool {
 
 func (repo *ChannelRepository) Delete(orgID, channelID string) (interface{}, error) {
 	var channel domain.Channel
-	if err := repo.Transact(func(tx Tx) error {
-		row := tx.QueryRow("select * from channels where org_id=? and id=?", orgID, channelID)
-		if err := row.Scan(
-			&channel.OrgID,
-			&channel.ID,
-			&channel.Name,
-			&channel.Type,
-			&channel.URL,
-			&channel.EnabledGraphImage,
-		); err != nil {
-			return fmt.Errorf("scan: %v", err)
+	if err := repo.DB.Transaction(func(tx *gorm.DB) error {
+		result := Channel{}
+		if err := tx.Where(&Channel{OrgID: orgID, ID: channelID}).Find(&result).Error; err != nil {
+			return fmt.Errorf("select * from channels: %v", err)
 		}
 
-		mentions, err := repo.mentions(tx, orgID, channel.ID)
+		channel.OrgID = result.OrgID
+		channel.ID = result.ID
+		channel.Name = result.Name
+		channel.Type = result.Type
+		channel.URL = result.URL
+		channel.EnabledGraphImage = result.EnabledGraphImage
+
+		mentions, err := repo.mentions(tx, orgID, result.ID)
 		if err != nil {
 			return fmt.Errorf("mentions: %v", err)
 		}
 		channel.Mentions = mentions
 
-		events, err := repo.events(tx, orgID, channel.ID)
+		events, err := repo.events(tx, orgID, result.ID)
 		if err != nil {
 			return fmt.Errorf("events: %v", err)
 		}
 		channel.Events = events
 
-		emails, err := repo.emails(tx, orgID, channel.ID)
+		emails, err := repo.emails(tx, orgID, result.ID)
 		if err != nil {
 			return fmt.Errorf("emails: %v", err)
 		}
 		channel.Emails = emails
 
-		userIDs, err := repo.userIDs(tx, orgID, channel.ID)
+		userIDs, err := repo.userIDs(tx, orgID, result.ID)
 		if err != nil {
 			return fmt.Errorf("userIDs: %v", err)
 		}
 		channel.UserIDs = userIDs
 
-		if _, err := tx.Exec("delete from channels where org_id=? and id=?", orgID, channelID); err != nil {
+		if err := tx.Delete(&Channel{OrgID: orgID, ID: channelID}).Error; err != nil {
 			return fmt.Errorf("delete from channels: %v", err)
 		}
 
