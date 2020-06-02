@@ -11,7 +11,6 @@ import (
 )
 
 type HostRepository struct {
-	SQLHandler
 	DB *gorm.DB
 }
 
@@ -82,8 +81,7 @@ func NewHostRepository(handler SQLHandler) *HostRepository {
 	}
 
 	return &HostRepository{
-		SQLHandler: handler,
-		DB:         db,
+		DB: db,
 	}
 }
 
@@ -126,87 +124,49 @@ func (repo *HostRepository) List(orgID string) (*domain.Hosts, error) {
 }
 
 func (repo *HostRepository) Save(orgID string, host *domain.Host) (*domain.HostID, error) {
-	if err := repo.Transact(func(tx Tx) error {
-		roles, err := json.Marshal(host.Roles)
-		if err != nil {
-			return fmt.Errorf("marshal host.Roles: %v", err)
-		}
+	roles, err := json.Marshal(host.Roles)
+	if err != nil {
+		return nil, fmt.Errorf("marshal host.Roles: %v", err)
+	}
 
-		roleFullnames, err := json.Marshal(host.RoleFullNames)
-		if err != nil {
-			return fmt.Errorf("marshal host.RoleFullNames: %v", err)
-		}
+	roleFullnames, err := json.Marshal(host.RoleFullNames)
+	if err != nil {
+		return nil, fmt.Errorf("marshal host.RoleFullNames: %v", err)
+	}
 
-		interfaces, err := json.Marshal(host.Interfaces)
-		if err != nil {
-			return fmt.Errorf("marshal host.Interfaces: %v", err)
-		}
+	interfaces, err := json.Marshal(host.Interfaces)
+	if err != nil {
+		return nil, fmt.Errorf("marshal host.Interfaces: %v", err)
+	}
 
-		checks, err := json.Marshal(host.Checks)
-		if err != nil {
-			return fmt.Errorf("marshal host.Checks: %v", err)
-		}
+	checks, err := json.Marshal(host.Checks)
+	if err != nil {
+		return nil, fmt.Errorf("marshal host.Checks: %v", err)
+	}
 
-		meta, err := json.Marshal(host.Meta)
-		if err != nil {
-			return fmt.Errorf("marshal host.Meta: %v", err)
-		}
+	meta, err := json.Marshal(host.Meta)
+	if err != nil {
+		return nil, fmt.Errorf("marshal host.Meta: %v", err)
+	}
 
-		if _, err := tx.Exec(
-			`
-			insert into hosts (
-				org_id,
-				id,
-				name,
-				status,
-				memo,
-				display_name,
-				custom_identifier,
-				created_at,
-				retired_at,
-				is_retired,
-				roles,
-				role_fullnames,
-				interfaces,
-				checks,
-				meta
-			)
-			values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-			on duplicate key update
-				name = values(name),
-				status = values(status),
-				memo = values(memo),
-				display_name = values(display_name),
-				custom_identifier = values(custom_identifier),
-				roles = values(roles),
-				role_fullnames = values(role_fullnames),
-				interfaces = values(interfaces),
-				checks = values(checks),
-				meta = values(meta)
-			`,
-			orgID,
-			host.ID,
-			host.Name,
-			host.Status,
-			host.Memo,
-			host.DisplayName,
-			host.CustomIdentifier,
-			host.CreatedAt,
-			host.RetiredAt,
-			host.IsRetired,
-			string(roles),
-			string(roleFullnames),
-			string(interfaces),
-			string(checks),
-			string(meta),
-		); err != nil {
-			return fmt.Errorf("insert into hosts: %v", err)
+	update := Host{
+		Name:             host.Name,
+		Status:           host.Status,
+		Memo:             host.Memo,
+		DisplayName:      host.DisplayName,
+		CustomIdentifier: host.CustomIdentifier,
+		CreatedAt:        host.CreatedAt,
+		RetiredAt:        host.RetiredAt,
+		IsRetired:        host.IsRetired,
+		Roles:            string(roles),
+		RoleFullNames:    string(roleFullnames),
+		Interfaces:       string(interfaces),
+		Checks:           string(checks),
+		Meta:             string(meta),
+	}
 
-		}
-
-		return nil
-	}); err != nil {
-		return nil, fmt.Errorf("transaction: %v", err)
+	if err := repo.DB.Where(&Host{OrgID: orgID, ID: host.ID}).Assign(&update).FirstOrCreate(&Host{}).Error; err != nil {
+		return nil, fmt.Errorf("first or create: %v", err)
 	}
 
 	return &domain.HostID{ID: host.ID}, nil
