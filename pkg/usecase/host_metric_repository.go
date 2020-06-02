@@ -8,6 +8,5 @@ type HostMetricRepository interface {
 	Values(orgID, hostID, name string, from, to int64) (*domain.MetricValues, error)
 	ValuesLimit(orgID, hostID, name string, limit int) (*domain.MetricValues, error)
 	ValuesLatest(orgID string, hostID, name []string) (*domain.TSDBLatest, error)
-	ValuesAverage(orgID, hostID, name string, duration int) (*domain.MetricValueAverage, error)
 	Save(orgID string, values []domain.MetricValue) (*domain.Success, error)
 }

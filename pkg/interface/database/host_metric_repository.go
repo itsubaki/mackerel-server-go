@@ -4,13 +4,43 @@ import (
 	"fmt"
 
 	"github.com/itsubaki/mackerel-server-go/pkg/domain"
+	"github.com/jinzhu/gorm"
 )
 
 type HostMetricRepository struct {
-	SQLHandler
+	DB *gorm.DB
+}
+
+type HostMetricValue struct {
+	OrgID  string  `gorm:"column:org_id;  type:varchar(16);  not null;"`
+	HostID string  `gorm:"column:host_id; type:varchar(16);  not null; primary_key"`
+	Name   string  `gorm:"column:name;    type:varchar(128); not null; primary_key"`
+	Time   int64   `gorm:"column:time;    type:bigint;       not null; primary_key"`
+	Value  float64 `gorm:"column:value;   type:double;       not null;"`
+}
+
+type HostMetricValuesLatest struct {
+	OrgID  string  `gorm:"column:org_id;  type:varchar(16);  not null;"`
+	HostID string  `gorm:"column:host_id; type:varchar(16);  not null; primary_key"`
+	Name   string  `gorm:"column:name;    type:varchar(128); not null; primary_key"`
+	Value  float64 `gorm:"column:value;   type:double;       not null;"`
+}
+
+func (v HostMetricValuesLatest) TableName() string {
+	return "host_metric_values_latest"
 }
 
 func NewHostMetricRepository(handler SQLHandler) *HostMetricRepository {
+	db, err := gorm.Open(handler.Dialect(), handler.Raw())
+	if err != nil {
+		panic(err)
+	}
+	db.LogMode(handler.IsDebugging())
+
+	if err := db.AutoMigrate(&HostMetricValuesLatest{}).Error; err != nil {
+		panic(fmt.Errorf("auto migrate host_metric_values_latest: %v", err))
+	}
+
 	if err := handler.Transact(func(tx Tx) error {
 		if _, err := tx.Exec(
 			`
@@ -27,257 +57,118 @@ func NewHostMetricRepository(handler SQLHandler) *HostMetricRepository {
 			return fmt.Errorf("create table host_metric_values: %v", err)
 		}
 
-		if _, err := tx.Exec(
-			`
-			create table if not exists host_metric_values_latest (
-				org_id  varchar(16)  not null,
-				host_id varchar(16)  not null,
-				name    varchar(128) not null,
-				value   double       not null,
-				primary key(host_id, name)
-			)
-			`,
-		); err != nil {
-			return fmt.Errorf("create table host_metric_values_latest: %v", err)
-		}
-
 		return nil
 	}); err != nil {
 		panic(fmt.Errorf("transaction: %v", err))
 	}
 
 	return &HostMetricRepository{
-		SQLHandler: handler,
+		DB: db,
 	}
 }
 
-// mysql> explain select * from host_metric_values where org_id='default' and host_id='bc754968495' and name='loadavg5' limit 1;
-// +----+-------------+--------------------+------------+------+---------------+---------+---------+-------------+------+----------+-------------+
-// | id | select_type | table              | partitions | type | possible_keys | key     | key_len | ref         | rows | filtered | Extra       |
-// +----+-------------+--------------------+------------+------+---------------+---------+---------+-------------+------+----------+-------------+
-// |  1 | SIMPLE      | host_metric_values | NULL       | ref  | PRIMARY       | PRIMARY | 580     | const,const |   14 |    10.00 | Using where |
-// +----+-------------+--------------------+------------+------+---------------+---------+---------+-------------+------+----------+-------------+
-// 1 row in set, 1 warning (0.00 sec)
 func (repo *HostMetricRepository) Exists(orgID, hostID, name string) bool {
-	rows, err := repo.Query("select 1 from host_metric_values where org_id=? and host_id=? and name=? limit 1", orgID, hostID, name)
-	if err != nil {
-		panic(err)
-	}
-	defer rows.Close()
-
-	if rows.Next() {
-		return true
+	if repo.DB.Where(&HostMetricValue{OrgID: orgID, HostID: hostID, Name: name}).First(&HostMetricValue{}).RecordNotFound() {
+		return false
 	}
 
-	return false
+	return true
 }
 
-// mysql> explain select distinct name from host_metric_values where org_id='default' and host_id='bc754968495';
-// +----+-------------+--------------------+------------+------+---------------+---------+---------+-------+------+----------+-------------+
-// | id | select_type | table              | partitions | type | possible_keys | key     | key_len | ref   | rows | filtered | Extra       |
-// +----+-------------+--------------------+------------+------+---------------+---------+---------+-------+------+----------+-------------+
-// |  1 | SIMPLE      | host_metric_values | NULL       | ref  | PRIMARY       | PRIMARY | 66      | const |  570 |    10.00 | Using where |
-// +----+-------------+--------------------+------------+------+---------------+---------+---------+-------+------+----------+-------------+
-// 1 row in set, 1 warning (0.00 sec)
 func (repo *HostMetricRepository) Names(orgID, hostID string) (*domain.MetricNames, error) {
+	result := make([]HostMetricValue, 0)
+	if err := repo.DB.Table("host_metric_values").Where(&HostMetricValue{OrgID: orgID, HostID: hostID}).Select("distinct(name)").Find(&result).Error; err != nil {
+		return nil, fmt.Errorf("select distinct name from host_metric_values: %v", err)
+	}
+
 	names := make([]string, 0)
-	if err := repo.Transact(func(tx Tx) error {
-		rows, err := tx.Query("select distinct name from host_metric_values where org_id=? and host_id=?", orgID, hostID)
-		if err != nil {
-			return fmt.Errorf("select distinct name from host_metric_values: %v", err)
-		}
-		defer rows.Close()
-
-		for rows.Next() {
-			var name string
-			if err := rows.Scan(&name); err != nil {
-				return fmt.Errorf("scan: %v", err)
-			}
-			names = append(names, name)
-		}
-
-		return nil
-	}); err != nil {
-		return nil, fmt.Errorf("transaction: %v", err)
+	for _, r := range result {
+		names = append(names, r.Name)
 	}
 
 	return &domain.MetricNames{Names: names}, nil
 }
 
-// mysql> explain select value from host_metric_values where host_id='f8775dfd1af' and name='loadavg5' and 1558236780 > time and time > 1558236660;
-// +----+-------------+--------------------+------------+-------+---------------+---------+---------+------+------+----------+-------------+
-// | id | select_type | table              | partitions | type  | possible_keys | key     | key_len | ref  | rows | filtered | Extra       |
-// +----+-------------+--------------------+------------+-------+---------------+---------+---------+------+------+----------+-------------+
-// |  1 | SIMPLE      | host_metric_values | NULL       | range | PRIMARY       | PRIMARY | 588     | NULL |    1 |   100.00 | Using where |
-// +----+-------------+--------------------+------------+-------+---------------+---------+---------+------+------+----------+-------------+
-// 1 row in set, 1 warning (0.01 sec)
 func (repo *HostMetricRepository) Values(orgID, hostID, name string, from, to int64) (*domain.MetricValues, error) {
+	result := make([]HostMetricValue, 0)
+	if err := repo.DB.Where(&HostMetricValue{OrgID: orgID, HostID: hostID, Name: name}).Where("? < time and time < ?", from, to).Find(&result).Error; err != nil {
+		return nil, fmt.Errorf("select time, value from host_metric_values: %v", err)
+	}
+
 	values := make([]domain.MetricValue, 0)
-	if err := repo.Transact(func(tx Tx) error {
-		rows, err := tx.Query("select time, value from host_metric_values where org_id=? and host_id=? and name=? and ? < time and time < ?", orgID, hostID, name, from, to)
-		if err != nil {
-			return fmt.Errorf("select time, value from host_metric_values: %v", err)
-		}
-		defer rows.Close()
-
-		for rows.Next() {
-			var time int64
-			var value float64
-			if err := rows.Scan(&time, &value); err != nil {
-				return fmt.Errorf("scan: %v", err)
-			}
-
-			values = append(values, domain.MetricValue{
-				HostID: hostID,
-				Name:   name,
-				Time:   time,
-				Value:  value,
-			})
-		}
-
-		return nil
-	}); err != nil {
-		return nil, fmt.Errorf("transaction: %v", err)
+	for _, r := range result {
+		values = append(values, domain.MetricValue{
+			OrgID:  r.OrgID,
+			HostID: r.HostID,
+			Name:   r.Name,
+			Time:   r.Time,
+			Value:  r.Value,
+		})
 	}
 
 	return &domain.MetricValues{Metrics: values}, nil
 }
 
-// mysql> explain select time, value from host_metric_values where org_id='default' and host_id='ceb7c8b51c0' and name='loadavg5' order by time desc limit 3;
-// +----+-------------+--------------------+------------+------+---------------+---------+---------+-------------+------+----------+-------------+
-// | id | select_type | table              | partitions | type | possible_keys | key     | key_len | ref         | rows | filtered | Extra       |
-// +----+-------------+--------------------+------------+------+---------------+---------+---------+-------------+------+----------+-------------+
-// |  1 | SIMPLE      | host_metric_values | NULL       | ref  | PRIMARY       | PRIMARY | 580     | const,const |    4 |    10.00 | Using where |
-// +----+-------------+--------------------+------------+------+---------------+---------+---------+-------------+------+----------+-------------+
-// 1 row in set, 1 warning (0.01 sec)
 func (repo *HostMetricRepository) ValuesLimit(orgID, hostID, name string, limit int) (*domain.MetricValues, error) {
+	result := make([]HostMetricValue, 0)
+	if err := repo.DB.Where(&HostMetricValue{OrgID: orgID, HostID: hostID, Name: name}).Order("time desc").Limit(limit).Find(&result).Error; err != nil {
+		return nil, fmt.Errorf("select time, value from host_metric_values: %v", err)
+	}
+
 	values := make([]domain.MetricValue, 0)
-	if err := repo.Transact(func(tx Tx) error {
-		rows, err := tx.Query("select time, value from host_metric_values where org_id=? and host_id=? and name=? order by time desc limit ?", orgID, hostID, name, limit)
-		if err != nil {
-			return fmt.Errorf("select time, value from host_metric_values: %v", err)
-		}
-		defer rows.Close()
-
-		for rows.Next() {
-			var time int64
-			var value float64
-			if err := rows.Scan(&time, &value); err != nil {
-				return fmt.Errorf("scan: %v", err)
-			}
-
-			values = append(values, domain.MetricValue{
-				HostID: hostID,
-				Name:   name,
-				Time:   time,
-				Value:  value,
-			})
-		}
-
-		return nil
-	}); err != nil {
-		return nil, fmt.Errorf("transaction: %v", err)
+	for _, r := range result {
+		values = append(values, domain.MetricValue{
+			OrgID:  r.OrgID,
+			HostID: r.HostID,
+			Name:   r.Name,
+			Time:   r.Time,
+			Value:  r.Value,
+		})
 	}
 
 	return &domain.MetricValues{Metrics: values}, nil
 }
 
-// mysql> explain select * from host_metric_values_latest where host_id in('27b9dad3197') and name in('loadavg5', 'loadavg15');
-// +----+-------------+---------------------------+------------+-------+---------------+---------+---------+------+------+----------+-------------+
-// | id | select_type | table                     | partitions | type  | possible_keys | key     | key_len | ref  | rows | filtered | Extra       |
-// +----+-------------+---------------------------+------------+-------+---------------+---------+---------+------+------+----------+-------------+
-// |  1 | SIMPLE      | host_metric_values_latest | NULL       | range | PRIMARY       | PRIMARY | 580     | NULL |    2 |   100.00 | Using where |
-// +----+-------------+---------------------------+------------+-------+---------------+---------+---------+------+------+----------+-------------+
-// 1 row in set, 1 warning (0.01 sec)
-// mysql> explain select * from host_metric_values where host_id='84a14dbbdc7' and (name='loadavg5' or name='loadavg15') and time in (select max(time) from host_metric_values group by host_id, name);
-// +----+-------------+--------------------+------------+-------+---------------+---------+---------+------+------+----------+--------------------------+
-// | id | select_type | table              | partitions | type  | possible_keys | key     | key_len | ref  | rows | filtered | Extra                    |
-// +----+-------------+--------------------+------------+-------+---------------+---------+---------+------+------+----------+--------------------------+
-// |  1 | PRIMARY     | host_metric_values | NULL       | range | PRIMARY       | PRIMARY | 580     | NULL |   62 |   100.00 | Using where              |
-// |  2 | SUBQUERY    | host_metric_values | NULL       | range | PRIMARY       | PRIMARY | 580     | NULL |  122 |   100.00 | Using index for group-by |
-// +----+-------------+--------------------+------------+-------+---------------+---------+---------+------+------+----------+--------------------------+
-// 2 rows in set, 1 warning (0.01 sec)
-//
-// mysql> explain select host_id, name, value from host_metric_values where time in (select max(time) from host_metric_values group by host_id, name);
-// +----+-------------+--------------------+------------+-------+---------------+---------+---------+------+------+----------+--------------------------+
-// | id | select_type | table              | partitions | type  | possible_keys | key     | key_len | ref  | rows | filtered | Extra                    |
-// +----+-------------+--------------------+------------+-------+---------------+---------+---------+------+------+----------+--------------------------+
-// |  1 | PRIMARY     | host_metric_values | NULL       | ALL   | NULL          | NULL    | NULL    | NULL | 3078 |   100.00 | Using where              |
-// |  2 | SUBQUERY    | host_metric_values | NULL       | range | PRIMARY       | PRIMARY | 580     | NULL |  116 |   100.00 | Using index for group-by |
-// +----+-------------+--------------------+------------+-------+---------------+---------+---------+------+------+----------+--------------------------+
-// 2 rows in set, 1 warning (0.00 sec)
 func (repo *HostMetricRepository) ValuesLatest(orgID string, hostID, name []string) (*domain.TSDBLatest, error) {
+	result := make([]HostMetricValuesLatest, 0)
+	if len(hostID) > 0 && len(name) > 0 {
+		if err := repo.DB.Where("host_id IN (?)", hostID).Where("name IN (?)", name).Find(&result).Error; err != nil {
+			return nil, fmt.Errorf("select * from host_metric_value_latest: %v", err)
+		}
+	} else {
+		if err := repo.DB.Where(&HostMetricValuesLatest{OrgID: orgID}).Find(&result).Error; err != nil {
+			return nil, fmt.Errorf("select * from host_metric_value_latest: %v", err)
+		}
+	}
+
 	latest := make(map[string]map[string]domain.MetricValue)
-	if err := repo.Transact(func(tx Tx) error {
-		query := "select * from host_metric_values_latest where org_id=?"
-		args := []interface{}{orgID}
-
-		// TODO multiple hostID, name
-		if len(name) > 0 && len(hostID) > 0 {
-			query = "select * from host_metric_values_latest where host_id in(?) and name in(?)"
-			args = []interface{}{hostID[0], name[0]}
+	for _, r := range result {
+		if _, ok := latest[r.HostID]; !ok {
+			latest[r.HostID] = make(map[string]domain.MetricValue)
 		}
 
-		rows, err := tx.Query(query, args...)
-		if err != nil {
-			return fmt.Errorf("select * from host_metric_value_latest: %v", err)
-		}
-		defer rows.Close()
-
-		for rows.Next() {
-			var orgID, hostID, name string
-			var value float64
-			if err := rows.Scan(&orgID, &hostID, &name, &value); err != nil {
-				return fmt.Errorf("scan: %v", err)
-			}
-
-			if _, ok := latest[hostID]; !ok {
-				latest[hostID] = make(map[string]domain.MetricValue)
-			}
-
-			latest[hostID][name] = domain.MetricValue{Name: name, Value: value}
-		}
-
-		return nil
-	}); err != nil {
-		return nil, fmt.Errorf("transaction: %v", err)
+		latest[r.HostID][r.Name] = domain.MetricValue{Name: r.Name, Value: r.Value}
 	}
 
 	return &domain.TSDBLatest{TSDBLatest: latest}, nil
 }
 
-// insert into host_metric_values values(${host_id}, ${name}, ${time}, ${value})
 func (repo *HostMetricRepository) Save(orgID string, values []domain.MetricValue) (*domain.Success, error) {
-	if err := repo.Transact(func(tx Tx) error {
+	if err := repo.DB.Transaction(func(tx *gorm.DB) error {
 		for i := range values {
-			if _, err := tx.Exec(
-				"insert into host_metric_values values(?, ?, ?, ?, ?)",
-				orgID,
-				values[i].HostID,
-				values[i].Name,
-				values[i].Time,
-				values[i].Value,
-			); err != nil {
+			if err := tx.Create(&HostMetricValue{
+				OrgID:  orgID,
+				HostID: values[i].HostID,
+				Name:   values[i].Name,
+				Time:   values[i].Time,
+				Value:  values[i].Value,
+			}).Error; err != nil {
 				return fmt.Errorf("insert into host_metric_values: %v", err)
 			}
 
-			if _, err := tx.Exec(
-				`
-				insert into host_metric_values_latest (
-					org_id,
-					host_id,
-					name,
-					value
-				)
-				values (?, ?, ?, ?)
-				on duplicate key update
-					value = values(value)
-				`,
-				orgID,
-				values[i].HostID,
-				values[i].Name,
-				values[i].Value,
-			); err != nil {
+			where := HostMetricValuesLatest{OrgID: orgID, HostID: values[i].HostID, Name: values[i].Name}
+			update := HostMetricValuesLatest{Value: values[i].Value}
+			if err := tx.Where(&where).Assign(&update).FirstOrCreate(&HostMetricValuesLatest{}).Error; err != nil {
 				return fmt.Errorf("insert into host_metric_values_latest: %v", err)
 			}
 		}
@@ -288,53 +179,4 @@ func (repo *HostMetricRepository) Save(orgID string, values []domain.MetricValue
 	}
 
 	return &domain.Success{Success: true}, nil
-}
-
-func (repo *HostMetricRepository) ValuesAverage(orgID, hostID, name string, duration int) (*domain.MetricValueAverage, error) {
-	avg := &domain.MetricValueAverage{
-		OrgID:    orgID,
-		HostID:   hostID,
-		Name:     name,
-		Duration: duration,
-	}
-
-	if err := repo.Transact(func(tx Tx) error {
-		row := tx.QueryRow(`
-			select
-				max(latest.time),
-				avg(latest.value)
-			from (
-				select
-					time,
-					value
-				from
-					host_metric_values
-				where
-					org_id=?  and
-					host_id=? and
-					name=?
-				order by
-					time desc
-				limit ?
-				) as latest
-			`,
-			orgID,
-			hostID,
-			name,
-			duration,
-		)
-
-		if err := row.Scan(
-			&avg.Time,
-			&avg.Value,
-		); err != nil {
-			return fmt.Errorf("scan: %v", err)
-		}
-
-		return nil
-	}); err != nil {
-		return avg, fmt.Errorf("transaction: %v", err)
-	}
-
-	return avg, nil
 }

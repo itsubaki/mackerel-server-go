@@ -33,28 +33,41 @@ func (s *CheckMonitorInteractor) HostMetric(orgID string) (*domain.Success, erro
 				continue
 			}
 
-			avg, err := s.HostMetricRepository.ValuesAverage(h.OrgID, h.ID, m.Metric, m.Duration)
+			values, err := s.HostMetricRepository.ValuesLimit(h.OrgID, h.ID, m.Metric, m.Duration)
 			if err != nil {
 				return &domain.Success{Success: false}, fmt.Errorf("get average of metric value: %v", err)
 			}
 
+			var sum float64
+			for i := range values.Metrics {
+				sum = sum + values.Metrics[i].Value
+			}
+			avg := sum / float64(len(values.Metrics))
+
 			status := "OK"
-			if m.Operator == ">" && avg.Value > m.Warning {
+			if m.Operator == ">" && avg > m.Warning {
 				status = "WARNING"
 			}
-			if m.Operator == ">" && avg.Value > m.Critical {
+			if m.Operator == ">" && avg > m.Critical {
 				status = "CRITICAL"
 			}
-			if m.Operator == "<" && avg.Value < m.Warning {
+			if m.Operator == "<" && avg < m.Warning {
 				status = "WARNING"
 			}
-			if m.Operator == "<" && avg.Value < m.Critical {
+			if m.Operator == "<" && avg < m.Critical {
 				status = "CRITICAL"
 			}
 
 			reason := ""
 			if status == "OK" {
 				reason = "closed automatically"
+			}
+
+			var max int64
+			for i := range values.Metrics {
+				if values.Metrics[i].Time > max {
+					max = values.Metrics[i].Time
+				}
 			}
 
 			if _, err := s.AlertRepository.Save(
@@ -65,14 +78,14 @@ func (s *CheckMonitorInteractor) HostMetric(orgID string) (*domain.Success, erro
 						orgID,
 						h.ID,
 						m.ID,
-						strconv.FormatInt(avg.Time, 10),
+						strconv.FormatInt(max, 10),
 					),
 					Status:    status,
 					MonitorID: m.ID,
 					Type:      "host",
 					HostID:    h.ID,
-					Value:     avg.Value,
-					Message:   fmt.Sprintf("%f %s %f(warning), %f(critical)", avg.Value, m.Operator, m.Warning, m.Critical),
+					Value:     avg,
+					Message:   fmt.Sprintf("%f %s %f(warning), %f(critical)", avg, m.Operator, m.Warning, m.Critical),
 					Reason:    reason,
 					OpenedAt:  time.Now().Unix(),
 				},
