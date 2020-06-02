@@ -94,12 +94,12 @@ func (repo *DowntimeRepository) List(orgID string) (*domain.Downtimes, error) {
 
 	out := make([]domain.Downtime, 0)
 	for _, r := range result {
-		downtime, err := r.Domain()
+		t, err := r.Domain()
 		if err != nil {
 			return nil, fmt.Errorf("domain: %v", err)
 		}
 
-		out = append(out, downtime)
+		out = append(out, t)
 	}
 
 	return &domain.Downtimes{Downtimes: out}, nil
