@@ -3,94 +3,80 @@ package database
 import (
 	"fmt"
 
+	"github.com/jinzhu/gorm"
+
 	"github.com/itsubaki/mackerel-server-go/pkg/domain"
 )
 
 type ChannelRepository struct {
 	SQLHandler
+	DB *gorm.DB
+}
+
+type Channel struct {
+	OrgID             string `gorm:"column:org_id;              type:varchar(16);  not null"`
+	ID                string `gorm:"column:id;                  type:varchar(16);  not null; primary key"`
+	Name              string `gorm:"column:name;                type:varchar(16);  not null"`
+	Type              string `gorm:"column:type;                type:enum('email', 'slack', 'webhook');  not null"`
+	URL               string `gorm:"column:url;                 type:text;"`
+	EnabledGraphImage bool   `gorm:"column:enabled_graph_image; type:bool; not null; default:'1'"`
+}
+
+type ChannelMention struct {
+	OrgID     string `gorm:"column:org_id;     type:varchar(16);  not null"`
+	ChannelID string `gorm:"column:channel_id; type:varchar(16);  not null; primary key"`
+	Status    string `gorm:"column:status;     type:enum('ok', 'warning', 'critical');  not null; primary key"`
+	Message   string `gorm:"column:message;    type:text;"`
+}
+
+type ChannelEvent struct {
+	OrgID     string `gorm:"column:org_id;     type:varchar(16);  not null"`
+	ChannelID string `gorm:"column:channel_id; type:varchar(16);  not null; primary key"`
+	Event     string `gorm:"column:event;      type:varchar(16);  not null; primary key"`
+}
+
+type ChannelEmail struct {
+	OrgID     string `gorm:"column:org_id;     type:varchar(16);  not null"`
+	ChannelID string `gorm:"column:channel_id; type:varchar(16);  not null; primary key"`
+	EMail     string `gorm:"column:email;      type:varchar(128); not null; primary key"`
+}
+
+type ChannelUserID struct {
+	OrgID     string `gorm:"column:org_id;     type:varchar(16); not null"`
+	ChannelID string `gorm:"column:channel_id; type:varchar(16); not null; primary key"`
+	UserID    string `gorm:"column:user_id;    type:varchar(16); not null; primary key"`
 }
 
 func NewChannelRepository(handler SQLHandler) *ChannelRepository {
-	if err := handler.Transact(func(tx Tx) error {
-		if _, err := tx.Exec(
-			`
-			create table if not exists channels (
-				org_id              varchar(16) not null,
-				id                  varchar(16) not null primary key,
-				name                varchar(16) not null,
-				type                enum('email', 'slack', 'webhook') not null,
-				url                 text,
-				enabled_graph_image bool not null default '1'
-			)
-			`,
-		); err != nil {
-			return fmt.Errorf("create tables channels: %v", err)
-		}
+	db, err := gorm.Open(handler.Dialect(), handler.Raw())
+	if err != nil {
+		panic(err)
+	}
+	db.LogMode(handler.IsDebugging())
 
-		if _, err := tx.Exec(
-			`
-			create table if not exists channel_mentions (
-				org_id     varchar(16) not null,
-				channel_id varchar(16) not null,
-				status     enum('ok', 'warning', 'critical') not null,
-				message    text,
-				primary key(channel_id, status),
-				foreign key fk_group(channel_id) references channels(id) on delete cascade on update cascade
-			)
-			`,
-		); err != nil {
-			return fmt.Errorf("create tables channel_mentions: %v", err)
-		}
+	if err := db.AutoMigrate(&Channel{}).Error; err != nil {
+		panic(fmt.Errorf("auto migrate channel: %v", err))
+	}
 
-		if _, err := tx.Exec(
-			`
-			create table if not exists channel_events (
-				org_id     varchar(16) not null,
-				channel_id varchar(16) not null,
-				event      varchar(16) not null,
-				primary key(channel_id, event),
-				foreign key fk_group(channel_id) references channels(id) on delete cascade on update cascade
-			)
-			`,
-		); err != nil {
-			return fmt.Errorf("create tables channel_events: %v", err)
-		}
+	if err := db.AutoMigrate(&ChannelMention{}).AddForeignKey("channel_id", "channels(id)", "CASCADE", "CASCADE").Error; err != nil {
+		panic(fmt.Errorf("auto migrate channel: %v", err))
+	}
 
-		if _, err := tx.Exec(
-			`
-			create table if not exists channel_emails (
-				org_id     varchar(16) not null,
-				channel_id varchar(16) not null,
-				email      varchar(128) not null,
-				primary key(channel_id, email),
-				foreign key fk_group(channel_id) references channels(id) on delete cascade on update cascade
-			)
-			`,
-		); err != nil {
-			return fmt.Errorf("create tables channel_email: %v", err)
-		}
+	if err := db.AutoMigrate(&ChannelEvent{}).AddForeignKey("channel_id", "channels(id)", "CASCADE", "CASCADE").Error; err != nil {
+		panic(fmt.Errorf("auto migrate channel: %v", err))
+	}
 
-		if _, err := tx.Exec(
-			`
-			create table if not exists channel_user_ids (
-				org_id     varchar(16) not null,
-				channel_id varchar(16) not null,
-				user_id    varchar(16) not null,
-				primary key(channel_id, user_id),
-				foreign key fk_group(channel_id) references channels(id) on delete cascade on update cascade
-			)
-			`,
-		); err != nil {
-			return fmt.Errorf("create tables channel_user_ids: %v", err)
-		}
+	if err := db.AutoMigrate(&ChannelEmail{}).AddForeignKey("channel_id", "channels(id)", "CASCADE", "CASCADE").Error; err != nil {
+		panic(fmt.Errorf("auto migrate channel: %v", err))
+	}
 
-		return nil
-	}); err != nil {
-		panic(fmt.Errorf("transaction: %v", err))
+	if err := db.AutoMigrate(&ChannelUserID{}).AddForeignKey("channel_id", "channels(id)", "CASCADE", "CASCADE").Error; err != nil {
+		panic(fmt.Errorf("auto migrate channel: %v", err))
 	}
 
 	return &ChannelRepository{
 		SQLHandler: handler,
+		DB:         db,
 	}
 }
 
@@ -349,17 +335,11 @@ func (repo *ChannelRepository) Save(orgID string, channel *domain.Channel) (inte
 }
 
 func (repo *ChannelRepository) Exists(orgID, channelID string) bool {
-	rows, err := repo.Query("select 1 from channels where org_id=? and id=?", orgID, channelID)
-	if err != nil {
-		panic(err)
-	}
-	defer rows.Close()
-
-	if rows.Next() {
-		return true
+	if repo.DB.Where(&Channel{OrgID: orgID, ID: channelID}).First(&Channel{}).RecordNotFound() {
+		return false
 	}
 
-	return false
+	return true
 }
 
 func (repo *ChannelRepository) Delete(orgID, channelID string) (interface{}, error) {
