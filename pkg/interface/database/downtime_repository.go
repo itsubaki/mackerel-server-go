@@ -29,6 +29,47 @@ type Downtime struct {
 	MonitorExcludeScopes string `gorm:"column:monitor_exclude_scopes; type:text;"`
 }
 
+func (t Downtime) Domain() (domain.Downtime, error) {
+	downtime := domain.Downtime{
+		OrgID:    t.OrgID,
+		ID:       t.ID,
+		Name:     t.Name,
+		Memo:     t.Memo,
+		Start:    t.Start,
+		Duration: t.Duration,
+	}
+
+	if err := json.Unmarshal([]byte(t.Recurrence), &downtime.Recurrence); err != nil {
+		return downtime, fmt.Errorf("unmarshal downitme.Recurrence: %v", err)
+	}
+
+	if err := json.Unmarshal([]byte(t.ServiceScopes), &downtime.ServiceScopes); err != nil {
+		return downtime, fmt.Errorf("unmarshal downitme.ServiceScopes: %v", err)
+	}
+
+	if err := json.Unmarshal([]byte(t.ServiceExcludeScopes), &downtime.ServiceExcludeScopes); err != nil {
+		return downtime, fmt.Errorf("unmarshal downitme.ServiceExcludeScopes: %v", err)
+	}
+
+	if err := json.Unmarshal([]byte(t.RoleScopes), &downtime.RoleScopes); err != nil {
+		return downtime, fmt.Errorf("unmarshal downitme.RoleScopes: %v", err)
+	}
+
+	if err := json.Unmarshal([]byte(t.RoleExcludeScopes), &downtime.RoleExcludeScopes); err != nil {
+		return downtime, fmt.Errorf("unmarshal downitme.RoleExcludeScopes: %v", err)
+	}
+
+	if err := json.Unmarshal([]byte(t.MonitorScopes), &downtime.MonitorScopes); err != nil {
+		return downtime, fmt.Errorf("unmarshal downitme.MonitorScopes: %v", err)
+	}
+
+	if err := json.Unmarshal([]byte(t.MonitorExcludeScopes), &downtime.MonitorExcludeScopes); err != nil {
+		return downtime, fmt.Errorf("unmarshal downitme.MonitorExcludeScopes: %v", err)
+	}
+
+	return downtime, nil
+}
+
 func NewDowntimeRepository(handler SQLHandler) *DowntimeRepository {
 	db, err := gorm.Open(handler.Dialect(), handler.Raw())
 	if err != nil {
@@ -53,41 +94,9 @@ func (repo *DowntimeRepository) List(orgID string) (*domain.Downtimes, error) {
 
 	out := make([]domain.Downtime, 0)
 	for _, r := range result {
-		downtime := domain.Downtime{
-			OrgID:    r.OrgID,
-			ID:       r.ID,
-			Name:     r.Name,
-			Memo:     r.Memo,
-			Start:    r.Start,
-			Duration: r.Duration,
-		}
-
-		if err := json.Unmarshal([]byte(r.Recurrence), &downtime.Recurrence); err != nil {
-			return nil, fmt.Errorf("unmarshal downitme.Recurrence: %v", err)
-		}
-
-		if err := json.Unmarshal([]byte(r.ServiceScopes), &downtime.ServiceScopes); err != nil {
-			return nil, fmt.Errorf("unmarshal downitme.ServiceScopes: %v", err)
-		}
-
-		if err := json.Unmarshal([]byte(r.ServiceExcludeScopes), &downtime.ServiceExcludeScopes); err != nil {
-			return nil, fmt.Errorf("unmarshal downitme.ServiceExcludeScopes: %v", err)
-		}
-
-		if err := json.Unmarshal([]byte(r.RoleScopes), &downtime.RoleScopes); err != nil {
-			return nil, fmt.Errorf("unmarshal downitme.RoleScopes: %v", err)
-		}
-
-		if err := json.Unmarshal([]byte(r.RoleExcludeScopes), &downtime.RoleExcludeScopes); err != nil {
-			return nil, fmt.Errorf("unmarshal downitme.RoleExcludeScopes: %v", err)
-		}
-
-		if err := json.Unmarshal([]byte(r.MonitorScopes), &downtime.MonitorScopes); err != nil {
-			return nil, fmt.Errorf("unmarshal downitme.MonitorScopes: %v", err)
-		}
-
-		if err := json.Unmarshal([]byte(r.MonitorExcludeScopes), &downtime.MonitorExcludeScopes); err != nil {
-			return nil, fmt.Errorf("unmarshal downitme.MonitorExcludeScopes: %v", err)
+		downtime, err := r.Domain()
+		if err != nil {
+			return nil, fmt.Errorf("domain: %v", err)
 		}
 
 		out = append(out, downtime)
@@ -218,45 +227,9 @@ func (repo *DowntimeRepository) Downtime(orgID, downtimeID string) (*domain.Down
 		return nil, fmt.Errorf("select * from downitmes: %v", err)
 	}
 
-	downtime := domain.Downtime{
-		OrgID:    result.OrgID,
-		ID:       result.ID,
-		Name:     result.Name,
-		Memo:     result.Memo,
-		Start:    result.Start,
-		Duration: result.Duration,
-	}
-
-	if err := json.Unmarshal([]byte(result.Recurrence), &downtime.Recurrence); err != nil {
-		return nil, fmt.Errorf("unmarshal downitme.Recurrence: %v", err)
-	}
-
-	if len(downtime.Recurrence.Type) < 1 {
-		downtime.Recurrence = nil
-	}
-
-	if err := json.Unmarshal([]byte(result.ServiceScopes), &downtime.ServiceScopes); err != nil {
-		return nil, fmt.Errorf("unmarshal downitme.ServiceScopes: %v", err)
-	}
-
-	if err := json.Unmarshal([]byte(result.ServiceExcludeScopes), &downtime.ServiceExcludeScopes); err != nil {
-		return nil, fmt.Errorf("unmarshal downitme.ServiceExcludeScopes: %v", err)
-	}
-
-	if err := json.Unmarshal([]byte(result.RoleScopes), &downtime.RoleScopes); err != nil {
-		return nil, fmt.Errorf("unmarshal downitme.RoleScopes: %v", err)
-	}
-
-	if err := json.Unmarshal([]byte(result.RoleExcludeScopes), &downtime.RoleExcludeScopes); err != nil {
-		return nil, fmt.Errorf("unmarshal downitme.RoleExcludeScopes: %v", err)
-	}
-
-	if err := json.Unmarshal([]byte(result.MonitorScopes), &downtime.MonitorScopes); err != nil {
-		return nil, fmt.Errorf("unmarshal downitme.MonitorScopes: %v", err)
-	}
-
-	if err := json.Unmarshal([]byte(result.MonitorExcludeScopes), &downtime.MonitorExcludeScopes); err != nil {
-		return nil, fmt.Errorf("unmarshal downitme.MonitorExcludeScopes: %v", err)
+	downtime, err := result.Domain()
+	if err != nil {
+		return nil, fmt.Errorf("domain: %v", err)
 	}
 
 	return &downtime, nil
@@ -272,41 +245,9 @@ func (repo *DowntimeRepository) Delete(orgID, downtimeID string) (*domain.Downti
 		return nil, fmt.Errorf("delete from downtimes: %v", err)
 	}
 
-	downtime := domain.Downtime{
-		OrgID:    result.OrgID,
-		ID:       result.ID,
-		Name:     result.Name,
-		Memo:     result.Memo,
-		Start:    result.Start,
-		Duration: result.Duration,
-	}
-
-	if err := json.Unmarshal([]byte(result.Recurrence), &downtime.Recurrence); err != nil {
-		return nil, fmt.Errorf("unmarshal downitme.Recurrence: %v", err)
-	}
-
-	if err := json.Unmarshal([]byte(result.ServiceScopes), &downtime.ServiceScopes); err != nil {
-		return nil, fmt.Errorf("unmarshal downitme.ServiceScopes: %v", err)
-	}
-
-	if err := json.Unmarshal([]byte(result.ServiceExcludeScopes), &downtime.ServiceExcludeScopes); err != nil {
-		return nil, fmt.Errorf("unmarshal downitme.ServiceExcludeScopes: %v", err)
-	}
-
-	if err := json.Unmarshal([]byte(result.RoleScopes), &downtime.RoleScopes); err != nil {
-		return nil, fmt.Errorf("unmarshal downitme.RoleScopes: %v", err)
-	}
-
-	if err := json.Unmarshal([]byte(result.RoleExcludeScopes), &downtime.RoleExcludeScopes); err != nil {
-		return nil, fmt.Errorf("unmarshal downitme.RoleExcludeScopes: %v", err)
-	}
-
-	if err := json.Unmarshal([]byte(result.MonitorScopes), &downtime.MonitorScopes); err != nil {
-		return nil, fmt.Errorf("unmarshal downitme.MonitorScopes: %v", err)
-	}
-
-	if err := json.Unmarshal([]byte(result.MonitorExcludeScopes), &downtime.MonitorExcludeScopes); err != nil {
-		return nil, fmt.Errorf("unmarshal downitme.MonitorExcludeScopes: %v", err)
+	downtime, err := result.Domain()
+	if err != nil {
+		return nil, fmt.Errorf("domain: %v", err)
 	}
 
 	return &downtime, nil

@@ -18,6 +18,15 @@ type Service struct {
 	Memo  string `gorm:"column:memo;   type:varchar(218); not null; default:''"`
 }
 
+func (s Service) Domain() domain.Service {
+	return domain.Service{
+		OrgID: s.OrgID,
+		Name:  s.Name,
+		Memo:  s.Memo,
+		Roles: make([]string, 0),
+	}
+}
+
 func NewServiceRepository(handler SQLHandler) *ServiceRepository {
 	db, err := gorm.Open(handler.Dialect(), handler.Raw())
 	if err != nil {
@@ -42,12 +51,7 @@ func (repo *ServiceRepository) List(orgID string) (*domain.Services, error) {
 
 	out := make([]domain.Service, 0)
 	for _, r := range result {
-		out = append(out, domain.Service{
-			OrgID: r.OrgID,
-			Name:  r.Name,
-			Memo:  r.Memo,
-			Roles: make([]string, 0),
-		})
+		out = append(out, r.Domain())
 	}
 
 	return &domain.Services{Services: out}, nil
@@ -67,13 +71,7 @@ func (repo *ServiceRepository) Service(orgID, serviceName string) (*domain.Servi
 		return nil, fmt.Errorf("select * from serviecs: %v", err)
 	}
 
-	service := domain.Service{
-		OrgID: result.OrgID,
-		Name:  result.Name,
-		Memo:  result.Memo,
-		Roles: make([]string, 0),
-	}
-
+	service := result.Domain()
 	return &service, nil
 }
 

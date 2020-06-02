@@ -25,6 +25,20 @@ type User struct {
 	JoinedAt                int64  `gorm:"column:joined_at;                  type:bigint"`
 }
 
+func (u User) Domain() domain.User {
+	return domain.User{
+		OrgID:                   u.OrgID,
+		ID:                      u.ID,
+		ScreenName:              u.ScreenName,
+		Email:                   u.Email,
+		Authority:               u.Authority,
+		IsInRegistrationProcess: u.IsInRegistrationProcess,
+		IsMFAEnabled:            u.IsMFAEnabled,
+		AuthenticationMethods:   strings.Split(u.AuthenticationMethods, ","),
+		JoinedAt:                u.JoinedAt,
+	}
+}
+
 func NewUserRepository(handler SQLHandler) *UserRepository {
 	db, err := gorm.Open(handler.Dialect(), handler.Raw())
 	if err != nil {
@@ -49,17 +63,7 @@ func (repo *UserRepository) List(orgID string) (*domain.Users, error) {
 
 	users := make([]domain.User, 0)
 	for _, r := range result {
-		users = append(users, domain.User{
-			OrgID:                   r.OrgID,
-			ID:                      r.ID,
-			ScreenName:              r.ScreenName,
-			Email:                   r.Email,
-			Authority:               r.Authority,
-			IsInRegistrationProcess: r.IsInRegistrationProcess,
-			IsMFAEnabled:            r.IsMFAEnabled,
-			AuthenticationMethods:   strings.Split(r.AuthenticationMethods, ","),
-			JoinedAt:                0,
-		})
+		users = append(users, r.Domain())
 	}
 
 	return &domain.Users{Users: users}, nil
@@ -103,17 +107,6 @@ func (repo *UserRepository) Delete(orgID, userID string) (*domain.User, error) {
 		return nil, fmt.Errorf("delete from users: %v", err)
 	}
 
-	user := domain.User{
-		OrgID:                   result.OrgID,
-		ID:                      result.ID,
-		ScreenName:              result.ScreenName,
-		Email:                   result.Email,
-		Authority:               result.Authority,
-		IsInRegistrationProcess: result.IsInRegistrationProcess,
-		IsMFAEnabled:            result.IsMFAEnabled,
-		AuthenticationMethods:   strings.Split(result.AuthenticationMethods, ","),
-		JoinedAt:                result.JoinedAt,
-	}
-
+	user := result.Domain()
 	return &user, nil
 }

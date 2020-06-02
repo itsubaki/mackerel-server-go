@@ -33,6 +33,43 @@ type Host struct {
 	Meta             string `gorm:"column:meta;              type:text;"`
 }
 
+func (h Host) Domain() (domain.Host, error) {
+	host := domain.Host{
+		OrgID:            h.OrgID,
+		ID:               h.ID,
+		Name:             h.Name,
+		Status:           h.Status,
+		Memo:             h.Memo,
+		DisplayName:      h.DisplayName,
+		CustomIdentifier: h.CustomIdentifier,
+		CreatedAt:        h.CreatedAt,
+		RetiredAt:        h.RetiredAt,
+		IsRetired:        h.IsRetired,
+	}
+
+	if err := json.Unmarshal([]byte(h.Roles), &host.Roles); err != nil {
+		return host, fmt.Errorf("unmarshal host.Roles: %v", err)
+	}
+
+	if err := json.Unmarshal([]byte(h.RoleFullNames), &host.RoleFullNames); err != nil {
+		return host, fmt.Errorf("unmarshal host.RoleFullNames: %v", err)
+	}
+
+	if err := json.Unmarshal([]byte(h.Interfaces), &host.Interfaces); err != nil {
+		return host, fmt.Errorf("unmarshal host.Interfaces: %v", err)
+	}
+
+	if err := json.Unmarshal([]byte(h.Checks), &host.Checks); err != nil {
+		return host, fmt.Errorf("unmarshal host.Checks: %v", err)
+	}
+
+	if err := json.Unmarshal([]byte(h.Meta), &host.Meta); err != nil {
+		return host, fmt.Errorf("unmarshal host.Meta: %v", err)
+	}
+
+	return host, nil
+}
+
 func NewHostRepository(handler SQLHandler) *HostRepository {
 	db, err := gorm.Open(handler.Dialect(), handler.Raw())
 	if err != nil {
@@ -58,37 +95,9 @@ func (repo *HostRepository) ActiveList(orgID string) (*domain.Hosts, error) {
 
 	out := make([]domain.Host, 0)
 	for _, r := range result {
-		host := domain.Host{
-			OrgID:            r.OrgID,
-			ID:               r.ID,
-			Name:             r.Name,
-			Status:           r.Status,
-			Memo:             r.Memo,
-			DisplayName:      r.DisplayName,
-			CustomIdentifier: r.CustomIdentifier,
-			CreatedAt:        r.CreatedAt,
-			RetiredAt:        r.RetiredAt,
-			IsRetired:        r.IsRetired,
-		}
-
-		if err := json.Unmarshal([]byte(r.Roles), &host.Roles); err != nil {
-			return nil, fmt.Errorf("unmarshal host.Roles: %v", err)
-		}
-
-		if err := json.Unmarshal([]byte(r.RoleFullNames), &host.RoleFullNames); err != nil {
-			return nil, fmt.Errorf("unmarshal host.RoleFullNames: %v", err)
-		}
-
-		if err := json.Unmarshal([]byte(r.Interfaces), &host.Interfaces); err != nil {
-			return nil, fmt.Errorf("unmarshal host.Interfaces: %v", err)
-		}
-
-		if err := json.Unmarshal([]byte(r.Checks), &host.Checks); err != nil {
-			return nil, fmt.Errorf("unmarshal host.Checks: %v", err)
-		}
-
-		if err := json.Unmarshal([]byte(r.Meta), &host.Meta); err != nil {
-			return nil, fmt.Errorf("unmarshal host.Meta: %v", err)
+		host, err := r.Domain()
+		if err != nil {
+			return nil, fmt.Errorf("domain: %v", err)
 		}
 
 		out = append(out, host)
@@ -105,37 +114,9 @@ func (repo *HostRepository) List(orgID string) (*domain.Hosts, error) {
 
 	out := make([]domain.Host, 0)
 	for _, r := range result {
-		host := domain.Host{
-			OrgID:            r.OrgID,
-			ID:               r.ID,
-			Name:             r.Name,
-			Status:           r.Status,
-			Memo:             r.Memo,
-			DisplayName:      r.DisplayName,
-			CustomIdentifier: r.CustomIdentifier,
-			CreatedAt:        r.CreatedAt,
-			RetiredAt:        r.RetiredAt,
-			IsRetired:        r.IsRetired,
-		}
-
-		if err := json.Unmarshal([]byte(r.Roles), &host.Roles); err != nil {
-			return nil, fmt.Errorf("unmarshal host.Roles: %v", err)
-		}
-
-		if err := json.Unmarshal([]byte(r.RoleFullNames), &host.RoleFullNames); err != nil {
-			return nil, fmt.Errorf("unmarshal host.RoleFullNames: %v", err)
-		}
-
-		if err := json.Unmarshal([]byte(r.Interfaces), &host.Interfaces); err != nil {
-			return nil, fmt.Errorf("unmarshal host.Interfaces: %v", err)
-		}
-
-		if err := json.Unmarshal([]byte(r.Checks), &host.Checks); err != nil {
-			return nil, fmt.Errorf("unmarshal host.Checks: %v", err)
-		}
-
-		if err := json.Unmarshal([]byte(r.Meta), &host.Meta); err != nil {
-			return nil, fmt.Errorf("unmarshal host.Meta: %v", err)
+		host, err := r.Domain()
+		if err != nil {
+			return nil, fmt.Errorf("domain: %v", err)
 		}
 
 		out = append(out, host)
@@ -237,37 +218,9 @@ func (repo *HostRepository) Host(orgID, hostID string) (*domain.Host, error) {
 		return nil, fmt.Errorf("select * from hosts: %v", err)
 	}
 
-	host := domain.Host{
-		OrgID:            result.OrgID,
-		ID:               result.ID,
-		Name:             result.Name,
-		Status:           result.Status,
-		Memo:             result.Memo,
-		DisplayName:      result.DisplayName,
-		CustomIdentifier: result.CustomIdentifier,
-		CreatedAt:        result.CreatedAt,
-		RetiredAt:        result.RetiredAt,
-		IsRetired:        result.IsRetired,
-	}
-
-	if err := json.Unmarshal([]byte(result.Roles), &host.Roles); err != nil {
-		return nil, fmt.Errorf("unmarshal host.Roles: %v", err)
-	}
-
-	if err := json.Unmarshal([]byte(result.RoleFullNames), &host.RoleFullNames); err != nil {
-		return nil, fmt.Errorf("unmarshal host.RoleFullNames: %v", err)
-	}
-
-	if err := json.Unmarshal([]byte(result.Interfaces), &host.Interfaces); err != nil {
-		return nil, fmt.Errorf("unmarshal host.Interfaces: %v", err)
-	}
-
-	if err := json.Unmarshal([]byte(result.Checks), &host.Checks); err != nil {
-		return nil, fmt.Errorf("unmarshal host.Checks: %v", err)
-	}
-
-	if err := json.Unmarshal([]byte(result.Meta), &host.Meta); err != nil {
-		return nil, fmt.Errorf("unmarshal host.Meta: %v", err)
+	host, err := result.Domain()
+	if err != nil {
+		return nil, fmt.Errorf("domain: %v", err)
 	}
 
 	return &host, nil

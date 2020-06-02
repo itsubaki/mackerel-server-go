@@ -33,6 +33,19 @@ type GraphAnnotation struct {
 	Roles       string `gorm:"column:roles;       type:text;"`
 }
 
+func (a GraphAnnotation) Domain() domain.GraphAnnotation {
+	return domain.GraphAnnotation{
+		OrgID:       a.OrgID,
+		ID:          a.ID,
+		Title:       a.Title,
+		Description: a.Description,
+		From:        a.From,
+		To:          a.To,
+		Service:     a.Service,
+		Roles:       strings.Split(a.Roles, ","),
+	}
+}
+
 func NewGraphRepository(handler SQLHandler) *GraphRepository {
 	db, err := gorm.Open(handler.Dialect(), handler.Raw())
 	if err != nil {
@@ -88,18 +101,7 @@ func (repo *GraphRepository) List(orgID string) (*domain.GraphAnnotations, error
 
 	out := make([]domain.GraphAnnotation, 0)
 	for _, r := range result {
-		a := domain.GraphAnnotation{
-			OrgID:       r.OrgID,
-			ID:          r.ID,
-			Title:       r.Title,
-			Description: r.Description,
-			From:        r.From,
-			To:          r.To,
-			Service:     r.Service,
-			Roles:       strings.Split(r.Roles, ","),
-		}
-
-		out = append(out, a)
+		out = append(out, r.Domain())
 	}
 
 	return &domain.GraphAnnotations{GraphAnnotations: out}, nil
@@ -151,16 +153,6 @@ func (repo *GraphRepository) Delete(orgID, annotationID string) (*domain.GraphAn
 		return nil, fmt.Errorf("delete from graph_annotations: %v", err)
 	}
 
-	annotation := domain.GraphAnnotation{
-		OrgID:       result.OrgID,
-		ID:          result.ID,
-		Title:       result.Title,
-		Description: result.Description,
-		From:        result.From,
-		To:          result.To,
-		Service:     result.Service,
-		Roles:       strings.Split(result.Roles, ","),
-	}
-
+	annotation := result.Domain()
 	return &annotation, nil
 }

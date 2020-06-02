@@ -57,8 +57,8 @@ func (repo *APIKeyRepository) APIKey(apikey string) (*domain.APIKey, error) {
 	}
 
 	result := APIKey{}
-	if err := repo.DB.Where(&APIKey{APIKey: apikey}).First(&result).Error; err != nil {
-		return nil, fmt.Errorf("select * from api_keys: %v", err)
+	if repo.DB.Where(&APIKey{APIKey: apikey}).First(&result).RecordNotFound() {
+		return nil, fmt.Errorf("apikey not found")
 	}
 
 	now := time.Now().Unix()
