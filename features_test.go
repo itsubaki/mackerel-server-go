@@ -9,6 +9,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/cucumber/godog"
 	messages "github.com/cucumber/messages-go/v10"
@@ -144,10 +145,36 @@ func (a *apiFeature) AlertsExists(alerts *messages.PickleStepArgument_PickleTabl
 		})
 	}
 
-	r := database.AlertRepository{SQLHandler: a.handler}
+	r := database.NewAlertRepository(a.handler)
 	for i := range list {
 		if _, err := r.Save(list[i].OrgID, &list[i]); err != nil {
 			return fmt.Errorf("save alert: %v", err)
+		}
+	}
+
+	return nil
+}
+
+func (a *apiFeature) UsersExists(users *messages.PickleStepArgument_PickleTable) error {
+	list := make([]domain.User, 0)
+	for i := 1; i < len(users.Rows); i++ {
+		list = append(list, domain.User{
+			OrgID:                   users.Rows[i].Cells[0].Value,
+			ID:                      users.Rows[i].Cells[1].Value,
+			ScreenName:              users.Rows[i].Cells[2].Value,
+			Email:                   users.Rows[i].Cells[3].Value,
+			Authority:               "owner",
+			IsInRegistrationProcess: true,
+			IsMFAEnabled:            true,
+			AuthenticationMethods:   []string{"google"},
+			JoinedAt:                time.Now().Unix(),
+		})
+	}
+
+	r := database.NewUserRepository(a.handler)
+	for i := range list {
+		if err := r.Save(list[i].OrgID, &list[i]); err != nil {
+			return fmt.Errorf("save user: %v", err)
 		}
 	}
 
@@ -171,6 +198,7 @@ func FeatureContext(s *godog.Suite) {
 
 	s.BeforeScenario(a.reset)
 	s.Step(`^the following alerts exist:$`, a.AlertsExists)
+	s.Step(`^the following users exist:$`, a.UsersExists)
 	s.Step(`^I set "([^"]*)" header with "([^"]*)"$`, a.SetHeader)
 	s.Step(`^I set request body:$`, a.SetRequestBody)
 	s.Step(`^I send "([^"]*)" request to "([^"]*)"$`, a.Request)
