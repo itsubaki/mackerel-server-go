@@ -21,13 +21,13 @@ Mackerel API Server in Go
    - [x] Notification Groups
    - [ ] Dashboards
    - [x] Graph Annotations
-   - [ ] Users
+   - [x] Users
    - [x] Invitations
    - [x] Organizations
-   - [ ] Downtime
+   - [x] Downtime
  - Persistence
    - [x] Database/Transaction
-   - [ ] ORM
+   - [x] ORM
  - Security
    - [x] `X-Api-Key`
 
