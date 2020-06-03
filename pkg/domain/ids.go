@@ -5,10 +5,6 @@ import (
 	"github.com/speps/go-hashids"
 )
 
-func NewAPIKey() string {
-	return NewID(44, uuid.Must(uuid.NewRandom()).String())
-}
-
 func NewRandomID() string {
 	return NewID(11, uuid.Must(uuid.NewRandom()).String())
 }
@@ -26,10 +22,12 @@ func NewID(digit int, seed ...string) string {
 	hd := hashids.NewData()
 	hd.MinLength = digit
 	hd.Salt = sum
+
 	h, err := hashids.NewWithData(hd)
 	if err != nil {
 		panic(err)
 	}
+
 	id, err := h.Encode([]int{42})
 	if err != nil {
 		panic(err)

@@ -71,13 +71,13 @@ type ServiceMetricValueNames struct {
 }
 
 func (v ServiceMetricValues) MetricNames() *ServiceMetricValueNames {
-	nmap := make(map[string]bool)
+	metrics := make(map[string]bool)
 	for i := range v.Metrics {
-		nmap[v.Metrics[i].Name] = true
+		metrics[v.Metrics[i].Name] = true
 	}
 
 	names := make([]string, 0)
-	for k := range nmap {
+	for k := range metrics {
 		names = append(names, k)
 	}
 
