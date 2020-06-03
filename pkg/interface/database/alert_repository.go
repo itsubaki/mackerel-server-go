@@ -164,121 +164,38 @@ func (repo *AlertRepository) Save(orgID string, alert *domain.Alert) (*domain.Al
 		return alert, fmt.Errorf("transaction: %v", err)
 	}
 
-	//if err := repo.DB.Transaction(func(tx *gorm.DB) error {
-	//	result := AlertHistory{}
-	//	if err := tx.Where(&AlertHistory{OrgID: orgID, HostID: alert.HostID, MonitorID: alert.MonitorID}).Order("time desc").First(&result).Error; err != nil {
-	//		// no record
-	//		return nil
-	//	}
-	//
-	//	if result.Status == "OK" && alert.Status == "OK" {
-	//		// have record and alert closed
-	//		return nil
-	//	}
-	//
-	//	var closedAt int64
-	//	if alert.Status == "OK" {
-	//		closedAt = result.Time
-	//	}
-	//
-	//	update := Alert{
-	//		OrgID:     orgID,
-	//		ID:        alert.ID,
-	//		Status:    result.Status,
-	//		MonitorID: alert.MonitorID,
-	//		Type:      alert.Type,
-	//		HostID:    result.HostID,
-	//		Value:     alert.Value,
-	//		Message:   result.Message,
-	//		Reason:    alert.Reason,
-	//		OpenedAt:  result.Time,
-	//		ClosedAt:  closedAt,
-	//	}
-	//
-	//	if err := tx.Where(&Alert{ID: result.AlertID}).Assign(&update).FirstOrCreate(&Alert{}).Error; err != nil {
-	//		return fmt.Errorf("insert into alerts: %v", err)
-	//	}
-	//
-	//	return nil
-	//}); err != nil {
-	//	return alert, fmt.Errorf("transaction: %v", err)
-	//}
-
-	if err := repo.Transact(func(tx Tx) error {
-		row := tx.QueryRow(
-			`
-				select
-					alert_id,
-					status,
-					host_id,
-					message,
-					time
-				from
-					alert_history
-				where
-					org_id=?  and
-					host_id=? and
-					monitor_id=?
-				order by
-					time desc
-				limit 1
-				`,
-			orgID,
-			alert.HostID,
-			alert.MonitorID,
-		)
-
-		var alertID, status, hostID, message string
-		var timestamp int64
-		if err := row.Scan(&alertID, &status, &hostID, &message, &timestamp); err != nil {
+	if err := repo.DB.Transaction(func(tx *gorm.DB) error {
+		result := AlertHistory{}
+		if err := tx.Where(&AlertHistory{OrgID: orgID, HostID: alert.HostID, MonitorID: alert.MonitorID}).Order("time desc").First(&result).Error; err != nil {
 			// no record
 			return nil
 		}
 
-		if status == "OK" && alert.Status == "OK" {
+		if result.Status == "OK" && alert.Status == "OK" {
 			// have record and alert closed
 			return nil
 		}
 
 		var closedAt int64
 		if alert.Status == "OK" {
-			closedAt = timestamp
+			closedAt = result.Time
 		}
 
-		if _, err := tx.Exec(
-			`
-				insert into alerts (
-					org_id,
-					id,
-					status,
-					monitor_id,
-					type,
-					host_id,
-					value,
-					message,
-					reason,
-					opened_at,
-					closed_at
-				)
-				values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-				on duplicate key update
-					value = values(value),
-					status = values(status),
-					message = values(message),
-					closed_at = values(closed_at)
-				`,
-			orgID,
-			alertID,
-			status,
-			alert.MonitorID,
-			alert.Type,
-			hostID,
-			alert.Value,
-			message,
-			alert.Reason,
-			timestamp,
-			closedAt,
-		); err != nil {
+		update := Alert{
+			OrgID:     orgID,
+			ID:        result.AlertID,
+			Status:    result.Status,
+			MonitorID: alert.MonitorID,
+			Type:      alert.Type,
+			HostID:    result.HostID,
+			Value:     alert.Value,
+			Message:   result.Message,
+			Reason:    alert.Reason,
+			OpenedAt:  result.Time,
+			ClosedAt:  closedAt,
+		}
+
+		if err := tx.Where(&Alert{ID: result.AlertID}).Assign(&update).FirstOrCreate(&Alert{}).Error; err != nil {
 			return fmt.Errorf("insert into alerts: %v", err)
 		}
 
