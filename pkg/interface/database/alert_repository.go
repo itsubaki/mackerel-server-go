@@ -9,7 +9,6 @@ import (
 )
 
 type AlertRepository struct {
-	SQLHandler
 	DB *gorm.DB
 }
 
@@ -109,8 +108,7 @@ func NewAlertRepository(handler SQLHandler) *AlertRepository {
 	}
 
 	return &AlertRepository{
-		SQLHandler: handler,
-		DB:         db,
+		DB: db,
 	}
 }
 
