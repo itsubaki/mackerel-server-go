@@ -62,7 +62,7 @@ func (repo *APIKeyRepository) APIKey(apikey string) (*domain.APIKey, error) {
 	}
 
 	now := time.Now().Unix()
-	if err := repo.DB.Where(&APIKey{APIKey: apikey}).Assign(&APIKey{LastAccess: now}).FirstOrCreate(&APIKey{}).Error; err != nil {
+	if err := repo.DB.Model(&APIKey{}).Where(&APIKey{APIKey: apikey}).Update(&APIKey{LastAccess: now}).Error; err != nil {
 		return nil, fmt.Errorf("first or create: %v", err)
 	}
 
