@@ -22,6 +22,17 @@ type APIKey struct {
 	LastAccess int64  `gorm:"column:last_access; type:varchar(16); not null; default:0"`
 }
 
+func (k APIKey) Domain() domain.APIKey {
+	return domain.APIKey{
+		OrgID:      k.OrgID,
+		Name:       k.Name,
+		APIKey:     k.APIKey,
+		Read:       k.Read,
+		Write:      k.Write,
+		LastAccess: k.LastAccess,
+	}
+}
+
 func NewAPIKeyRepository(handler SQLHandler) *APIKeyRepository {
 	db, err := gorm.Open(handler.Dialect(), handler.Raw())
 	if err != nil {
@@ -57,23 +68,22 @@ func (repo *APIKeyRepository) APIKey(apikey string) (*domain.APIKey, error) {
 	}
 
 	result := APIKey{}
-	if repo.DB.Where(&APIKey{APIKey: apikey}).First(&result).RecordNotFound() {
-		return nil, fmt.Errorf("apikey not found")
+	if err := repo.DB.Transaction(func(tx *gorm.DB) error {
+		if tx.Where(&APIKey{APIKey: apikey}).First(&result).RecordNotFound() {
+			return fmt.Errorf("apikey not found")
+		}
+
+		now := time.Now().Unix()
+		if err := tx.Model(&APIKey{}).Where(&APIKey{APIKey: apikey}).Update(&APIKey{LastAccess: now}).Error; err != nil {
+			return fmt.Errorf("update: %v", err)
+		}
+		result.LastAccess = now
+
+		return nil
+	}); err != nil {
+		return nil, fmt.Errorf("transaction: %v", err)
 	}
 
-	now := time.Now().Unix()
-	if err := repo.DB.Where(&APIKey{APIKey: apikey}).Assign(&APIKey{LastAccess: now}).FirstOrCreate(&APIKey{}).Error; err != nil {
-		return nil, fmt.Errorf("first or create: %v", err)
-	}
-
-	out := domain.APIKey{
-		OrgID:      result.OrgID,
-		Name:       result.Name,
-		APIKey:     result.APIKey,
-		Read:       result.Read,
-		Write:      result.Write,
-		LastAccess: now,
-	}
-
+	out := result.Domain()
 	return &out, nil
 }

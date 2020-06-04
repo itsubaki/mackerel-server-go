@@ -222,7 +222,7 @@ func (repo *HostRepository) SaveRoleFullNames(orgID, hostID string, names *domai
 	}
 
 	if err := repo.DB.Where(&Host{OrgID: orgID, ID: hostID}).Assign(&Host{RoleFullNames: string(roleFullnames), Roles: string(roles)}).FirstOrCreate(&Host{}).Error; err != nil {
-		return &domain.Success{Success: false}, fmt.Errorf("transaction: %v", err)
+		return &domain.Success{Success: false}, fmt.Errorf("first for create: %v", err)
 	}
 
 	return &domain.Success{Success: true}, nil
