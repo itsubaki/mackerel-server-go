@@ -40,12 +40,15 @@ func doResponse(c Context, out interface{}, err error) {
 		*usecase.AlertLimitOver:
 		c.Status(http.StatusBadRequest)
 		return
-	case *usecase.ServiceMetricPostLimitExceeded:
+	case
+		*usecase.ServiceMetricPostLimitExceeded:
 		c.Status(http.StatusTooManyRequests)
 		return
-	case *usecase.MetadataTooLarge:
+	case
+		*usecase.MetadataTooLarge:
 		c.Status(http.StatusRequestEntityTooLarge)
-	case *usecase.PermissionDenied:
+	case
+		*usecase.PermissionDenied:
 		c.Status(http.StatusForbidden)
 		return
 	default:
