@@ -44,22 +44,37 @@ func NewAPIKeyRepository(handler SQLHandler) *APIKeyRepository {
 		panic(fmt.Errorf("auto migrate apikey: %v", err))
 	}
 
-	apikey := APIKey{
-		OrgID:      "4b825dc642c",
-		Name:       "default",
-		APIKey:     "2684d06cfedbee8499f326037bb6fb7e8c22e73b16bb",
-		Read:       true,
-		Write:      true,
-		LastAccess: time.Now().Unix(),
-	}
-
-	if err := db.Where(&apikey).Assign(&apikey).FirstOrCreate(&APIKey{}).Error; err != nil {
-		panic(fmt.Errorf("first or create: %v", err))
-	}
-
 	return &APIKeyRepository{
 		DB: db,
 	}
+}
+
+func (repo *APIKeyRepository) Save(orgID, name, apikey string, write bool) (*domain.APIKey, error) {
+	create := APIKey{
+		OrgID:      orgID,
+		Name:       name,
+		APIKey:     apikey,
+		Read:       true,
+		Write:      write,
+		LastAccess: time.Now().Unix(),
+	}
+
+	if err := repo.DB.Transaction(func(tx *gorm.DB) error {
+		if found := !tx.Where(&APIKey{APIKey: apikey}).First(&APIKey{}).RecordNotFound(); found {
+			return nil
+		}
+
+		if err := tx.Create(&create).Error; err != nil {
+			return fmt.Errorf("create: %v", err)
+		}
+
+		return nil
+	}); err != nil {
+		return nil, fmt.Errorf("transaction: %v", err)
+	}
+
+	out := create.Domain()
+	return &out, nil
 }
 
 func (repo *APIKeyRepository) APIKey(apikey string) (*domain.APIKey, error) {

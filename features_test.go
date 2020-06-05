@@ -39,11 +39,14 @@ func (a *apiFeature) start() {
 	if err != nil {
 		panic(err)
 	}
-	r := infrastructure.Router(h)
+
+	if err := infrastructure.RunFixture(h); err != nil {
+		panic(err)
+	}
 
 	a.config = c
 	a.handler = h
-	a.server = r
+	a.server = infrastructure.Router(h)
 	a.keep = make(map[string]interface{})
 }
 

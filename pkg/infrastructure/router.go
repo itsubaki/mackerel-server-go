@@ -1,6 +1,7 @@
 package infrastructure
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -242,4 +243,16 @@ func Router(handler database.SQLHandler) *gin.Engine {
 	CheckMonitors(v0, handler)
 
 	return g
+}
+
+func RunFixture(handler database.SQLHandler) error {
+	if _, err := database.NewOrgRepository(handler).Save("4b825dc642c", "mackerel"); err != nil {
+		return fmt.Errorf("org save: %v", err)
+	}
+
+	if _, err := database.NewAPIKeyRepository(handler).Save("4b825dc642c", "default", "2684d06cfedbee8499f326037bb6fb7e8c22e73b16bb", true); err != nil {
+		return fmt.Errorf("apikey save: %v", err)
+	}
+
+	return nil
 }

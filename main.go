@@ -30,6 +30,10 @@ func main() {
 	h.SetMaxOpenConns(10)
 	h.SetConnMaxLifetime(10 * time.Minute)
 
+	if err := infrastructure.RunFixture(h); err != nil {
+		log.Fatalf("run fixture: %v", err)
+	}
+
 	s := &http.Server{
 		Addr:    c.Port,
 		Handler: infrastructure.Router(h),
@@ -48,9 +52,11 @@ func main() {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
+
 	if err := s.Shutdown(ctx); err != nil {
 		log.Fatalf("http server shutdown: %v\n", err)
 	}
+
 	if err := h.Close(); err != nil {
 		log.Fatalf("handler closed: %v\n", err)
 	}
