@@ -80,32 +80,3 @@ mackerel-agent -conf /usr/local/etc/mackerel-agent.conf -apibase=http://localhos
 2019/05/24 23:52:07 main.go:171: INFO <main> Starting mackerel-agent version:0.59.0, rev:, apibase:http://localhost:8080
 2019/05/24 23:52:12 command.go:91: DEBUG <command> Registering new host on mackerel...
 ```
-
-# Cucumber(godog)
-
-```
-$ godog features/org.feature 
-Feature:
-  In order to know org name
-  As an API user
-  I need to be able to request org
-
-  Scenario: should get org                                                             # features/org.feature:6
-    Given I set "X-Api-Key" header with "2684d06cfedbee8499f326037bb6fb7e8c22e73b16bb" # feature_test.go:68 -> *apiFeature
-    When I send "GET" request to "/api/v0/org"                                         # feature_test.go:78 -> *apiFeature
-    Then the response code should be 200                                               # feature_test.go:86 -> *apiFeature
-    Then the response should match json:                                               # feature_test.go:94 -> *apiFeature
-      """
-      {
-        "name": "mackerel"
-      }
-      """
-
-  Scenario: forbidden                          # features/org.feature:17
-    When I send "GET" request to "/api/v0/org" # feature_test.go:78 -> *apiFeature
-    Then the response code should be 403       # feature_test.go:86 -> *apiFeature
-
-2 scenarios (2 passed)
-6 steps (6 passed)
-1.544887852s
-```

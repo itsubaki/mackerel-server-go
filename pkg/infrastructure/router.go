@@ -10,7 +10,7 @@ import (
 )
 
 func Status(g *gin.Engine) {
-	g.GET("/", func(c *gin.Context) {
+	g.GET("/status", func(c *gin.Context) {
 		c.Status(http.StatusOK)
 	})
 }
@@ -246,7 +246,7 @@ func Router(handler database.SQLHandler) *gin.Engine {
 }
 
 func RunFixture(handler database.SQLHandler) error {
-	if _, err := database.NewOrgRepository(handler).Save("4b825dc642c", "mackerel"); err != nil {
+	if _, err := database.NewOrgRepository(handler).Save("4b825dc642c", "hatena"); err != nil {
 		return fmt.Errorf("org save: %v", err)
 	}
 

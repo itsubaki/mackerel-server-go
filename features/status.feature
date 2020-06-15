@@ -4,5 +4,5 @@ Feature:
   I need to be able to request status
 
   Scenario: should get status code
-    When I send "GET" request to "/"
+    When I send "GET" request to "/status"
     Then the response code should be 200
