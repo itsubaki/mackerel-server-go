@@ -96,7 +96,7 @@ func (repo *RoleRepository) Save(orgID, serviceName string, r *domain.Role) erro
 		Memo:        r.Memo,
 	}
 
-	if err := repo.DB.Where(&Role{OrgID: orgID, ServiceName: serviceName}).Assign(&update).FirstOrCreate(&Role{}).Error; err != nil {
+	if err := repo.DB.Where(&Role{OrgID: orgID, ServiceName: serviceName, Name: r.Name}).Assign(&update).FirstOrCreate(&Role{}).Error; err != nil {
 		return fmt.Errorf("insert into roles: %v", err)
 	}
 

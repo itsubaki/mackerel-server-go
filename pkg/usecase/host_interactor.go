@@ -68,15 +68,13 @@ func (s *HostInteractor) Save(orgID string, host *domain.Host) (*domain.HostID, 
 
 	// Save Services, Roles
 	for svc, roles := range host.Roles {
-		if s.ServiceRepository.Exists(orgID, svc) {
-			continue
-		}
-
-		if err := s.ServiceRepository.Save(orgID, &domain.Service{
-			OrgID: orgID,
-			Name:  svc,
-		}); err != nil {
-			return nil, fmt.Errorf("save service<%s>: %v", svc, err)
+		if !s.ServiceRepository.Exists(orgID, svc) {
+			if err := s.ServiceRepository.Save(orgID, &domain.Service{
+				OrgID: orgID,
+				Name:  svc,
+			}); err != nil {
+				return nil, fmt.Errorf("save service<%s>: %v", svc, err)
+			}
 		}
 
 		for i := range roles {
