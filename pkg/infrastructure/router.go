@@ -9,6 +9,12 @@ import (
 	"github.com/itsubaki/mackerel-server-go/pkg/interface/database"
 )
 
+func Root(g *gin.Engine) {
+	g.GET("/", func(c *gin.Context) {
+		c.Status(http.StatusOK)
+	})
+}
+
 func Status(g *gin.Engine) {
 	g.GET("/status", func(c *gin.Context) {
 		c.Status(http.StatusOK)
@@ -189,7 +195,7 @@ func Downtimes(v0 *gin.RouterGroup, handler database.SQLHandler) {
 	d.DELETE("/:downtimeId", func(c *gin.Context) { downtime.Delete(c) })
 }
 
-func UseAPIKey(g *gin.Engine, handler database.SQLHandler) {
+func UseAPIKey(g *gin.RouterGroup, handler database.SQLHandler) {
 	apikey := controller.NewAPIKeyController(handler)
 
 	g.Use(func(c *gin.Context) {
@@ -219,12 +225,14 @@ func Router(handler database.SQLHandler) *gin.Engine {
 		g.Use(gin.Logger())
 	}
 
+	Root(g)
 	Status(g)
 
-	// middleware
-	UseAPIKey(g, handler)
-
 	v0 := g.Group("/api").Group("/v0")
+	// middleware
+	UseAPIKey(v0, handler)
+
+	// api
 	Hosts(v0, handler)
 	Services(v0, handler)
 	Monitors(v0, handler)
