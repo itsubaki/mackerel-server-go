@@ -133,7 +133,7 @@ func (repo *AlertRepository) Save(orgID string, alert *domain.Alert) (*domain.Al
 			return nil
 		}
 
-		if (len(result.Status) < 1 || result.Status == "OK") && alert.Status != "OK" {
+		if (result.Status == "" || result.Status == "OK") && alert.Status != "OK" {
 			// new alert
 			result.AlertID = alert.ID
 		}

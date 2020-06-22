@@ -20,7 +20,11 @@ func main() {
 	c := config.New()
 	log.Printf("%#v\n", c)
 
-	h, err := handler.New(c)
+	h, err := handler.New(c.Driver, c.Host, c.Database, handler.Opt{
+		SQLMode: c.SQLMode,
+		Timeout: &c.Timeout,
+		Sleep:   &c.Sleep,
+	})
 	if err != nil {
 		log.Printf("handler new: %v", err)
 	}

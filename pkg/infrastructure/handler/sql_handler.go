@@ -4,34 +4,45 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"os"
+	"strings"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/itsubaki/mackerel-server-go/pkg/infrastructure/config"
 	"github.com/itsubaki/mackerel-server-go/pkg/interface/database"
 )
 
 type SQLHandler struct {
 	DB      *sql.DB
 	Driver  string
-	Mode    string
+	SQLMode string
 	Timeout time.Duration
 	Sleep   time.Duration
 }
 
-func New(c *config.Config) (database.SQLHandler, error) {
-	if err := Query(c.Driver, c.Host, []string{
-		fmt.Sprintf("create database if not exists %s", c.Database),
-	}); err != nil {
+type Opt struct {
+	SQLMode string
+	Timeout *time.Duration
+	Sleep   *time.Duration
+}
+
+func dsn(host, database string) string {
+	if !strings.HasSuffix(host, "/") && !strings.HasPrefix(database, "/") {
+		return fmt.Sprintf("%s/%s", host, database)
+	}
+
+	return fmt.Sprintf("%s%s", host, database)
+}
+
+func New(driver, host, database string, opt ...Opt) (database.SQLHandler, error) {
+	if err := Query(driver, host, []string{fmt.Sprintf("create database if not exists %s", database)}, opt...); err != nil {
 		return nil, fmt.Errorf("query: %v", err)
 	}
 
-	return Open(c.Driver, c.DSN())
+	return Open(driver, dsn(host, database))
 }
 
-func Query(driver, dsn string, query []string) error {
-	h, err := Open(driver, dsn)
+func Query(driver, dsn string, query []string, opt ...Opt) error {
+	h, err := Open(driver, dsn, opt...)
 	if err != nil {
 		return fmt.Errorf("open: %v", err)
 	}
@@ -52,7 +63,7 @@ func Query(driver, dsn string, query []string) error {
 	return nil
 }
 
-func Open(driver, dsn string) (database.SQLHandler, error) {
+func Open(driver, dsn string, opt ...Opt) (database.SQLHandler, error) {
 	db, err := sql.Open(driver, dsn)
 	if err != nil {
 		return nil, fmt.Errorf("sql open: %v", err)
@@ -61,9 +72,21 @@ func Open(driver, dsn string) (database.SQLHandler, error) {
 	h := &SQLHandler{
 		DB:      db,
 		Driver:  driver,
-		Mode:    os.Getenv("SQL_MODE"),
+		SQLMode: "release",
 		Timeout: 10 * time.Minute,
 		Sleep:   10 * time.Second,
+	}
+
+	if len(opt) > 0 && opt[0].SQLMode != "" {
+		h.SQLMode = opt[0].SQLMode
+	}
+
+	if len(opt) > 0 && opt[0].Timeout != nil {
+		h.Timeout = *opt[0].Timeout
+	}
+
+	if len(opt) > 0 && opt[0].Sleep != nil {
+		h.Sleep = *opt[0].Sleep
 	}
 
 	if err := h.Ping(); err != nil {
@@ -159,7 +182,7 @@ func (h *SQLHandler) Raw() interface{} {
 
 func (h *SQLHandler) IsDebugging() bool {
 	debug := false
-	if h.Mode == "debug" {
+	if strings.ToLower(h.SQLMode) == "debug" {
 		debug = true
 	}
 

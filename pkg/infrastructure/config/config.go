@@ -1,9 +1,8 @@
 package config
 
 import (
-	"fmt"
 	"os"
-	"strings"
+	"time"
 )
 
 type Config struct {
@@ -11,11 +10,14 @@ type Config struct {
 	Driver   string
 	Host     string
 	Database string
+	SQLMode  string
+	Timeout  time.Duration
+	Sleep    time.Duration
 }
 
 func GetValue(key, defaultValue string) string {
 	val := os.Getenv(key)
-	if len(val) > 0 {
+	if val != "" {
 		return val
 	}
 
@@ -28,13 +30,8 @@ func New() *Config {
 		Driver:   GetValue("DRIVER", "mysql"),
 		Host:     GetValue("HOST", "root:secret@tcp(127.0.0.1:3306)/"),
 		Database: GetValue("DATABASE", "mackerel"),
+		SQLMode:  GetValue("SQL_MODE", "release"),
+		Timeout:  10 * time.Minute,
+		Sleep:    10 * time.Second,
 	}
-}
-
-func (c *Config) DSN() string {
-	if !strings.HasSuffix(c.Host, "/") && !strings.HasPrefix(c.Database, "/") {
-		return fmt.Sprintf("%s/%s", c.Host, c.Database)
-	}
-
-	return fmt.Sprintf("%s%s", c.Host, c.Database)
 }

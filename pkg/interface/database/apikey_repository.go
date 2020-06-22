@@ -78,7 +78,7 @@ func (repo *APIKeyRepository) Save(orgID, name, apikey string, write bool) (*dom
 }
 
 func (repo *APIKeyRepository) APIKey(apikey string) (*domain.APIKey, error) {
-	if len(apikey) < 1 {
+	if apikey == "" {
 		return nil, fmt.Errorf("apikey is empty")
 	}
 

@@ -24,12 +24,12 @@ func (s *HostInteractor) List(orgID string) (*domain.Hosts, error) {
 
 func (s *HostInteractor) Save(orgID string, host *domain.Host) (*domain.HostID, error) {
 	// Update Host
-	if len(host.ID) > 0 && !s.HostRepository.Exists(orgID, host.ID) {
+	if host.ID != "" && !s.HostRepository.Exists(orgID, host.ID) {
 		return nil, &HostNotFound{Err{errors.New(fmt.Sprintf("the host that corresponds to the <%s> can’t be located", host.ID))}}
 	}
 
 	// Set Status
-	if len(host.Status) < 1 && s.HostRepository.Exists(orgID, host.ID) {
+	if host.Status == "" && s.HostRepository.Exists(orgID, host.ID) {
 		exists, err := s.HostRepository.Host(orgID, host.ID)
 		if err != nil {
 			return nil, &HostNotFound{Err{errors.New(fmt.Sprintf("the host that corresponds to the <%s> can’t be located", host.ID))}}
@@ -38,13 +38,13 @@ func (s *HostInteractor) Save(orgID string, host *domain.Host) (*domain.HostID, 
 	}
 
 	// Create Host
-	if len(host.ID) < 1 {
+	if host.ID == "" {
 		host.ID = domain.NewRandomID()
 		host.CreatedAt = time.Now().Unix()
 		host.RetiredAt = 0
 		host.IsRetired = false
 		host.Checks = []domain.Check{}
-		if len(host.Status) < 1 {
+		if host.Status == "" {
 			host.Status = "working"
 		}
 	}
