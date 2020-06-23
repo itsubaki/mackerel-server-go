@@ -20,9 +20,12 @@ type SQLHandler struct {
 }
 
 type Opt struct {
-	SQLMode string
-	Timeout *time.Duration
-	Sleep   *time.Duration
+	SQLMode         string
+	Timeout         *time.Duration
+	Sleep           *time.Duration
+	MaxIdleConns    *int
+	MaxOpenConns    *int
+	ConnMaxLifetime *time.Duration
 }
 
 func dsn(host, database string) string {
@@ -77,16 +80,8 @@ func Open(driver, dsn string, opt ...Opt) (database.SQLHandler, error) {
 		Sleep:   10 * time.Second,
 	}
 
-	if len(opt) > 0 && opt[0].SQLMode != "" {
-		h.SQLMode = opt[0].SQLMode
-	}
-
-	if len(opt) > 0 && opt[0].Timeout != nil {
-		h.Timeout = *opt[0].Timeout
-	}
-
-	if len(opt) > 0 && opt[0].Sleep != nil {
-		h.Sleep = *opt[0].Sleep
+	if len(opt) > 0 {
+		h.SetOpt(opt[0])
 	}
 
 	if err := h.Ping(); err != nil {
@@ -94,6 +89,32 @@ func Open(driver, dsn string, opt ...Opt) (database.SQLHandler, error) {
 	}
 
 	return h, nil
+}
+
+func (h *SQLHandler) SetOpt(opt Opt) {
+	if opt.SQLMode != "" {
+		h.SQLMode = opt.SQLMode
+	}
+
+	if opt.Timeout != nil {
+		h.Timeout = *opt.Timeout
+	}
+
+	if opt.Sleep != nil {
+		h.Sleep = *opt.Sleep
+	}
+
+	if opt.MaxIdleConns != nil {
+		h.SetMaxIdleConns(*opt.MaxIdleConns)
+	}
+
+	if opt.MaxOpenConns != nil {
+		h.SetMaxOpenConns(*opt.MaxOpenConns)
+	}
+
+	if opt.ConnMaxLifetime != nil {
+		h.SetConnMaxLifetime(*opt.ConnMaxLifetime)
+	}
 }
 
 func (h *SQLHandler) SetMaxIdleConns(n int) {

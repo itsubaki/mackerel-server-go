@@ -21,18 +21,17 @@ func main() {
 	log.Printf("%#v\n", c)
 
 	h, err := handler.New(c.Driver, c.Host, c.Database, handler.Opt{
-		SQLMode: c.SQLMode,
-		Timeout: &c.Timeout,
-		Sleep:   &c.Sleep,
+		SQLMode:         c.SQLMode,
+		Timeout:         &c.Timeout,
+		Sleep:           &c.Sleep,
+		MaxIdleConns:    &c.MaxIdleConns,
+		MaxOpenConns:    &c.MaxOpenConns,
+		ConnMaxLifetime: &c.ConnMaxLifetime,
 	})
 	if err != nil {
 		log.Printf("handler new: %v", err)
 	}
 	log.Printf("db connected")
-
-	h.SetMaxIdleConns(10)
-	h.SetMaxOpenConns(10)
-	h.SetConnMaxLifetime(10 * time.Minute)
 
 	if err := infrastructure.RunFixture(h); err != nil {
 		log.Fatalf("run fixture: %v", err)
