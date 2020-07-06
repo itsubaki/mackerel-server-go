@@ -9,6 +9,8 @@ import (
 	"syscall"
 	"time"
 
+	_ "github.com/go-sql-driver/mysql"
+
 	"github.com/itsubaki/mackerel-server-go/pkg/infrastructure"
 	"github.com/itsubaki/mackerel-server-go/pkg/infrastructure/config"
 	"github.com/itsubaki/mackerel-server-go/pkg/infrastructure/handler"

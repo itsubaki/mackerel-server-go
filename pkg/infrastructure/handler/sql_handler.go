@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/itsubaki/mackerel-server-go/pkg/interface/database"
 )
 
@@ -28,20 +27,21 @@ type Opt struct {
 	ConnMaxLifetime *time.Duration
 }
 
+func New(driver, host, database string, opt ...Opt) (database.SQLHandler, error) {
+	sql := fmt.Sprintf("create database if not exists %s", database)
+	if err := Query(driver, host, []string{sql}, opt...); err != nil {
+		return nil, fmt.Errorf("query: %v", err)
+	}
+
+	return Open(driver, dsn(host, database))
+}
+
 func dsn(host, database string) string {
 	if !strings.HasSuffix(host, "/") && !strings.HasPrefix(database, "/") {
 		return fmt.Sprintf("%s/%s", host, database)
 	}
 
 	return fmt.Sprintf("%s%s", host, database)
-}
-
-func New(driver, host, database string, opt ...Opt) (database.SQLHandler, error) {
-	if err := Query(driver, host, []string{fmt.Sprintf("create database if not exists %s", database)}, opt...); err != nil {
-		return nil, fmt.Errorf("query: %v", err)
-	}
-
-	return Open(driver, dsn(host, database))
 }
 
 func Query(driver, dsn string, query []string, opt ...Opt) error {
