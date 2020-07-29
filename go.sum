@@ -45,6 +45,8 @@ github.com/coreos/go-systemd v0.0.0-20190321100706-95778dfbb74e/go.mod h1:F5haX7
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
 github.com/cucumber/gherkin-go/v11 v11.0.0 h1:cwVwN1Qn2VRSfHZNLEh5x00tPBmZcjATBWDpxsR5Xug=
 github.com/cucumber/gherkin-go/v11 v11.0.0/go.mod h1:CX33k2XU2qog4e+TFjOValoq6mIUq0DmVccZs238R9w=
+github.com/cucumber/godog v0.9.0 h1:QOb8wyC7f+FVFXzY3RdgowwJUb4WeJfqbnQqaH4jp+A=
+github.com/cucumber/godog v0.9.0/go.mod h1:roWCHkpeK6UTOyIRRl7IR+fgfBeZ4vZR7OSq2J/NbM4=
 github.com/cucumber/godog v0.10.0 h1:W01u1+o8bRpgqJRLrclN3iAanU1jAao+TwOMoSV9g1Y=
 github.com/cucumber/godog v0.10.0/go.mod h1:0Q+MOUg8Z9AhzLV+nNMbThQ2x1b17yYwGyahApTLjJA=
 github.com/cucumber/messages-go/v10 v10.0.1/go.mod h1:kA5T38CBlBbYLU12TIrJ4fk4wSkVVOgyh7Enyy8WnSg=
