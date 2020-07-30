@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
 	"github.com/itsubaki/mackerel-server-go/pkg/interface/controller"
 	"github.com/itsubaki/mackerel-server-go/pkg/interface/database"
@@ -217,6 +219,30 @@ func UseAPIKey(g *gin.RouterGroup, handler database.SQLHandler) {
 	})
 }
 
+func UseSession(g *gin.Engine) {
+	store := cookie.NewStore([]byte("secret"))
+	g.Use(sessions.Sessions("GIN_SESSION", store))
+	g.Use(func(c *gin.Context) {
+		s := sessions.Default(c)
+		v := s.Get("X-Api-Key")
+		if v != nil {
+			c.Request.Header.Set("X-Api-Key", v.(string))
+		}
+
+		c.Next()
+	})
+}
+
+func Login(g *gin.Engine) {
+	g.GET("/login", func(c *gin.Context) {
+		s := sessions.Default(c)
+		s.Set("X-Api-Key", "2684d06cfedbee8499f326037bb6fb7e8c22e73b16bb")
+		s.Save()
+
+		c.JSON(http.StatusOK, gin.H{"login": "ok"})
+	})
+}
+
 func Router(handler database.SQLHandler) *gin.Engine {
 	g := gin.New()
 
@@ -228,11 +254,14 @@ func Router(handler database.SQLHandler) *gin.Engine {
 	Root(g)
 	Status(g)
 
-	v0 := g.Group("/api").Group("/v0")
-	// middleware
-	UseAPIKey(v0, handler)
+	// session
+	UseSession(g)
+	Login(g)
 
 	// api
+	v0 := g.Group("/api").Group("/v0")
+	UseAPIKey(v0, handler)
+
 	Hosts(v0, handler)
 	Services(v0, handler)
 	Monitors(v0, handler)
