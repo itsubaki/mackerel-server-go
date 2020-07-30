@@ -1,11 +1,8 @@
 package infrastructure
 
 import (
-	"fmt"
 	"net/http"
 
-	"github.com/gin-contrib/sessions"
-	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
 	"github.com/itsubaki/mackerel-server-go/pkg/interface/controller"
 	"github.com/itsubaki/mackerel-server-go/pkg/interface/database"
@@ -219,31 +216,7 @@ func UseAPIKey(g *gin.RouterGroup, handler database.SQLHandler) {
 	})
 }
 
-func UseSession(g *gin.Engine) {
-	store := cookie.NewStore([]byte("secret"))
-	g.Use(sessions.Sessions("GIN_SESSION", store))
-	g.Use(func(c *gin.Context) {
-		s := sessions.Default(c)
-		v := s.Get("X-Api-Key")
-		if v != nil {
-			c.Request.Header.Set("X-Api-Key", v.(string))
-		}
-
-		c.Next()
-	})
-}
-
-func Signin(g *gin.Engine) {
-	g.GET("/signin", func(c *gin.Context) {
-		s := sessions.Default(c)
-		s.Set("X-Api-Key", "2684d06cfedbee8499f326037bb6fb7e8c22e73b16bb")
-		s.Save()
-
-		c.JSON(http.StatusOK, gin.H{"signin": "ok"})
-	})
-}
-
-func Router(handler database.SQLHandler) *gin.Engine {
+func Default() *gin.Engine {
 	g := gin.New()
 
 	g.Use(gin.Recovery())
@@ -254,11 +227,10 @@ func Router(handler database.SQLHandler) *gin.Engine {
 	Root(g)
 	Status(g)
 
-	// session
-	UseSession(g)
-	Signin(g)
+	return g
+}
 
-	// api
+func Router(g *gin.Engine, handler database.SQLHandler) *gin.Engine {
 	v0 := g.Group("/api").Group("/v0")
 	UseAPIKey(v0, handler)
 
@@ -280,18 +252,4 @@ func Router(handler database.SQLHandler) *gin.Engine {
 	CheckMonitors(v0, handler)
 
 	return g
-}
-
-func RunFixture(handler database.SQLHandler) error {
-	orgID, orgName, apikey := "4b825dc642c", "hatena", "2684d06cfedbee8499f326037bb6fb7e8c22e73b16bb"
-
-	if _, err := database.NewOrgRepository(handler).Save(orgID, orgName); err != nil {
-		return fmt.Errorf("org save: %v", err)
-	}
-
-	if _, err := database.NewAPIKeyRepository(handler).Save(orgID, "default", apikey, true); err != nil {
-		return fmt.Errorf("apikey save: %v", err)
-	}
-
-	return nil
 }

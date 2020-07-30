@@ -39,9 +39,13 @@ func main() {
 		log.Fatalf("run fixture: %v", err)
 	}
 
+	r := infrastructure.Default()
+	infrastructure.UseSession(r)
+	infrastructure.Router(r, h)
+
 	s := &http.Server{
 		Addr:    c.Port,
-		Handler: infrastructure.Router(h),
+		Handler: r,
 	}
 
 	go func() {
