@@ -234,7 +234,7 @@ func UseSession(g *gin.Engine) {
 }
 
 func Signin(g *gin.Engine) {
-	g.GET("/Signin", func(c *gin.Context) {
+	g.GET("/signin", func(c *gin.Context) {
 		s := sessions.Default(c)
 		s.Set("X-Api-Key", "2684d06cfedbee8499f326037bb6fb7e8c22e73b16bb")
 		s.Save()
