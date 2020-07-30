@@ -233,13 +233,13 @@ func UseSession(g *gin.Engine) {
 	})
 }
 
-func Login(g *gin.Engine) {
-	g.GET("/login", func(c *gin.Context) {
+func Signin(g *gin.Engine) {
+	g.GET("/Signin", func(c *gin.Context) {
 		s := sessions.Default(c)
 		s.Set("X-Api-Key", "2684d06cfedbee8499f326037bb6fb7e8c22e73b16bb")
 		s.Save()
 
-		c.JSON(http.StatusOK, gin.H{"login": "ok"})
+		c.JSON(http.StatusOK, gin.H{"signin": "ok"})
 	})
 }
 
@@ -256,7 +256,7 @@ func Router(handler database.SQLHandler) *gin.Engine {
 
 	// session
 	UseSession(g)
-	Login(g)
+	Signin(g)
 
 	// api
 	v0 := g.Group("/api").Group("/v0")
