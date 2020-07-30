@@ -1,12 +1,16 @@
 package domain
 
 import (
-	"github.com/google/uuid"
+	"math/rand"
+	"strconv"
+	"time"
+
 	"github.com/speps/go-hashids"
 )
 
 func NewRandomID() string {
-	return NewID(11, uuid.Must(uuid.NewRandom()).String())
+	rand.Seed(time.Now().UnixNano())
+	return NewID(11, strconv.Itoa(rand.Int()))
 }
 
 func NewIDWith(seed ...string) string {
@@ -14,14 +18,14 @@ func NewIDWith(seed ...string) string {
 }
 
 func NewID(digit int, seed ...string) string {
-	var sum string
+	var salt string
 	for i := range seed {
-		sum = sum + seed[i]
+		salt = salt + seed[i]
 	}
 
 	hd := hashids.NewData()
 	hd.MinLength = digit
-	hd.Salt = sum
+	hd.Salt = salt
 
 	h, err := hashids.NewWithData(hd)
 	if err != nil {
