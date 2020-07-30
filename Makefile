@@ -6,12 +6,11 @@ XAPIKEY := 2684d06cfedbee8499f326037bb6fb7e8c22e73b16bb
 install:
 	set -x
 	-rm $(shell go env GOPATH)/bin/mackerel-server-go
+	go version
 	go install
 
-runserver:
+runserver: install
 	set -x
-	-rm $(shell go env GOPATH)/bin/mackerel-server-go
-	go install
 	GIN_MODE=debug SQL_MODE=debug mackerel-server-go
 
 runclient:

@@ -1,6 +1,6 @@
 module github.com/itsubaki/mackerel-server-go
 
-go 1.12
+go 1.14
 
 require (
 	github.com/cucumber/godog v0.9.0
