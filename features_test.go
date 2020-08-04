@@ -50,7 +50,7 @@ func (a *apiFeature) start() {
 
 	a.config = c
 	a.handler = h
-	a.server = infrastructure.Router(h)
+	a.server = infrastructure.Router(infrastructure.Default(), h)
 	a.keep = make(map[string]interface{})
 }
 
