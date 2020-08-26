@@ -9,24 +9,26 @@ import (
 	"github.com/cucumber/godog/colors"
 )
 
-var opt = godog.Options{
+var opts = godog.Options{
 	Output: colors.Colored(os.Stdout),
 	Format: "progress", // can define default values
 }
 
 func init() {
-	godog.BindFlags("godog.", flag.CommandLine, &opt)
+	godog.BindFlags("godog.", flag.CommandLine, &opts)
 }
 
 func TestMain(m *testing.M) {
 	flag.Parse()
-	opt.Paths = flag.Args()
+	opts.Paths = flag.Args()
 
-	f := func(s *godog.Suite) {
-		FeatureContext(s)
-	}
+	status := godog.TestSuite{
+		Name:                 "mackerel-server-go",
+		TestSuiteInitializer: InitializeTestSuite,
+		ScenarioInitializer:  InitializeScenario,
+		Options:              &opts,
+	}.Run()
 
-	status := godog.RunWithOptions("godog", f, opt)
 	if st := m.Run(); st > status {
 		status = st
 	}

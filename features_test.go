@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/cucumber/godog"
-	messages "github.com/cucumber/messages-go/v10"
 	"github.com/gin-gonic/gin"
 	"github.com/itsubaki/mackerel-server-go/pkg/domain"
 	"github.com/itsubaki/mackerel-server-go/pkg/infrastructure"
@@ -21,6 +20,8 @@ import (
 	"github.com/itsubaki/mackerel-server-go/pkg/interface/database"
 	"github.com/jfilipczyk/gomatch"
 )
+
+var api = &apiFeature{}
 
 type apiFeature struct {
 	header http.Header
@@ -60,7 +61,7 @@ func (a *apiFeature) stop() {
 	}
 }
 
-func (a *apiFeature) reset(m *messages.Pickle) {
+func (a *apiFeature) reset(sc *godog.Scenario) {
 	a.header = make(http.Header)
 	a.body = nil
 	a.resp = httptest.NewRecorder()
@@ -84,7 +85,7 @@ func (a *apiFeature) SetHeader(k, v string) error {
 	return nil
 }
 
-func (a *apiFeature) SetRequestBody(b *messages.PickleStepArgument_PickleDocString) error {
+func (a *apiFeature) SetRequestBody(b *godog.DocString) error {
 	r := a.replace(b.Content)
 	a.body = bytes.NewBuffer([]byte(r))
 	return nil
@@ -107,7 +108,7 @@ func (a *apiFeature) ResponseCodeShouldBe(code int) error {
 	return fmt.Errorf("expected response code to be: %d, but actual is: %d", code, a.resp.Code)
 }
 
-func (a *apiFeature) ResponseShouldMatchJSON(body *messages.PickleStepArgument_PickleDocString) error {
+func (a *apiFeature) ResponseShouldMatchJSON(body *godog.DocString) error {
 	expected := a.replace(body.Content)
 	actual := a.resp.Body.String()
 
@@ -140,7 +141,7 @@ func (a *apiFeature) Keep(key, as string) error {
 	return nil
 }
 
-func (a *apiFeature) AlertsExists(alerts *messages.PickleStepArgument_PickleTable) error {
+func (a *apiFeature) AlertsExists(alerts *godog.Table) error {
 	list := make([]domain.Alert, 0)
 	for i := 1; i < len(alerts.Rows); i++ {
 		list = append(list, domain.Alert{
@@ -162,7 +163,7 @@ func (a *apiFeature) AlertsExists(alerts *messages.PickleStepArgument_PickleTabl
 	return nil
 }
 
-func (a *apiFeature) UsersExists(users *messages.PickleStepArgument_PickleTable) error {
+func (a *apiFeature) UsersExists(users *godog.Table) error {
 	list := make([]domain.User, 0)
 	for i := 1; i < len(users.Rows); i++ {
 		list = append(list, domain.User{
@@ -188,30 +189,38 @@ func (a *apiFeature) UsersExists(users *messages.PickleStepArgument_PickleTable)
 	return nil
 }
 
-func FeatureContext(s *godog.Suite) {
-	gin.SetMode(gin.ReleaseMode)
-	os.Setenv("DATABASE", "mackerel_test")
+func InitializeTestSuite(ctx *godog.TestSuiteContext) {
+	before := func() {
+		gin.SetMode(gin.ReleaseMode)
+		os.Setenv("DATABASE", "mackerel_test")
 
-	c := config.New()
-	if err := handler.Query(c.Driver, c.Host, []string{
-		fmt.Sprintf("drop database if exists %s", c.Database),
-		fmt.Sprintf("create database if not exists %s", c.Database),
-	}); err != nil {
-		panic(err)
+		c := config.New()
+		if err := handler.Query(c.Driver, c.Host, []string{
+			fmt.Sprintf("drop database if exists %s", c.Database),
+			fmt.Sprintf("create database if not exists %s", c.Database),
+		}); err != nil {
+			panic(err)
+		}
+
+		api.start()
+	}
+	after := func() {
+		api.stop()
 	}
 
-	a := &apiFeature{}
-	s.BeforeSuite(a.start)
+	ctx.BeforeSuite(before)
+	ctx.AfterSuite(after)
+}
 
-	s.BeforeScenario(a.reset)
-	s.Step(`^the following alerts exist:$`, a.AlertsExists)
-	s.Step(`^the following users exist:$`, a.UsersExists)
-	s.Step(`^I set "([^"]*)" header with "([^"]*)"$`, a.SetHeader)
-	s.Step(`^I set request body:$`, a.SetRequestBody)
-	s.Step(`^I send "([^"]*)" request to "([^"]*)"$`, a.Request)
-	s.Step(`^the response code should be (\d+)$`, a.ResponseCodeShouldBe)
-	s.Step(`^the response should match json:$`, a.ResponseShouldMatchJSON)
-	s.Step(`^I keep the JSON response at "([^"]*)" as "([^"]*)"$`, a.Keep)
+func InitializeScenario(ctx *godog.ScenarioContext) {
+	ctx.BeforeScenario(api.reset)
 
-	s.AfterSuite(a.stop)
+	ctx.Step(`^the following alerts exist:$`, api.AlertsExists)
+	ctx.Step(`^the following users exist:$`, api.UsersExists)
+	ctx.Step(`^I set "([^"]*)" header with "([^"]*)"$`, api.SetHeader)
+	ctx.Step(`^I set request body:$`, api.SetRequestBody)
+	ctx.Step(`^I send "([^"]*)" request to "([^"]*)"$`, api.Request)
+	ctx.Step(`^the response code should be (\d+)$`, api.ResponseCodeShouldBe)
+	ctx.Step(`^the response should match json:$`, api.ResponseShouldMatchJSON)
+	ctx.Step(`^I keep the JSON response at "([^"]*)" as "([^"]*)"$`, api.Keep)
 }
