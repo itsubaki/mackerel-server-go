@@ -1,6 +1,6 @@
 module github.com/itsubaki/mackerel-server-go
 
-go 1.14
+go 1.15
 
 require (
 	github.com/cucumber/godog v0.10.0
@@ -13,7 +13,7 @@ require (
 	github.com/lib/pq v1.8.0 // indirect
 	github.com/mackerelio/go-check-plugins v0.36.0 // indirect
 	github.com/mackerelio/mackerel-agent v0.68.2 // indirect
+	github.com/mackerelio/mkr v0.40.2 // indirect
 	github.com/speps/go-hashids v2.0.0+incompatible
 	golang.org/x/crypto v0.0.0-20200728195943-123391ffb6de // indirect
-	honnef.co/go/tools v0.0.0-20190523083050-ea95bdfd59fc // indirect
 )
