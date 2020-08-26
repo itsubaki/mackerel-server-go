@@ -85,8 +85,8 @@ func (a *apiFeature) SetHeader(k, v string) error {
 	return nil
 }
 
-func (a *apiFeature) SetRequestBody(b *godog.DocString) error {
-	r := a.replace(b.Content)
+func (a *apiFeature) SetRequestBody(body *godog.DocString) error {
+	r := a.replace(body.Content)
 	a.body = bytes.NewBuffer([]byte(r))
 	return nil
 }
