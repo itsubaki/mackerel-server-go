@@ -47,7 +47,7 @@ up: build
 
 test:
 	set -x
-	go test -v -cover $(shell go list ./... | grep -v /vendor/ | grep -v /build/)
+	go test -v -cover $(shell go list ./... | grep -v /vendor/ | grep -v /build/ | grep -v -E "mackerel-server-go$$")
 
 godog:
 	set -x
