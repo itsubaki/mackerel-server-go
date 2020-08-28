@@ -3,15 +3,9 @@ DATE := $(shell date +%Y%m%d-%H:%M:%S)
 HASH := $(shell git rev-parse HEAD)
 XAPIKEY := 2684d06cfedbee8499f326037bb6fb7e8c22e73b16bb
 
-install:
+runserver:
 	set -x
-	-rm $(shell go env GOPATH)/bin/mackerel-server-go
-	go version
-	go install
-
-runserver: install
-	set -x
-	GIN_MODE=debug SQL_MODE=debug mackerel-server-go
+	GIN_MODE=debug SQL_MODE=debug go run main.go
 
 runclient:
 	set -x
