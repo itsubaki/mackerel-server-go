@@ -22,6 +22,7 @@ func UseSession(g *gin.Engine) {
 		c.Next()
 	})
 
+	// TODO google auth
 	g.GET("/signin", func(c *gin.Context) {
 		s := sessions.Default(c)
 		s.Set("X-Api-Key", apikey)
