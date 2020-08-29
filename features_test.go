@@ -130,11 +130,7 @@ func (a *apiFeature) Keep(key, as string) error {
 		return fmt.Errorf("body=%s, unmarshal: %v", a.resp.Body.String(), err)
 	}
 
-	for k, v := range actual {
-		if k != key {
-			continue
-		}
-
+	if v, ok := actual[key]; ok {
 		a.keep[as] = v
 	}
 
