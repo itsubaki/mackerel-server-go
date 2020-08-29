@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -44,7 +45,7 @@ func main() {
 	infrastructure.Router(r, h)
 
 	s := &http.Server{
-		Addr:    c.Port,
+		Addr:    fmt.Sprintf(":%s", c.Port),
 		Handler: r,
 	}
 
