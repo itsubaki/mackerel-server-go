@@ -8,7 +8,7 @@ import (
 func TestConfig(t *testing.T) {
 	c := New()
 
-	if c.Port != ":8080" {
+	if c.Port != "8080" {
 		t.Error(c)
 	}
 
@@ -26,7 +26,7 @@ func TestConfig(t *testing.T) {
 }
 
 func TestGetValue(t *testing.T) {
-	if err := os.Setenv("PORT", ":9090"); err != nil {
+	if err := os.Setenv("PORT", "9090"); err != nil {
 		t.Error(err)
 	}
 
@@ -44,7 +44,7 @@ func TestGetValue(t *testing.T) {
 
 	c := New()
 
-	if c.Port != ":9090" {
+	if c.Port != "9090" {
 		t.Error(c)
 	}
 

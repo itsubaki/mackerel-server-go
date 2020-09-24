@@ -3,6 +3,7 @@ package domain
 import (
 	"math/rand"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/speps/go-hashids"
@@ -18,14 +19,9 @@ func NewIDWith(seed ...string) string {
 }
 
 func NewID(digit int, seed ...string) string {
-	var salt string
-	for i := range seed {
-		salt = salt + seed[i]
-	}
-
 	hd := hashids.NewData()
 	hd.MinLength = digit
-	hd.Salt = salt
+	hd.Salt = strings.Join(seed, "")
 
 	h, err := hashids.NewWithData(hd)
 	if err != nil {

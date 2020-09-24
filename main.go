@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -41,10 +42,10 @@ func main() {
 
 	r := infrastructure.Default()
 	infrastructure.UseSession(r)
-	infrastructure.Router(r, h)
+	infrastructure.APIv0(r, h)
 
 	s := &http.Server{
-		Addr:    c.Port,
+		Addr:    fmt.Sprintf(":%s", c.Port),
 		Handler: r,
 	}
 

@@ -1,35 +1,36 @@
 # mackerel-server-go
+
 Mackerel API Server in Go
 
 [API](https://mackerel.io/api-docs/)
 
 [API(ja)](https://mackerel.io/ja/api-docs/)
 
-
 # TODO
 
- - API
-   - [x] Hosts
-   - [x] Host Metrics
-   - [x] Services
-   - [x] Service Metrics
-   - [x] Check Monitoring
-   - [x] Metadata
-   - [ ] Monitors
-   - [x] Alerts
-   - [x] Notification Channels
-   - [x] Notification Groups
-   - [ ] Dashboards
-   - [x] Graph Annotations
-   - [x] Users
-   - [x] Invitations
-   - [x] Organizations
-   - [x] Downtime
- - Persistence
-   - [x] Database/Transaction
-   - [x] ORM
- - Security
-   - [x] `X-Api-Key`
+- API
+  - [x] Hosts
+  - [x] Host Metrics
+  - [x] Services
+  - [x] Service Metrics
+  - [x] Check Monitoring
+  - [x] Metadata
+  - [ ] Monitors
+  - [x] Alerts
+  - [x] Notification Channels
+  - [x] Notification Groups
+  - [ ] Dashboards
+  - [x] Graph Annotations
+  - [x] Users
+  - [x] Invitations
+  - [x] Organizations
+  - [x] Downtime
+  - [ ] AWS Integration
+- Persistence
+  - [x] Database/Transaction
+  - [x] ORM
+- Security
+  - [x] `X-Api-Key`
 
 # Install
 
