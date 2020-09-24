@@ -33,10 +33,10 @@ func New(driver, host, database string, opt ...Opt) (database.SQLHandler, error)
 		return nil, fmt.Errorf("query: %v", err)
 	}
 
-	return Open(driver, dsn(host, database))
+	return Open(driver, DSN(host, database))
 }
 
-func dsn(host, database string) string {
+func DSN(host, database string) string {
 	if !strings.HasSuffix(host, "/") && !strings.HasPrefix(database, "/") {
 		return fmt.Sprintf("%s/%s", host, database)
 	}
