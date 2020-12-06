@@ -1,12 +1,14 @@
-package config
+package config_test
 
 import (
 	"os"
 	"testing"
+
+	"github.com/itsubaki/mackerel-server-go/pkg/infrastructure/config"
 )
 
 func TestConfig(t *testing.T) {
-	c := New()
+	c := config.New()
 
 	if c.Port != "8080" {
 		t.Error(c)
@@ -42,7 +44,7 @@ func TestGetValue(t *testing.T) {
 		t.Error(err)
 	}
 
-	c := New()
+	c := config.New()
 
 	if c.Port != "9090" {
 		t.Error(c)
