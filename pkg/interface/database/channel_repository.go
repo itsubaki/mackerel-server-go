@@ -252,19 +252,19 @@ func (repo *ChannelRepository) Delete(orgID, channelID string) (interface{}, err
 			return fmt.Errorf("delete from channels: %v", err)
 		}
 
-		if err := tx.Delete(&ChannelMention{OrgID: orgID, ChannelID: channelID}).Error; err != nil {
+		if err := tx.Where("org_id = ? AND channel_id = ?", orgID, channelID).Delete(&ChannelMention{}).Error; err != nil {
 			return fmt.Errorf("delete from channel_mentions: %v", err)
 		}
 
-		if err := tx.Delete(&ChannelEvent{OrgID: orgID, ChannelID: channelID}).Error; err != nil {
+		if err := tx.Where("org_id = ? AND channel_id = ?", orgID, channelID).Delete(&ChannelEvent{}).Error; err != nil {
 			return fmt.Errorf("delete from channel_events: %v", err)
 		}
 
-		if err := tx.Delete(&ChannelEmail{OrgID: orgID, ChannelID: channelID}).Error; err != nil {
+		if err := tx.Where("org_id = ? AND channel_id = ?", orgID, channelID).Delete(&ChannelEmail{}).Error; err != nil {
 			return fmt.Errorf("delete from channel_emails: %v", err)
 		}
 
-		if err := tx.Delete(&ChannelUserID{OrgID: orgID, ChannelID: channelID}).Error; err != nil {
+		if err := tx.Where("org_id = ? AND channel_id = ?", orgID, channelID).Delete(&ChannelUserID{}).Error; err != nil {
 			return fmt.Errorf("delete from channel_user_ids: %v", err)
 		}
 

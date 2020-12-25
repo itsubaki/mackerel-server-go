@@ -239,23 +239,23 @@ func (repo *NotificationGroupRepository) Save(orgID string, group *domain.Notifi
 
 func (repo *NotificationGroupRepository) Update(orgID string, group *domain.NotificationGroup) (*domain.NotificationGroup, error) {
 	if err := repo.DB.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Delete(&NotificationGroup{OrgID: orgID, ID: group.ID}).Error; err != nil {
+		if err := tx.Where("org_id = ? AND id = ?", orgID, group.ID).Delete(&NotificationGroup{}).Error; err != nil {
 			return fmt.Errorf("delete from notification_groups: %v", err)
 		}
 
-		if err := tx.Delete(&NotificationGroupChild{OrgID: orgID, GroupID: group.ID}).Error; err != nil {
+		if err := tx.Where("org_id = ? AND group_id = ?", orgID, group.ID).Delete(&NotificationGroupChild{}).Error; err != nil {
 			return fmt.Errorf("delete from notification_group_children: %v", err)
 		}
 
-		if err := tx.Delete(&NotificationGroupChannel{OrgID: orgID, GroupID: group.ID}).Error; err != nil {
+		if err := tx.Where("org_id = ? AND group_id = ?", orgID, group.ID).Delete(&NotificationGroupChannel{}).Error; err != nil {
 			return fmt.Errorf("delete from notification_group_channels: %v", err)
 		}
 
-		if err := tx.Delete(&NotificationGroupMonitor{OrgID: orgID, GroupID: group.ID}).Error; err != nil {
+		if err := tx.Where("org_id = ? AND group_id = ?", orgID, group.ID).Delete(&NotificationGroupMonitor{}).Error; err != nil {
 			return fmt.Errorf("delete from notification_group_monitors: %v", err)
 		}
 
-		if err := tx.Delete(&NotificationGroupService{OrgID: orgID, GroupID: group.ID}).Error; err != nil {
+		if err := tx.Where("org_id = ? AND group_id = ?", orgID, group.ID).Delete(&NotificationGroupService{}).Error; err != nil {
 			return fmt.Errorf("delete from notification_group_services: %v", err)
 		}
 
@@ -332,23 +332,23 @@ func (repo *NotificationGroupRepository) Delete(orgID, groupID string) (*domain.
 		}
 		out.Services = services
 
-		if err := tx.Delete(&NotificationGroup{OrgID: orgID, ID: groupID}).Error; err != nil {
+		if err := tx.Where("org_id = ? AND id = ?", orgID, groupID).Delete(&NotificationGroup{}).Error; err != nil {
 			return fmt.Errorf("delete from notification_groups: %v", err)
 		}
 
-		if err := tx.Delete(&NotificationGroupChild{OrgID: orgID, GroupID: groupID}).Error; err != nil {
+		if err := tx.Where("org_id = ? AND group_id = ?", orgID, groupID).Delete(&NotificationGroupChild{}).Error; err != nil {
 			return fmt.Errorf("delete from notification_group_children: %v", err)
 		}
 
-		if err := tx.Delete(&NotificationGroupChannel{OrgID: orgID, GroupID: groupID}).Error; err != nil {
+		if err := tx.Where("org_id = ? AND group_id = ?", orgID, groupID).Delete(&NotificationGroupChannel{}).Error; err != nil {
 			return fmt.Errorf("delete from notification_group_channels: %v", err)
 		}
 
-		if err := tx.Delete(&NotificationGroupMonitor{OrgID: orgID, GroupID: groupID}).Error; err != nil {
+		if err := tx.Where("org_id = ? AND group_id = ?", orgID, groupID).Delete(&NotificationGroupMonitor{}).Error; err != nil {
 			return fmt.Errorf("delete from notification_group_monitors: %v", err)
 		}
 
-		if err := tx.Delete(&NotificationGroupService{OrgID: orgID, GroupID: groupID}).Error; err != nil {
+		if err := tx.Where("org_id = ? AND group_id = ?", orgID, groupID).Delete(&NotificationGroupService{}).Error; err != nil {
 			return fmt.Errorf("delete from notification_group_services: %v", err)
 		}
 
