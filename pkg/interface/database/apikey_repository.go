@@ -1,12 +1,13 @@
 package database
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
-	"github.com/jinzhu/gorm"
-
 	"github.com/itsubaki/mackerel-server-go/pkg/domain"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
 
 type APIKeyRepository struct {
@@ -34,13 +35,15 @@ func (k APIKey) Domain() domain.APIKey {
 }
 
 func NewAPIKeyRepository(handler SQLHandler) *APIKeyRepository {
-	db, err := gorm.Open(handler.Dialect(), handler.Raw())
+	db, err := gorm.Open(mysql.Open(handler.DSN()), &gorm.Config{})
 	if err != nil {
 		panic(err)
 	}
-	db.LogMode(handler.IsDebugging())
+	if handler.IsDebugging() {
+		db.Logger.LogMode(4)
+	}
 
-	if err := db.AutoMigrate(&APIKey{}).Error; err != nil {
+	if err := db.AutoMigrate(&APIKey{}); err != nil {
 		panic(fmt.Errorf("auto migrate apikey: %v", err))
 	}
 
@@ -60,12 +63,10 @@ func (repo *APIKeyRepository) Save(orgID, name, apikey string, write bool) (*dom
 	}
 
 	if err := repo.DB.Transaction(func(tx *gorm.DB) error {
-		if found := !tx.Where(&APIKey{APIKey: apikey}).First(&APIKey{}).RecordNotFound(); found {
-			return nil
-		}
-
-		if err := tx.Create(&create).Error; err != nil {
-			return fmt.Errorf("create: %v", err)
+		if err := tx.Where(&APIKey{APIKey: apikey}).First(&APIKey{}).Error; err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
+			if err := tx.Create(&create).Error; err != nil {
+				return fmt.Errorf("create: %v", err)
+			}
 		}
 
 		return nil
@@ -84,12 +85,12 @@ func (repo *APIKeyRepository) APIKey(apikey string) (*domain.APIKey, error) {
 
 	result := APIKey{}
 	if err := repo.DB.Transaction(func(tx *gorm.DB) error {
-		if tx.Where(&APIKey{APIKey: apikey}).First(&result).RecordNotFound() {
+		if err := tx.Where(&APIKey{APIKey: apikey}).First(&result).Error; err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
 			return fmt.Errorf("apikey not found")
 		}
 
 		now := time.Now().Unix()
-		if err := tx.Model(&APIKey{}).Where(&APIKey{APIKey: apikey}).Update(&APIKey{LastAccess: now}).Error; err != nil {
+		if err := tx.Model(&APIKey{}).Where(&APIKey{APIKey: apikey}).Updates(&APIKey{LastAccess: now}).Error; err != nil {
 			return fmt.Errorf("update: %v", err)
 		}
 		result.LastAccess = now

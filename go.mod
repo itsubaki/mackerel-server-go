@@ -9,11 +9,10 @@ require (
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/google/uuid v1.1.1 // indirect
 	github.com/jfilipczyk/gomatch v1.1.0
-	github.com/jinzhu/gorm v1.9.15
-	github.com/lib/pq v1.8.0 // indirect
-	github.com/mackerelio/go-check-plugins v0.37.1 // indirect
-	github.com/mackerelio/mackerel-agent v0.69.3 // indirect
-	github.com/mackerelio/mkr v0.40.2 // indirect
+	github.com/mackerelio/mackerel-agent v0.71.0 // indirect
 	github.com/speps/go-hashids v2.0.0+incompatible
-	golang.org/x/crypto v0.0.0-20200728195943-123391ffb6de // indirect
+	golang.org/x/sys v0.0.0-20200202164722-d101bd2416d5 // indirect
+	gopkg.in/yaml.v2 v2.3.0 // indirect
+	gorm.io/driver/mysql v1.0.3
+	gorm.io/gorm v1.20.9
 )

@@ -1,11 +1,12 @@
 package database
 
 import (
+	"errors"
 	"fmt"
 
-	"github.com/jinzhu/gorm"
-
 	"github.com/itsubaki/mackerel-server-go/pkg/domain"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
 
 type RoleRepository struct {
@@ -20,13 +21,15 @@ type Role struct {
 }
 
 func NewRoleRepository(handler SQLHandler) *RoleRepository {
-	db, err := gorm.Open(handler.Dialect(), handler.Raw())
+	db, err := gorm.Open(mysql.Open(handler.DSN()), &gorm.Config{})
 	if err != nil {
 		panic(err)
 	}
-	db.LogMode(handler.IsDebugging())
+	if handler.IsDebugging() {
+		db.Logger.LogMode(4)
+	}
 
-	if err := db.AutoMigrate(&Role{}).AddForeignKey("org_id, service_name", "services(org_id, name)", "CASCADE", "CASCADE").Error; err != nil {
+	if err := db.AutoMigrate(&Role{}); err != nil {
 		panic(fmt.Errorf("auto migrate role: %v", err))
 	}
 
@@ -104,7 +107,7 @@ func (repo *RoleRepository) Save(orgID, serviceName string, r *domain.Role) erro
 }
 
 func (repo *RoleRepository) Exists(orgID, serviceName, roleName string) bool {
-	if repo.DB.Where(&Role{OrgID: orgID, ServiceName: serviceName, Name: roleName}).First(&Role{}).RecordNotFound() {
+	if err := repo.DB.Where(&Role{OrgID: orgID, ServiceName: serviceName, Name: roleName}).First(&Role{}).Error; err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
 		return false
 	}
 

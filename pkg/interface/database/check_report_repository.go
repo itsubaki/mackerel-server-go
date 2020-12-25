@@ -3,9 +3,9 @@ package database
 import (
 	"fmt"
 
-	"github.com/jinzhu/gorm"
-
 	"github.com/itsubaki/mackerel-server-go/pkg/domain"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
 
 type CheckReportRepository struct {
@@ -25,13 +25,15 @@ type CheckReport struct {
 }
 
 func NewCheckReportRepository(handler SQLHandler) *CheckReportRepository {
-	db, err := gorm.Open(handler.Dialect(), handler.Raw())
+	db, err := gorm.Open(mysql.Open(handler.DSN()), &gorm.Config{})
 	if err != nil {
 		panic(err)
 	}
-	db.LogMode(handler.IsDebugging())
+	if handler.IsDebugging() {
+		db.Logger.LogMode(4)
+	}
 
-	if err := db.AutoMigrate(&CheckReport{}).Error; err != nil {
+	if err := db.AutoMigrate(&CheckReport{}); err != nil {
 		panic(fmt.Errorf("auto migrate check_report: %v", err))
 	}
 

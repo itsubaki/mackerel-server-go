@@ -1,11 +1,12 @@
 package database
 
 import (
+	"errors"
 	"fmt"
 
-	"github.com/jinzhu/gorm"
-
 	"github.com/itsubaki/mackerel-server-go/pkg/domain"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
 
 type NotificationGroupRepository struct {
@@ -45,29 +46,31 @@ type NotificationGroupService struct {
 }
 
 func NewNotificationGroupRepository(handler SQLHandler) *NotificationGroupRepository {
-	db, err := gorm.Open(handler.Dialect(), handler.Raw())
+	db, err := gorm.Open(mysql.Open(handler.DSN()), &gorm.Config{})
 	if err != nil {
 		panic(err)
 	}
-	db.LogMode(handler.IsDebugging())
+	if handler.IsDebugging() {
+		db.Logger.LogMode(4)
+	}
 
-	if err := db.AutoMigrate(&NotificationGroup{}).Error; err != nil {
+	if err := db.AutoMigrate(&NotificationGroup{}); err != nil {
 		panic(fmt.Errorf("auto migrate notification_groups: %v", err))
 	}
 
-	if err := db.AutoMigrate(&NotificationGroupChild{}).AddForeignKey("group_id", "notification_groups(id)", "CASCADE", "CASCADE").Error; err != nil {
+	if err := db.AutoMigrate(&NotificationGroupChild{}); err != nil {
 		panic(fmt.Errorf("auto migrate notification_group_children: %v", err))
 	}
 
-	if err := db.AutoMigrate(&NotificationGroupChannel{}).AddForeignKey("group_id", "notification_groups(id)", "CASCADE", "CASCADE").Error; err != nil {
+	if err := db.AutoMigrate(&NotificationGroupChannel{}); err != nil {
 		panic(fmt.Errorf("auto migrate notification_group_channels: %v", err))
 	}
 
-	if err := db.AutoMigrate(&NotificationGroupMonitor{}).AddForeignKey("group_id", "notification_groups(id)", "CASCADE", "CASCADE").Error; err != nil {
+	if err := db.AutoMigrate(&NotificationGroupMonitor{}); err != nil {
 		panic(fmt.Errorf("auto migrate notification_group_monitors: %v", err))
 	}
 
-	if err := db.AutoMigrate(&NotificationGroupService{}).AddForeignKey("group_id", "notification_groups(id)", "CASCADE", "CASCADE").Error; err != nil {
+	if err := db.AutoMigrate(&NotificationGroupService{}); err != nil {
 		panic(fmt.Errorf("auto migrate notification_group_services: %v", err))
 	}
 
@@ -189,7 +192,7 @@ func (repo *NotificationGroupRepository) List(orgID string) (*domain.Notificatio
 }
 
 func (repo *NotificationGroupRepository) Exists(orgID, groupID string) bool {
-	if repo.DB.Where(&NotificationGroup{OrgID: orgID, ID: groupID}).Find(&NotificationGroup{}).RecordNotFound() {
+	if err := repo.DB.Where(&NotificationGroup{OrgID: orgID, ID: groupID}).Find(&NotificationGroup{}).Error; err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
 		return false
 	}
 

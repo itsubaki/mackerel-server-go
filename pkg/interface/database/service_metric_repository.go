@@ -1,10 +1,12 @@
 package database
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/itsubaki/mackerel-server-go/pkg/domain"
-	"github.com/jinzhu/gorm"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
 
 type ServiceMetricRepository struct {
@@ -20,11 +22,13 @@ type ServiceMetricValue struct {
 }
 
 func NewServiceMetricRepository(handler SQLHandler) *ServiceMetricRepository {
-	db, err := gorm.Open(handler.Dialect(), handler.Raw())
+	db, err := gorm.Open(mysql.Open(handler.DSN()), &gorm.Config{})
 	if err != nil {
 		panic(err)
 	}
-	db.LogMode(handler.IsDebugging())
+	if handler.IsDebugging() {
+		db.Logger.LogMode(4)
+	}
 
 	if err := handler.Transact(func(tx Tx) error {
 		if _, err := tx.Exec(
@@ -53,7 +57,7 @@ func NewServiceMetricRepository(handler SQLHandler) *ServiceMetricRepository {
 }
 
 func (repo *ServiceMetricRepository) Exists(orgID, serviceName, metricName string) bool {
-	if repo.DB.Where(&ServiceMetricValue{OrgID: orgID, ServiceName: serviceName, Name: metricName}).First(&ServiceMetricValue{}).RecordNotFound() {
+	if err := repo.DB.Where(&ServiceMetricValue{OrgID: orgID, ServiceName: serviceName, Name: metricName}).First(&ServiceMetricValue{}).Error; err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
 		return false
 	}
 

@@ -1,11 +1,12 @@
 package database
 
 import (
+	"errors"
 	"fmt"
 
-	"github.com/jinzhu/gorm"
-
 	"github.com/itsubaki/mackerel-server-go/pkg/domain"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
 
 type OrgRepository struct {
@@ -25,13 +26,15 @@ func (o Org) Domain() domain.Org {
 }
 
 func NewOrgRepository(handler SQLHandler) *OrgRepository {
-	db, err := gorm.Open(handler.Dialect(), handler.Raw())
+	db, err := gorm.Open(mysql.Open(handler.DSN()), &gorm.Config{})
 	if err != nil {
 		panic(err)
 	}
-	db.LogMode(handler.IsDebugging())
+	if handler.IsDebugging() {
+		db.Logger.LogMode(4)
+	}
 
-	if err := db.AutoMigrate(&Org{}).Error; err != nil {
+	if err := db.AutoMigrate(&Org{}); err != nil {
 		panic(fmt.Errorf("auto migrate org: %v", err))
 	}
 
@@ -47,12 +50,10 @@ func (repo *OrgRepository) Save(orgID, name string) (*domain.Org, error) {
 	}
 
 	if err := repo.DB.Transaction(func(tx *gorm.DB) error {
-		if found := !tx.Where(&Org{ID: orgID}).First(&Org{}).RecordNotFound(); found {
-			return nil
-		}
-
-		if err := tx.Create(&create).Error; err != nil {
-			return fmt.Errorf("create: %v", err)
+		if err := tx.Where(&Org{ID: orgID}).First(&Org{}).Error; err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
+			if err := tx.Create(&create).Error; err != nil {
+				return fmt.Errorf("create: %v", err)
+			}
 		}
 
 		return nil

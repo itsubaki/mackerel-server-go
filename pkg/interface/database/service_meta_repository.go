@@ -2,11 +2,12 @@ package database
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 
-	"github.com/jinzhu/gorm"
-
 	"github.com/itsubaki/mackerel-server-go/pkg/domain"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
 
 type ServiceMetaRepository struct {
@@ -21,13 +22,15 @@ type ServiceMeta struct {
 }
 
 func NewServiceMetaRepository(handler SQLHandler) *ServiceMetaRepository {
-	db, err := gorm.Open(handler.Dialect(), handler.Raw())
+	db, err := gorm.Open(mysql.Open(handler.DSN()), &gorm.Config{})
 	if err != nil {
 		panic(err)
 	}
-	db.LogMode(handler.IsDebugging())
+	if handler.IsDebugging() {
+		db.Logger.LogMode(4)
+	}
 
-	if err := db.AutoMigrate(&ServiceMeta{}).Error; err != nil {
+	if err := db.AutoMigrate(&ServiceMeta{}); err != nil {
 		panic(fmt.Errorf("auto migrate service_meta: %v", err))
 	}
 
@@ -37,7 +40,7 @@ func NewServiceMetaRepository(handler SQLHandler) *ServiceMetaRepository {
 }
 
 func (repo *ServiceMetaRepository) Exists(orgID, serviceName, namespace string) bool {
-	if repo.DB.Where(&ServiceMeta{OrgID: orgID, ServiceName: serviceName, Namespace: namespace}).First(&ServiceMeta{}).RecordNotFound() {
+	if err := repo.DB.Where(&ServiceMeta{OrgID: orgID, ServiceName: serviceName, Namespace: namespace}).First(&ServiceMeta{}).Error; err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
 		return false
 	}
 

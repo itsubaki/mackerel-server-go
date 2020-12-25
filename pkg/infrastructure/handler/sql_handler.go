@@ -13,6 +13,7 @@ import (
 type SQLHandler struct {
 	DB      *sql.DB
 	Driver  string
+	Dsn     string
 	SQLMode string
 	Timeout time.Duration
 	Sleep   time.Duration
@@ -75,6 +76,7 @@ func Open(driver, dsn string, opt ...Opt) (database.SQLHandler, error) {
 	h := &SQLHandler{
 		DB:      db,
 		Driver:  driver,
+		Dsn:     dsn,
 		SQLMode: "release",
 		Timeout: 10 * time.Minute,
 		Sleep:   10 * time.Second,
@@ -201,6 +203,14 @@ func (h *SQLHandler) Raw() interface{} {
 	return h.DB
 }
 
+func (h *SQLHandler) DSN() string {
+	return h.Dsn
+}
+
+func (h *SQLHandler) Dialect() string {
+	return h.Driver
+}
+
 func (h *SQLHandler) IsDebugging() bool {
 	debug := false
 	if strings.ToLower(h.SQLMode) == "debug" {
@@ -208,10 +218,6 @@ func (h *SQLHandler) IsDebugging() bool {
 	}
 
 	return debug
-}
-
-func (h *SQLHandler) Dialect() string {
-	return h.Driver
 }
 
 type Tx struct {

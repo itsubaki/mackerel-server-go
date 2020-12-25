@@ -1,11 +1,12 @@
 package database
 
 import (
+	"errors"
 	"fmt"
 
-	"github.com/jinzhu/gorm"
-
 	"github.com/itsubaki/mackerel-server-go/pkg/domain"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
 
 type ChannelRepository struct {
@@ -47,29 +48,31 @@ type ChannelUserID struct {
 }
 
 func NewChannelRepository(handler SQLHandler) *ChannelRepository {
-	db, err := gorm.Open(handler.Dialect(), handler.Raw())
+	db, err := gorm.Open(mysql.Open(handler.DSN()), &gorm.Config{})
 	if err != nil {
 		panic(err)
 	}
-	db.LogMode(handler.IsDebugging())
+	if handler.IsDebugging() {
+		db.Logger.LogMode(4)
+	}
 
-	if err := db.AutoMigrate(&Channel{}).Error; err != nil {
+	if err := db.AutoMigrate(&Channel{}); err != nil {
 		panic(fmt.Errorf("auto migrate channel: %v", err))
 	}
 
-	if err := db.AutoMigrate(&ChannelMention{}).AddForeignKey("channel_id", "channels(id)", "CASCADE", "CASCADE").Error; err != nil {
+	if err := db.AutoMigrate(&ChannelMention{}); err != nil {
 		panic(fmt.Errorf("auto migrate channel: %v", err))
 	}
 
-	if err := db.AutoMigrate(&ChannelEvent{}).AddForeignKey("channel_id", "channels(id)", "CASCADE", "CASCADE").Error; err != nil {
+	if err := db.AutoMigrate(&ChannelEvent{}); err != nil {
 		panic(fmt.Errorf("auto migrate channel: %v", err))
 	}
 
-	if err := db.AutoMigrate(&ChannelEmail{}).AddForeignKey("channel_id", "channels(id)", "CASCADE", "CASCADE").Error; err != nil {
+	if err := db.AutoMigrate(&ChannelEmail{}); err != nil {
 		panic(fmt.Errorf("auto migrate channel: %v", err))
 	}
 
-	if err := db.AutoMigrate(&ChannelUserID{}).AddForeignKey("channel_id", "channels(id)", "CASCADE", "CASCADE").Error; err != nil {
+	if err := db.AutoMigrate(&ChannelUserID{}); err != nil {
 		panic(fmt.Errorf("auto migrate channel: %v", err))
 	}
 
@@ -199,7 +202,7 @@ func (repo *ChannelRepository) Save(orgID string, channel *domain.Channel) (inte
 }
 
 func (repo *ChannelRepository) Exists(orgID, channelID string) bool {
-	if repo.DB.Where(&Channel{OrgID: orgID, ID: channelID}).First(&Channel{}).RecordNotFound() {
+	if err := repo.DB.Where(&Channel{OrgID: orgID, ID: channelID}).First(&Channel{}).Error; err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
 		return false
 	}
 
