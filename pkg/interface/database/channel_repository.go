@@ -252,6 +252,22 @@ func (repo *ChannelRepository) Delete(orgID, channelID string) (interface{}, err
 			return fmt.Errorf("delete from channels: %v", err)
 		}
 
+		if err := tx.Delete(&ChannelMention{OrgID: orgID, ChannelID: channelID}).Error; err != nil {
+			return fmt.Errorf("delete from channel_mentions: %v", err)
+		}
+
+		if err := tx.Delete(&ChannelEvent{OrgID: orgID, ChannelID: channelID}).Error; err != nil {
+			return fmt.Errorf("delete from channel_events: %v", err)
+		}
+
+		if err := tx.Delete(&ChannelEmail{OrgID: orgID, ChannelID: channelID}).Error; err != nil {
+			return fmt.Errorf("delete from channel_emails: %v", err)
+		}
+
+		if err := tx.Delete(&ChannelUserID{OrgID: orgID, ChannelID: channelID}).Error; err != nil {
+			return fmt.Errorf("delete from channel_user_ids: %v", err)
+		}
+
 		return nil
 	}); err != nil {
 		return nil, fmt.Errorf("transaction: %v", err)

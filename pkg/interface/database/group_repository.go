@@ -243,6 +243,22 @@ func (repo *NotificationGroupRepository) Update(orgID string, group *domain.Noti
 			return fmt.Errorf("delete from notification_groups: %v", err)
 		}
 
+		if err := tx.Delete(&NotificationGroupChild{OrgID: orgID, GroupID: group.ID}).Error; err != nil {
+			return fmt.Errorf("delete from notification_group_children: %v", err)
+		}
+
+		if err := tx.Delete(&NotificationGroupChannel{OrgID: orgID, GroupID: group.ID}).Error; err != nil {
+			return fmt.Errorf("delete from notification_group_channels: %v", err)
+		}
+
+		if err := tx.Delete(&NotificationGroupMonitor{OrgID: orgID, GroupID: group.ID}).Error; err != nil {
+			return fmt.Errorf("delete from notification_group_monitors: %v", err)
+		}
+
+		if err := tx.Delete(&NotificationGroupService{OrgID: orgID, GroupID: group.ID}).Error; err != nil {
+			return fmt.Errorf("delete from notification_group_services: %v", err)
+		}
+
 		if err := tx.Create(&NotificationGroup{OrgID: orgID, ID: group.ID, Name: group.Name, NotificationLevel: group.NotificationLevel}).Error; err != nil {
 			return fmt.Errorf("insert into notification_groups: %v", err)
 		}
@@ -318,6 +334,22 @@ func (repo *NotificationGroupRepository) Delete(orgID, groupID string) (*domain.
 
 		if err := tx.Delete(&NotificationGroup{OrgID: orgID, ID: groupID}).Error; err != nil {
 			return fmt.Errorf("delete from notification_groups: %v", err)
+		}
+
+		if err := tx.Delete(&NotificationGroupChild{OrgID: orgID, GroupID: groupID}).Error; err != nil {
+			return fmt.Errorf("delete from notification_group_children: %v", err)
+		}
+
+		if err := tx.Delete(&NotificationGroupChannel{OrgID: orgID, GroupID: groupID}).Error; err != nil {
+			return fmt.Errorf("delete from notification_group_channels: %v", err)
+		}
+
+		if err := tx.Delete(&NotificationGroupMonitor{OrgID: orgID, GroupID: groupID}).Error; err != nil {
+			return fmt.Errorf("delete from notification_group_monitors: %v", err)
+		}
+
+		if err := tx.Delete(&NotificationGroupService{OrgID: orgID, GroupID: groupID}).Error; err != nil {
+			return fmt.Errorf("delete from notification_group_services: %v", err)
 		}
 
 		return nil

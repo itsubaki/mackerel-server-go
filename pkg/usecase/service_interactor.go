@@ -93,6 +93,12 @@ func (s *ServiceInteractor) Delete(orgID, serviceName string) (*domain.Service, 
 	}
 	service.Roles = roles.Array()
 
+	for _, r := range roles.Array() {
+		if err := s.RoleRepository.Delete(orgID, serviceName, r); err != nil {
+			return nil, err
+		}
+	}
+
 	if err := s.ServiceRepository.Delete(orgID, serviceName); err != nil {
 		return nil, err
 	}
