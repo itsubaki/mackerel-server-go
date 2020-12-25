@@ -19,7 +19,7 @@ type Channel struct {
 	Name              string `gorm:"column:name;                type:varchar(16);  not null"`
 	Type              string `gorm:"column:type;                type:enum('email', 'slack', 'webhook');  not null"`
 	URL               string `gorm:"column:url;                 type:text;"`
-	EnabledGraphImage bool   `gorm:"column:enabled_graph_image; type:bool; not null; default:'1'"`
+	EnabledGraphImage bool   `gorm:"column:enabled_graph_image; type:bool; not null; default:true"`
 }
 
 type ChannelMention struct {

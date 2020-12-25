@@ -19,11 +19,11 @@ type Monitor struct {
 	Type                            string  `gorm:"column:type;                              type:enum('host', 'connectivity', 'service', 'external', 'expression')"`
 	Name                            string  `gorm:"column:name;                              type:varchar(128); not null;"`
 	Memo                            string  `gorm:"column:memo;                              type:varchar(128); not null; default:''"`
-	NotificationInterval            int     `gorm:"column:notification_interval;             type:int;          not null; default: '1'"`
-	IsMute                          bool    `gorm:"column:is_mute;                           type:bool;         not null; default: '0'"`
+	NotificationInterval            int     `gorm:"column:notification_interval;             type:int;          not null; default:1"`
+	IsMute                          bool    `gorm:"column:is_mute;                           type:bool;         not null; default:false"`
 	Duration                        int     `gorm:"column:duration;                          type:int;"`
 	Metric                          string  `gorm:"column:metric;                            type:varchar(128);"`
-	Operator                        string  `gorm:"column:operator;                          type:enum('>', '<'); not null; default: '<'"`
+	Operator                        string  `gorm:"column:operator;                          type:enum('>', '<'); not null; default:<"`
 	Warning                         float64 `gorm:"column:warning;                           type:double;"`
 	Critical                        float64 `gorm:"column:critical;                          type:double;"`
 	MaxCheckAttempts                int     `gorm:"column:max_check_attempts;                type:int;"`

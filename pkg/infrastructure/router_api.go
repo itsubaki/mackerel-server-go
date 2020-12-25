@@ -210,9 +210,9 @@ func APIv0(g *gin.Engine, handler database.SQLHandler) *gin.Engine {
 
 	Hosts(v0, handler)
 	Services(v0, handler)
-	// Monitors(v0, handler)
-	// Channels(v0, handler)
-	// NotificationGroups(v0, handler)
+	Monitors(v0, handler)
+	Channels(v0, handler)
+	NotificationGroups(v0, handler)
 	Graphs(v0, handler)
 	CheckReports(v0, handler)
 	Alerts(v0, handler)
@@ -223,7 +223,7 @@ func APIv0(g *gin.Engine, handler database.SQLHandler) *gin.Engine {
 	Downtimes(v0, handler)
 
 	// additional
-	// CheckMonitors(v0, handler)
+	CheckMonitors(v0, handler)
 
 	return g
 }

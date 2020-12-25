@@ -17,7 +17,7 @@ type NotificationGroup struct {
 	OrgID             string `gorm:"column:org_id; type:varchar(16);  not null;"`
 	ID                string `gorm:"column:id;     type:varchar(16);  not null; primary_key"`
 	Name              string `gorm:"column:name;   type:varchar(128); not null;"`
-	NotificationLevel string `gorm:"column:level;  type:enum('all', 'critical'); not null; default:'all'"`
+	NotificationLevel string `gorm:"column:level;  type:enum('all', 'critical'); not null; default:all"`
 }
 
 type NotificationGroupChild struct {
@@ -36,7 +36,7 @@ type NotificationGroupMonitor struct {
 	OrgID       string `gorm:"column:org_id;       type:varchar(16); not null;"`
 	GroupID     string `gorm:"column:group_id;     type:varchar(16); not null; primary_key"`
 	MonitorID   string `gorm:"column:monitor_id;   type:varchar(16); not null; primary_key"`
-	SkipDefault bool   `gorm:"column:skip_default; type:boolean; not null; default:'0'"`
+	SkipDefault bool   `gorm:"column:skip_default; type:boolean; not null; default:false"`
 }
 
 type NotificationGroupService struct {
