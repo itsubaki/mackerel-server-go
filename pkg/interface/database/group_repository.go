@@ -1,11 +1,12 @@
 package database
 
 import (
+	"errors"
 	"fmt"
 
-	"github.com/jinzhu/gorm"
-
 	"github.com/itsubaki/mackerel-server-go/pkg/domain"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
 
 type NotificationGroupRepository struct {
@@ -16,7 +17,7 @@ type NotificationGroup struct {
 	OrgID             string `gorm:"column:org_id; type:varchar(16);  not null;"`
 	ID                string `gorm:"column:id;     type:varchar(16);  not null; primary_key"`
 	Name              string `gorm:"column:name;   type:varchar(128); not null;"`
-	NotificationLevel string `gorm:"column:level;  type:enum('all', 'critical'); not null; default:'all'"`
+	NotificationLevel string `gorm:"column:level;  type:enum('all', 'critical'); not null; default:all"`
 }
 
 type NotificationGroupChild struct {
@@ -35,7 +36,7 @@ type NotificationGroupMonitor struct {
 	OrgID       string `gorm:"column:org_id;       type:varchar(16); not null;"`
 	GroupID     string `gorm:"column:group_id;     type:varchar(16); not null; primary_key"`
 	MonitorID   string `gorm:"column:monitor_id;   type:varchar(16); not null; primary_key"`
-	SkipDefault bool   `gorm:"column:skip_default; type:boolean; not null; default:'0'"`
+	SkipDefault bool   `gorm:"column:skip_default; type:boolean; not null; default:false"`
 }
 
 type NotificationGroupService struct {
@@ -45,29 +46,33 @@ type NotificationGroupService struct {
 }
 
 func NewNotificationGroupRepository(handler SQLHandler) *NotificationGroupRepository {
-	db, err := gorm.Open(handler.Dialect(), handler.Raw())
+	db, err := gorm.Open(mysql.New(mysql.Config{
+		Conn: handler.Raw().(gorm.ConnPool),
+	}), &gorm.Config{})
 	if err != nil {
 		panic(err)
 	}
-	db.LogMode(handler.IsDebugging())
+	if handler.IsDebugging() {
+		db.Logger.LogMode(4)
+	}
 
-	if err := db.AutoMigrate(&NotificationGroup{}).Error; err != nil {
+	if err := db.AutoMigrate(&NotificationGroup{}); err != nil {
 		panic(fmt.Errorf("auto migrate notification_groups: %v", err))
 	}
 
-	if err := db.AutoMigrate(&NotificationGroupChild{}).AddForeignKey("group_id", "notification_groups(id)", "CASCADE", "CASCADE").Error; err != nil {
+	if err := db.AutoMigrate(&NotificationGroupChild{}); err != nil {
 		panic(fmt.Errorf("auto migrate notification_group_children: %v", err))
 	}
 
-	if err := db.AutoMigrate(&NotificationGroupChannel{}).AddForeignKey("group_id", "notification_groups(id)", "CASCADE", "CASCADE").Error; err != nil {
+	if err := db.AutoMigrate(&NotificationGroupChannel{}); err != nil {
 		panic(fmt.Errorf("auto migrate notification_group_channels: %v", err))
 	}
 
-	if err := db.AutoMigrate(&NotificationGroupMonitor{}).AddForeignKey("group_id", "notification_groups(id)", "CASCADE", "CASCADE").Error; err != nil {
+	if err := db.AutoMigrate(&NotificationGroupMonitor{}); err != nil {
 		panic(fmt.Errorf("auto migrate notification_group_monitors: %v", err))
 	}
 
-	if err := db.AutoMigrate(&NotificationGroupService{}).AddForeignKey("group_id", "notification_groups(id)", "CASCADE", "CASCADE").Error; err != nil {
+	if err := db.AutoMigrate(&NotificationGroupService{}); err != nil {
 		panic(fmt.Errorf("auto migrate notification_group_services: %v", err))
 	}
 
@@ -189,7 +194,7 @@ func (repo *NotificationGroupRepository) List(orgID string) (*domain.Notificatio
 }
 
 func (repo *NotificationGroupRepository) Exists(orgID, groupID string) bool {
-	if repo.DB.Where(&NotificationGroup{OrgID: orgID, ID: groupID}).Find(&NotificationGroup{}).RecordNotFound() {
+	if err := repo.DB.Where(&NotificationGroup{OrgID: orgID, ID: groupID}).Find(&NotificationGroup{}).Error; err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
 		return false
 	}
 
@@ -236,8 +241,24 @@ func (repo *NotificationGroupRepository) Save(orgID string, group *domain.Notifi
 
 func (repo *NotificationGroupRepository) Update(orgID string, group *domain.NotificationGroup) (*domain.NotificationGroup, error) {
 	if err := repo.DB.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Delete(&NotificationGroup{OrgID: orgID, ID: group.ID}).Error; err != nil {
+		if err := tx.Where("org_id = ? AND id = ?", orgID, group.ID).Delete(&NotificationGroup{}).Error; err != nil {
 			return fmt.Errorf("delete from notification_groups: %v", err)
+		}
+
+		if err := tx.Where("org_id = ? AND group_id = ?", orgID, group.ID).Delete(&NotificationGroupChild{}).Error; err != nil {
+			return fmt.Errorf("delete from notification_group_children: %v", err)
+		}
+
+		if err := tx.Where("org_id = ? AND group_id = ?", orgID, group.ID).Delete(&NotificationGroupChannel{}).Error; err != nil {
+			return fmt.Errorf("delete from notification_group_channels: %v", err)
+		}
+
+		if err := tx.Where("org_id = ? AND group_id = ?", orgID, group.ID).Delete(&NotificationGroupMonitor{}).Error; err != nil {
+			return fmt.Errorf("delete from notification_group_monitors: %v", err)
+		}
+
+		if err := tx.Where("org_id = ? AND group_id = ?", orgID, group.ID).Delete(&NotificationGroupService{}).Error; err != nil {
+			return fmt.Errorf("delete from notification_group_services: %v", err)
 		}
 
 		if err := tx.Create(&NotificationGroup{OrgID: orgID, ID: group.ID, Name: group.Name, NotificationLevel: group.NotificationLevel}).Error; err != nil {
@@ -313,8 +334,24 @@ func (repo *NotificationGroupRepository) Delete(orgID, groupID string) (*domain.
 		}
 		out.Services = services
 
-		if err := tx.Delete(&NotificationGroup{OrgID: orgID, ID: groupID}).Error; err != nil {
+		if err := tx.Where("org_id = ? AND id = ?", orgID, groupID).Delete(&NotificationGroup{}).Error; err != nil {
 			return fmt.Errorf("delete from notification_groups: %v", err)
+		}
+
+		if err := tx.Where("org_id = ? AND group_id = ?", orgID, groupID).Delete(&NotificationGroupChild{}).Error; err != nil {
+			return fmt.Errorf("delete from notification_group_children: %v", err)
+		}
+
+		if err := tx.Where("org_id = ? AND group_id = ?", orgID, groupID).Delete(&NotificationGroupChannel{}).Error; err != nil {
+			return fmt.Errorf("delete from notification_group_channels: %v", err)
+		}
+
+		if err := tx.Where("org_id = ? AND group_id = ?", orgID, groupID).Delete(&NotificationGroupMonitor{}).Error; err != nil {
+			return fmt.Errorf("delete from notification_group_monitors: %v", err)
+		}
+
+		if err := tx.Where("org_id = ? AND group_id = ?", orgID, groupID).Delete(&NotificationGroupService{}).Error; err != nil {
+			return fmt.Errorf("delete from notification_group_services: %v", err)
 		}
 
 		return nil

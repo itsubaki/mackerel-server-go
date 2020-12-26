@@ -2,11 +2,12 @@ package database
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 
-	"github.com/jinzhu/gorm"
-
 	"github.com/itsubaki/mackerel-server-go/pkg/domain"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
 
 type RoleMetaRepository struct {
@@ -22,13 +23,17 @@ type RoleMeta struct {
 }
 
 func NewRoleMetaRepository(handler SQLHandler) *RoleMetaRepository {
-	db, err := gorm.Open(handler.Dialect(), handler.Raw())
+	db, err := gorm.Open(mysql.New(mysql.Config{
+		Conn: handler.Raw().(gorm.ConnPool),
+	}), &gorm.Config{})
 	if err != nil {
 		panic(err)
 	}
-	db.LogMode(handler.IsDebugging())
+	if handler.IsDebugging() {
+		db.Logger.LogMode(4)
+	}
 
-	if err := db.AutoMigrate(&RoleMeta{}).Error; err != nil {
+	if err := db.AutoMigrate(&RoleMeta{}); err != nil {
 		panic(fmt.Errorf("auto migrate role_meta: %v", err))
 	}
 
@@ -38,7 +43,7 @@ func NewRoleMetaRepository(handler SQLHandler) *RoleMetaRepository {
 }
 
 func (repo *RoleMetaRepository) Exists(orgID, serviceName, roleName, namespace string) bool {
-	if repo.DB.Where(&RoleMeta{OrgID: orgID, ServiceName: serviceName, RoleName: roleName, Namespace: namespace}).First(&RoleMeta{}).RecordNotFound() {
+	if err := repo.DB.Where(&RoleMeta{OrgID: orgID, ServiceName: serviceName, RoleName: roleName, Namespace: namespace}).First(&RoleMeta{}).Error; err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
 		return false
 	}
 

@@ -1,10 +1,12 @@
 package database
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/itsubaki/mackerel-server-go/pkg/domain"
-	"github.com/jinzhu/gorm"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
 
 type HostMetricRepository struct {
@@ -31,13 +33,17 @@ func (v HostMetricValuesLatest) TableName() string {
 }
 
 func NewHostMetricRepository(handler SQLHandler) *HostMetricRepository {
-	db, err := gorm.Open(handler.Dialect(), handler.Raw())
+	db, err := gorm.Open(mysql.New(mysql.Config{
+		Conn: handler.Raw().(gorm.ConnPool),
+	}), &gorm.Config{})
 	if err != nil {
 		panic(err)
 	}
-	db.LogMode(handler.IsDebugging())
+	if handler.IsDebugging() {
+		db.Logger.LogMode(4)
+	}
 
-	if err := db.AutoMigrate(&HostMetricValuesLatest{}).Error; err != nil {
+	if err := db.AutoMigrate(&HostMetricValuesLatest{}); err != nil {
 		panic(fmt.Errorf("auto migrate host_metric_values_latest: %v", err))
 	}
 
@@ -68,7 +74,7 @@ func NewHostMetricRepository(handler SQLHandler) *HostMetricRepository {
 }
 
 func (repo *HostMetricRepository) Exists(orgID, hostID, name string) bool {
-	if repo.DB.Where(&HostMetricValue{OrgID: orgID, HostID: hostID, Name: name}).First(&HostMetricValue{}).RecordNotFound() {
+	if err := repo.DB.Where(&HostMetricValue{OrgID: orgID, HostID: hostID, Name: name}).First(&HostMetricValue{}).Error; err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
 		return false
 	}
 

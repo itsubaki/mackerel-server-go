@@ -1,11 +1,12 @@
 package database
 
 import (
+	"errors"
 	"fmt"
 
-	"github.com/jinzhu/gorm"
-
 	"github.com/itsubaki/mackerel-server-go/pkg/domain"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
 
 type ChannelRepository struct {
@@ -18,7 +19,7 @@ type Channel struct {
 	Name              string `gorm:"column:name;                type:varchar(16);  not null"`
 	Type              string `gorm:"column:type;                type:enum('email', 'slack', 'webhook');  not null"`
 	URL               string `gorm:"column:url;                 type:text;"`
-	EnabledGraphImage bool   `gorm:"column:enabled_graph_image; type:bool; not null; default:'1'"`
+	EnabledGraphImage bool   `gorm:"column:enabled_graph_image; type:bool; not null; default:true"`
 }
 
 type ChannelMention struct {
@@ -47,29 +48,33 @@ type ChannelUserID struct {
 }
 
 func NewChannelRepository(handler SQLHandler) *ChannelRepository {
-	db, err := gorm.Open(handler.Dialect(), handler.Raw())
+	db, err := gorm.Open(mysql.New(mysql.Config{
+		Conn: handler.Raw().(gorm.ConnPool),
+	}), &gorm.Config{})
 	if err != nil {
 		panic(err)
 	}
-	db.LogMode(handler.IsDebugging())
+	if handler.IsDebugging() {
+		db.Logger.LogMode(4)
+	}
 
-	if err := db.AutoMigrate(&Channel{}).Error; err != nil {
+	if err := db.AutoMigrate(&Channel{}); err != nil {
 		panic(fmt.Errorf("auto migrate channel: %v", err))
 	}
 
-	if err := db.AutoMigrate(&ChannelMention{}).AddForeignKey("channel_id", "channels(id)", "CASCADE", "CASCADE").Error; err != nil {
+	if err := db.AutoMigrate(&ChannelMention{}); err != nil {
 		panic(fmt.Errorf("auto migrate channel: %v", err))
 	}
 
-	if err := db.AutoMigrate(&ChannelEvent{}).AddForeignKey("channel_id", "channels(id)", "CASCADE", "CASCADE").Error; err != nil {
+	if err := db.AutoMigrate(&ChannelEvent{}); err != nil {
 		panic(fmt.Errorf("auto migrate channel: %v", err))
 	}
 
-	if err := db.AutoMigrate(&ChannelEmail{}).AddForeignKey("channel_id", "channels(id)", "CASCADE", "CASCADE").Error; err != nil {
+	if err := db.AutoMigrate(&ChannelEmail{}); err != nil {
 		panic(fmt.Errorf("auto migrate channel: %v", err))
 	}
 
-	if err := db.AutoMigrate(&ChannelUserID{}).AddForeignKey("channel_id", "channels(id)", "CASCADE", "CASCADE").Error; err != nil {
+	if err := db.AutoMigrate(&ChannelUserID{}); err != nil {
 		panic(fmt.Errorf("auto migrate channel: %v", err))
 	}
 
@@ -199,7 +204,7 @@ func (repo *ChannelRepository) Save(orgID string, channel *domain.Channel) (inte
 }
 
 func (repo *ChannelRepository) Exists(orgID, channelID string) bool {
-	if repo.DB.Where(&Channel{OrgID: orgID, ID: channelID}).First(&Channel{}).RecordNotFound() {
+	if err := repo.DB.Where(&Channel{OrgID: orgID, ID: channelID}).First(&Channel{}).Error; err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
 		return false
 	}
 
@@ -247,6 +252,22 @@ func (repo *ChannelRepository) Delete(orgID, channelID string) (interface{}, err
 
 		if err := tx.Delete(&Channel{OrgID: orgID, ID: channelID}).Error; err != nil {
 			return fmt.Errorf("delete from channels: %v", err)
+		}
+
+		if err := tx.Where("org_id = ? AND channel_id = ?", orgID, channelID).Delete(&ChannelMention{}).Error; err != nil {
+			return fmt.Errorf("delete from channel_mentions: %v", err)
+		}
+
+		if err := tx.Where("org_id = ? AND channel_id = ?", orgID, channelID).Delete(&ChannelEvent{}).Error; err != nil {
+			return fmt.Errorf("delete from channel_events: %v", err)
+		}
+
+		if err := tx.Where("org_id = ? AND channel_id = ?", orgID, channelID).Delete(&ChannelEmail{}).Error; err != nil {
+			return fmt.Errorf("delete from channel_emails: %v", err)
+		}
+
+		if err := tx.Where("org_id = ? AND channel_id = ?", orgID, channelID).Delete(&ChannelUserID{}).Error; err != nil {
+			return fmt.Errorf("delete from channel_user_ids: %v", err)
 		}
 
 		return nil

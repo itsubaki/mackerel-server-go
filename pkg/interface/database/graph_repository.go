@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jinzhu/gorm"
-
 	"github.com/itsubaki/mackerel-server-go/pkg/domain"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
 
 type GraphRepository struct {
@@ -47,17 +47,21 @@ func (a GraphAnnotation) Domain() domain.GraphAnnotation {
 }
 
 func NewGraphRepository(handler SQLHandler) *GraphRepository {
-	db, err := gorm.Open(handler.Dialect(), handler.Raw())
+	db, err := gorm.Open(mysql.New(mysql.Config{
+		Conn: handler.Raw().(gorm.ConnPool),
+	}), &gorm.Config{})
 	if err != nil {
 		panic(err)
 	}
-	db.LogMode(handler.IsDebugging())
+	if handler.IsDebugging() {
+		db.Logger.LogMode(4)
+	}
 
-	if err := db.AutoMigrate(&GraphDef{}).Error; err != nil {
+	if err := db.AutoMigrate(&GraphDef{}); err != nil {
 		panic(fmt.Errorf("auto migrate graph_def: %v", err))
 	}
 
-	if err := db.AutoMigrate(&GraphAnnotation{}).Error; err != nil {
+	if err := db.AutoMigrate(&GraphAnnotation{}); err != nil {
 		panic(fmt.Errorf("auto migrate graph_annotation: %v", err))
 	}
 

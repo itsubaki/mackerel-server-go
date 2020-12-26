@@ -2,12 +2,13 @@ package database
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 
-	"github.com/jinzhu/gorm"
-
 	"github.com/itsubaki/mackerel-server-go/pkg/domain"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
 
 type HostRepository struct {
@@ -70,13 +71,17 @@ func (h Host) Domain() (domain.Host, error) {
 }
 
 func NewHostRepository(handler SQLHandler) *HostRepository {
-	db, err := gorm.Open(handler.Dialect(), handler.Raw())
+	db, err := gorm.Open(mysql.New(mysql.Config{
+		Conn: handler.Raw().(gorm.ConnPool),
+	}), &gorm.Config{})
 	if err != nil {
 		panic(err)
 	}
-	db.LogMode(handler.IsDebugging())
+	if handler.IsDebugging() {
+		db.Logger.LogMode(4)
+	}
 
-	if err := db.AutoMigrate(&Host{}).Error; err != nil {
+	if err := db.AutoMigrate(&Host{}); err != nil {
 		panic(fmt.Errorf("auto migrate host: %v", err))
 	}
 
@@ -187,7 +192,7 @@ func (repo *HostRepository) Host(orgID, hostID string) (*domain.Host, error) {
 }
 
 func (repo *HostRepository) Exists(orgID, hostID string) bool {
-	if repo.DB.Where(&Host{OrgID: orgID, ID: hostID}).First(&Host{}).RecordNotFound() {
+	if err := repo.DB.Where(&Host{OrgID: orgID, ID: hostID}).First(&Host{}).Error; err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
 		return false
 	}
 

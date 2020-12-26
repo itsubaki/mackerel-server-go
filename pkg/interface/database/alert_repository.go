@@ -1,11 +1,13 @@
 package database
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/itsubaki/mackerel-server-go/pkg/domain"
-	"github.com/jinzhu/gorm"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
 
 type AlertRepository struct {
@@ -57,11 +59,15 @@ func (a AlertHistory) TableName() string {
 }
 
 func NewAlertRepository(handler SQLHandler) *AlertRepository {
-	db, err := gorm.Open(handler.Dialect(), handler.Raw())
+	db, err := gorm.Open(mysql.New(mysql.Config{
+		Conn: handler.Raw().(gorm.ConnPool),
+	}), &gorm.Config{})
 	if err != nil {
 		panic(err)
 	}
-	db.LogMode(handler.IsDebugging())
+	if handler.IsDebugging() {
+		db.Logger.LogMode(4)
+	}
 
 	if err := handler.Transact(func(tx Tx) error {
 		if _, err := tx.Exec(
@@ -113,7 +119,7 @@ func NewAlertRepository(handler SQLHandler) *AlertRepository {
 }
 
 func (repo *AlertRepository) Exists(orgID, alertID string) bool {
-	if repo.DB.Where(&Alert{OrgID: orgID, ID: alertID}).First(&Alert{}).RecordNotFound() {
+	if err := repo.DB.Where(&Alert{OrgID: orgID, ID: alertID}).First(&Alert{}).Error; err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
 		return false
 	}
 
@@ -240,7 +246,7 @@ func (repo *AlertRepository) Close(orgID, alertID, reason string) (*domain.Alert
 			ClosedAt: time.Now().Unix(),
 		}
 
-		if err := tx.Model(&Alert{}).Where(&Alert{OrgID: orgID, ID: alertID}).Update(&update).Error; err != nil {
+		if err := tx.Model(&Alert{}).Where(&Alert{OrgID: orgID, ID: alertID}).Updates(&update).Error; err != nil {
 			return fmt.Errorf("update alerts: %v", err)
 		}
 

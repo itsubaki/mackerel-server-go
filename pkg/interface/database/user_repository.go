@@ -1,12 +1,13 @@
 package database
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
-	"github.com/jinzhu/gorm"
-
 	"github.com/itsubaki/mackerel-server-go/pkg/domain"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
 
 type UserRepository struct {
@@ -40,13 +41,17 @@ func (u User) Domain() domain.User {
 }
 
 func NewUserRepository(handler SQLHandler) *UserRepository {
-	db, err := gorm.Open(handler.Dialect(), handler.Raw())
+	db, err := gorm.Open(mysql.New(mysql.Config{
+		Conn: handler.Raw().(gorm.ConnPool),
+	}), &gorm.Config{})
 	if err != nil {
 		panic(err)
 	}
-	db.LogMode(handler.IsDebugging())
+	if handler.IsDebugging() {
+		db.Logger.LogMode(4)
+	}
 
-	if err := db.AutoMigrate(&User{}).Error; err != nil {
+	if err := db.AutoMigrate(&User{}); err != nil {
 		panic(fmt.Errorf("auto migrate user: %v", err))
 	}
 
@@ -70,7 +75,7 @@ func (repo *UserRepository) List(orgID string) (*domain.Users, error) {
 }
 
 func (repo *UserRepository) Exists(orgID, userID string) bool {
-	if repo.DB.Where(&User{OrgID: orgID, ID: userID}).First(&User{}).RecordNotFound() {
+	if err := repo.DB.Where(&User{OrgID: orgID, ID: userID}).First(&User{}).Error; err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
 		return false
 	}
 

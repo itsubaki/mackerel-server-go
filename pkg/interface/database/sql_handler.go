@@ -13,6 +13,7 @@ type SQLHandler interface {
 	SetConnMaxLifetime(d time.Duration)
 	Raw() interface{}
 	Dialect() string
+	DSN() string
 	IsDebugging() bool
 }
 
