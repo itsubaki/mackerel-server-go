@@ -22,7 +22,9 @@ type ServiceMeta struct {
 }
 
 func NewServiceMetaRepository(handler SQLHandler) *ServiceMetaRepository {
-	db, err := gorm.Open(mysql.Open(handler.DSN()), &gorm.Config{})
+	db, err := gorm.Open(mysql.New(mysql.Config{
+		Conn: handler.Raw().(gorm.ConnPool),
+	}), &gorm.Config{})
 	if err != nil {
 		panic(err)
 	}

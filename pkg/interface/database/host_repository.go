@@ -71,7 +71,9 @@ func (h Host) Domain() (domain.Host, error) {
 }
 
 func NewHostRepository(handler SQLHandler) *HostRepository {
-	db, err := gorm.Open(mysql.Open(handler.DSN()), &gorm.Config{})
+	db, err := gorm.Open(mysql.New(mysql.Config{
+		Conn: handler.Raw().(gorm.ConnPool),
+	}), &gorm.Config{})
 	if err != nil {
 		panic(err)
 	}

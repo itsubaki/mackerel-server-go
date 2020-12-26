@@ -99,7 +99,9 @@ func (m Monitor) Domain() (domain.Monitoring, error) {
 }
 
 func NewMonitorRepository(handler SQLHandler) *MonitorRepository {
-	db, err := gorm.Open(mysql.Open(handler.DSN()), &gorm.Config{})
+	db, err := gorm.Open(mysql.New(mysql.Config{
+		Conn: handler.Raw().(gorm.ConnPool),
+	}), &gorm.Config{})
 	if err != nil {
 		panic(err)
 	}

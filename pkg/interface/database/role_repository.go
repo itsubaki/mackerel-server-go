@@ -21,7 +21,9 @@ type Role struct {
 }
 
 func NewRoleRepository(handler SQLHandler) *RoleRepository {
-	db, err := gorm.Open(mysql.Open(handler.DSN()), &gorm.Config{})
+	db, err := gorm.Open(mysql.New(mysql.Config{
+		Conn: handler.Raw().(gorm.ConnPool),
+	}), &gorm.Config{})
 	if err != nil {
 		panic(err)
 	}
