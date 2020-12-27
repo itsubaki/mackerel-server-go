@@ -15,7 +15,7 @@ Mackerel API Server in Go
   - [x] Service Metrics
   - [x] Check Monitoring
   - [x] Metadata
-  - [ ] Monitors
+  - [x] Monitors
   - [x] Alerts
   - [x] Notification Channels
   - [x] Notification Groups
@@ -29,7 +29,7 @@ Mackerel API Server in Go
 - Persistence
   - [x] Database/Transaction
   - [x] ORM
-- Security
+- Auth
   - [x] `X-Api-Key`
 
 # Install
