@@ -1,7 +1,6 @@
 package database
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/itsubaki/mackerel-server-go/pkg/domain"
@@ -81,7 +80,12 @@ func (repo *ServiceRepository) Service(orgID, serviceName string) (*domain.Servi
 }
 
 func (repo *ServiceRepository) Exists(orgID, serviceName string) bool {
-	if err := repo.DB.Where(&Service{OrgID: orgID, Name: serviceName}).First(&Service{}).Error; err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
+	var count int64
+	if err := repo.DB.Model(&Service{}).Where(&Service{OrgID: orgID, Name: serviceName}).Count(&count).Error; err != nil {
+		return false // FIXME Add error message
+	}
+
+	if count == 0 {
 		return false
 	}
 

@@ -128,30 +128,31 @@ func (repo *AlertRepository) Exists(orgID, alertID string) bool {
 
 func (repo *AlertRepository) Save(orgID string, alert *domain.Alert) (*domain.Alert, error) {
 	if err := repo.DB.Transaction(func(tx *gorm.DB) error {
-		result := AlertHistory{}
-		if err := tx.Where(&AlertHistory{OrgID: orgID, HostID: alert.HostID, MonitorID: alert.MonitorID}).Order("time desc").First(&result).Error; err != nil && alert.Status == "OK" {
+		var count int64
+		if err := tx.Model(&AlertHistory{}).Where(&AlertHistory{OrgID: orgID, HostID: alert.HostID, MonitorID: alert.MonitorID}).Count(&count).Error; err != nil {
+			return fmt.Errorf("count: %v", err)
+		}
+
+		if count == 0 && alert.Status == "OK" {
 			// no record and no alert
 			return nil
 		}
 
-		if result.Status == "OK" && alert.Status == "OK" {
-			// have record and alert closed
-			return nil
-		}
+		if count != 0 {
+			history := AlertHistory{}
+			if err := tx.Where(&AlertHistory{OrgID: orgID, HostID: alert.HostID, MonitorID: alert.MonitorID}).Order("time desc").First(&history).Error; err != nil {
+				return fmt.Errorf("first. count=%v, alert.status=%v: %v", count, alert.Status, err)
+			}
 
-		if (result.Status == "" || result.Status == "OK") && alert.Status != "OK" {
-			// new alert
-			result.AlertID = alert.ID
+			if history.Status == "OK" && alert.Status == "OK" {
+				// have record and alert closed
+				return nil
+			}
 		}
-
-		// status != "OK" && reports.Reports[i].Status != "OK"
-		// -> continuous alert
-		// status != "OK" && reports.Reports[i].Status == "OK"
-		// -> close alert
 
 		create := AlertHistory{
 			OrgID:     orgID,
-			AlertID:   result.AlertID,
+			AlertID:   alert.ID,
 			Status:    alert.Status,
 			MonitorID: alert.MonitorID,
 			HostID:    alert.HostID,
@@ -169,37 +170,46 @@ func (repo *AlertRepository) Save(orgID string, alert *domain.Alert) (*domain.Al
 	}
 
 	if err := repo.DB.Transaction(func(tx *gorm.DB) error {
-		result := AlertHistory{}
-		if err := tx.Where(&AlertHistory{OrgID: orgID, HostID: alert.HostID, MonitorID: alert.MonitorID}).Order("time desc").First(&result).Error; err != nil {
+		var count int64
+		if err := tx.Model(&AlertHistory{}).Where(&AlertHistory{OrgID: orgID, HostID: alert.HostID, MonitorID: alert.MonitorID}).Count(&count).Error; err != nil {
+			return fmt.Errorf("count: %v", err)
+		}
+
+		if count == 0 {
 			// no record
 			return nil
 		}
 
-		if result.Status == "OK" && alert.Status == "OK" {
+		history := AlertHistory{}
+		if err := tx.Where(&AlertHistory{OrgID: orgID, HostID: alert.HostID, MonitorID: alert.MonitorID}).Order("time desc").First(&history).Error; err != nil {
+			return fmt.Errorf("first: %v", err)
+		}
+
+		if history.Status == "OK" && alert.Status == "OK" {
 			// have record and alert closed
 			return nil
 		}
 
 		var closedAt int64
 		if alert.Status == "OK" {
-			closedAt = result.Time
+			closedAt = history.Time
 		}
 
 		update := Alert{
 			OrgID:     orgID,
-			ID:        result.AlertID,
-			Status:    result.Status,
+			ID:        history.AlertID,
+			Status:    history.Status,
 			MonitorID: alert.MonitorID,
 			Type:      alert.Type,
-			HostID:    result.HostID,
+			HostID:    history.HostID,
 			Value:     alert.Value,
-			Message:   result.Message,
+			Message:   history.Message,
 			Reason:    alert.Reason,
-			OpenedAt:  result.Time,
+			OpenedAt:  history.Time,
 			ClosedAt:  closedAt,
 		}
 
-		if err := tx.Where(&Alert{ID: result.AlertID}).Assign(&update).FirstOrCreate(&Alert{}).Error; err != nil {
+		if err := tx.Where(&Alert{ID: history.AlertID}).Assign(&update).FirstOrCreate(&Alert{}).Error; err != nil {
 			return fmt.Errorf("insert into alerts: %v", err)
 		}
 

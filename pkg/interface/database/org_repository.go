@@ -1,7 +1,6 @@
 package database
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/itsubaki/mackerel-server-go/pkg/domain"
@@ -52,7 +51,12 @@ func (repo *OrgRepository) Save(orgID, name string) (*domain.Org, error) {
 	}
 
 	if err := repo.DB.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Where(&Org{ID: orgID}).First(&Org{}).Error; err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
+		var count int64
+		if err := tx.Model(&Org{}).Where(&Org{ID: orgID}).Count(&count).Error; err != nil {
+			return fmt.Errorf("count: %v", err)
+		}
+
+		if count == 0 {
 			if err := tx.Create(&create).Error; err != nil {
 				return fmt.Errorf("create: %v", err)
 			}

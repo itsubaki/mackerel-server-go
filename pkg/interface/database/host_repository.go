@@ -2,7 +2,6 @@ package database
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"time"
 
@@ -192,7 +191,12 @@ func (repo *HostRepository) Host(orgID, hostID string) (*domain.Host, error) {
 }
 
 func (repo *HostRepository) Exists(orgID, hostID string) bool {
-	if err := repo.DB.Where(&Host{OrgID: orgID, ID: hostID}).First(&Host{}).Error; err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
+	var count int64
+	if err := repo.DB.Model(&Host{}).Where(&Host{OrgID: orgID, ID: hostID}).Count(&count).Error; err != nil {
+		return false // FIXME Add error message
+	}
+
+	if count == 0 {
 		return false
 	}
 

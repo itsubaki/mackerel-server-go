@@ -65,7 +65,12 @@ func (repo *APIKeyRepository) Save(orgID, name, apikey string, write bool) (*dom
 	}
 
 	if err := repo.DB.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Where(&APIKey{APIKey: apikey}).First(&APIKey{}).Error; err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
+		var count int64
+		if err := tx.Model(&APIKey{}).Where(&APIKey{APIKey: apikey}).Count(&count).Error; err != nil {
+			return fmt.Errorf("count: %v", err)
+		}
+
+		if count == 0 {
 			if err := tx.Create(&create).Error; err != nil {
 				return fmt.Errorf("create: %v", err)
 			}

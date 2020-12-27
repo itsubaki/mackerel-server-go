@@ -1,7 +1,6 @@
 package database
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/itsubaki/mackerel-server-go/pkg/domain"
@@ -109,7 +108,12 @@ func (repo *RoleRepository) Save(orgID, serviceName string, r *domain.Role) erro
 }
 
 func (repo *RoleRepository) Exists(orgID, serviceName, roleName string) bool {
-	if err := repo.DB.Where(&Role{OrgID: orgID, ServiceName: serviceName, Name: roleName}).First(&Role{}).Error; err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
+	var count int64
+	if err := repo.DB.Model(&Role{}).Where(&Role{OrgID: orgID, ServiceName: serviceName, Name: roleName}).Count(&count).Error; err != nil {
+		return false // FIXME Add error message
+	}
+
+	if count == 0 {
 		return false
 	}
 
