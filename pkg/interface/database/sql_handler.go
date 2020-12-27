@@ -12,9 +12,7 @@ type SQLHandler interface {
 	SetMaxOpenConns(n int)
 	SetConnMaxLifetime(d time.Duration)
 	Raw() interface{}
-	Dialect() string
-	DSN() string
-	IsDebugging() bool
+	IsDebugMode() bool
 }
 
 type Tx interface {

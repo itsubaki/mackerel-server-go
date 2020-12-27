@@ -77,7 +77,7 @@ func NewHostRepository(handler SQLHandler) *HostRepository {
 	if err != nil {
 		panic(err)
 	}
-	if handler.IsDebugging() {
+	if handler.IsDebugMode() {
 		db.Logger.LogMode(4)
 	}
 

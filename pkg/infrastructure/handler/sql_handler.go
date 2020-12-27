@@ -203,21 +203,12 @@ func (h *SQLHandler) Raw() interface{} {
 	return h.DB
 }
 
-func (h *SQLHandler) DSN() string {
-	return h.Dsn
-}
-
-func (h *SQLHandler) Dialect() string {
-	return h.Driver
-}
-
-func (h *SQLHandler) IsDebugging() bool {
-	debug := false
+func (h *SQLHandler) IsDebugMode() bool {
 	if strings.ToLower(h.SQLMode) == "debug" {
-		debug = true
+		return true
 	}
 
-	return debug
+	return false
 }
 
 type Tx struct {

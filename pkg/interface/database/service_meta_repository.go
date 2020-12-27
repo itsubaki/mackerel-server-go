@@ -28,7 +28,7 @@ func NewServiceMetaRepository(handler SQLHandler) *ServiceMetaRepository {
 	if err != nil {
 		panic(err)
 	}
-	if handler.IsDebugging() {
+	if handler.IsDebugMode() {
 		db.Logger.LogMode(4)
 	}
 

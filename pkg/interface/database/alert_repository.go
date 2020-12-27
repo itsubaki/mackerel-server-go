@@ -65,7 +65,7 @@ func NewAlertRepository(handler SQLHandler) *AlertRepository {
 	if err != nil {
 		panic(err)
 	}
-	if handler.IsDebugging() {
+	if handler.IsDebugMode() {
 		db.Logger.LogMode(4)
 	}
 
