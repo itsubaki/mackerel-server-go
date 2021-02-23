@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -44,6 +45,7 @@ func (a *apiFeature) start() {
 	if err != nil {
 		panic(err)
 	}
+	log.Printf("db connected")
 
 	if err := infrastructure.RunFixture(h); err != nil {
 		panic(err)
