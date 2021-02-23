@@ -8,7 +8,7 @@ import (
 
 var (
 	orgID   = "4b825dc642c"
-	orgName = "hatena"
+	orgName = "questions"
 	keyName = "default"
 	apikey  = "2684d06cfedbee8499f326037bb6fb7e8c22e73b16bb"
 	write   = true
