@@ -36,6 +36,9 @@ up: build
 	docker-compose up
 	# docker exec -it ${CONTAINERID} mysql -u root -p
 
+down:
+	docker-compose down
+
 test:
 	go version
 	go test -v -cover $(shell go list ./... | grep -v /vendor/ | grep -v /build/ | grep -v -E "mackerel-server-go$$")
