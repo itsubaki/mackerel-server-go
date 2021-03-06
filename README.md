@@ -1,10 +1,6 @@
 # mackerel-server-go
 
-Mackerel API Server in Go
-
-[API](https://mackerel.io/api-docs/)
-
-[API(ja)](https://mackerel.io/ja/api-docs/)
+- Mackerel API Server Clone written in golang
 
 # TODO
 
