@@ -6,6 +6,8 @@ import (
 	"github.com/itsubaki/mackerel-server-go/pkg/usecase"
 )
 
+const XAPIKEY string = "X-Api-Key"
+
 type APIKeyController struct {
 	Interactor *usecase.APIKeyInteractor
 }
@@ -19,5 +21,5 @@ func NewAPIKeyController(handler database.SQLHandler) *APIKeyController {
 }
 
 func (s *APIKeyController) APIKey(c Context) (*domain.APIKey, error) {
-	return s.Interactor.APIKey(c.GetHeader("X-Api-Key"))
+	return s.Interactor.APIKey(c.GetHeader(XAPIKEY))
 }
