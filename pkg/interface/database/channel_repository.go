@@ -63,19 +63,19 @@ func NewChannelRepository(handler SQLHandler) *ChannelRepository {
 	}
 
 	if err := db.AutoMigrate(&ChannelMention{}); err != nil {
-		panic(fmt.Errorf("auto migrate channel: %v", err))
+		panic(fmt.Errorf("auto migrate channel mention: %v", err))
 	}
 
 	if err := db.AutoMigrate(&ChannelEvent{}); err != nil {
-		panic(fmt.Errorf("auto migrate channel: %v", err))
+		panic(fmt.Errorf("auto migrate channel event: %v", err))
 	}
 
 	if err := db.AutoMigrate(&ChannelEmail{}); err != nil {
-		panic(fmt.Errorf("auto migrate channel: %v", err))
+		panic(fmt.Errorf("auto migrate channel email: %v", err))
 	}
 
 	if err := db.AutoMigrate(&ChannelUserID{}); err != nil {
-		panic(fmt.Errorf("auto migrate channel: %v", err))
+		panic(fmt.Errorf("auto migrate channel user id: %v", err))
 	}
 
 	return &ChannelRepository{

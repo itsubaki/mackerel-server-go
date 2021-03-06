@@ -101,7 +101,7 @@ func (s *CheckMonitorInteractor) HostMetric(orgID string) (*domain.Success, erro
 func (s *CheckMonitorInteractor) Connectivity(orgID string) (*domain.Success, error) {
 	monitors, err := s.MonitorRepository.List(orgID)
 	if err != nil {
-		return &domain.Success{Success: false}, fmt.Errorf("get monitor list: %v", err)
+		return &domain.Success{Success: false}, fmt.Errorf("get host connectivity monitor list: %v", err)
 	}
 
 	for i := range monitors.Monitors {
@@ -110,7 +110,7 @@ func (s *CheckMonitorInteractor) Connectivity(orgID string) (*domain.Success, er
 			continue
 		}
 
-		log.Printf("[DEBUG] %v", m)
+		log.Printf("[DEBUG] host connectivity=%v", m)
 	}
 
 	return &domain.Success{Success: true}, nil
@@ -119,7 +119,7 @@ func (s *CheckMonitorInteractor) Connectivity(orgID string) (*domain.Success, er
 func (s *CheckMonitorInteractor) ServiceMetric(orgID string) (*domain.Success, error) {
 	monitors, err := s.MonitorRepository.List(orgID)
 	if err != nil {
-		return &domain.Success{Success: false}, fmt.Errorf("get monitor list: %v", err)
+		return &domain.Success{Success: false}, fmt.Errorf("get service metric monitor list: %v", err)
 	}
 
 	for i := range monitors.Monitors {
@@ -128,7 +128,7 @@ func (s *CheckMonitorInteractor) ServiceMetric(orgID string) (*domain.Success, e
 			continue
 		}
 
-		log.Printf("[DEBUG] %v", m)
+		log.Printf("[DEBUG] service metric monitor=%v", m)
 	}
 
 	return &domain.Success{Success: true}, nil
@@ -137,7 +137,7 @@ func (s *CheckMonitorInteractor) ServiceMetric(orgID string) (*domain.Success, e
 func (s *CheckMonitorInteractor) External(orgID string) (*domain.Success, error) {
 	monitors, err := s.MonitorRepository.List(orgID)
 	if err != nil {
-		return &domain.Success{Success: false}, fmt.Errorf("get monitor list: %v", err)
+		return &domain.Success{Success: false}, fmt.Errorf("get external monitor list: %v", err)
 	}
 
 	for i := range monitors.Monitors {
@@ -146,7 +146,7 @@ func (s *CheckMonitorInteractor) External(orgID string) (*domain.Success, error)
 			continue
 		}
 
-		log.Printf("[DEBUG] %v", m)
+		log.Printf("[DEBUG] external monitor=%v", m)
 	}
 
 	return &domain.Success{Success: true}, nil
@@ -155,7 +155,7 @@ func (s *CheckMonitorInteractor) External(orgID string) (*domain.Success, error)
 func (s *CheckMonitorInteractor) Expression(orgID string) (*domain.Success, error) {
 	monitors, err := s.MonitorRepository.List(orgID)
 	if err != nil {
-		return &domain.Success{Success: false}, fmt.Errorf("get monitor list: %v", err)
+		return &domain.Success{Success: false}, fmt.Errorf("get expression monitor list: %v", err)
 	}
 
 	for i := range monitors.Monitors {
@@ -164,7 +164,7 @@ func (s *CheckMonitorInteractor) Expression(orgID string) (*domain.Success, erro
 			continue
 		}
 
-		log.Printf("[DEBUG] %v", m)
+		log.Printf("[DEBUG] expression monitor=%v", m)
 	}
 
 	return &domain.Success{Success: true}, nil
