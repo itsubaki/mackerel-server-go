@@ -164,13 +164,6 @@ func (repo *AlertRepository) Save(orgID string, alert *domain.Alert) (*domain.Al
 			return fmt.Errorf("insert into alert_history: %v", err)
 		}
 
-		return nil
-	}); err != nil {
-		return alert, fmt.Errorf("transaction: %v", err)
-	}
-
-	if err := repo.DB.Transaction(func(tx *gorm.DB) error {
-		var count int64
 		if err := tx.Model(&AlertHistory{}).Where(&AlertHistory{OrgID: orgID, HostID: alert.HostID, MonitorID: alert.MonitorID}).Count(&count).Error; err != nil {
 			return fmt.Errorf("count: %v", err)
 		}
@@ -228,7 +221,7 @@ func (repo *AlertRepository) List(orgID string, withClosed bool, nextID string, 
 	}
 
 	result := make([]Alert, 0)
-	if err := repo.DB.Where(&Alert{OrgID: orgID}).Where("status IN ('CRITICAL', 'WARNING', 'UNKNOWN', ?)", status).Order("opened_at desc").Limit(limit).Find(&result).Error; err != nil {
+	if err := repo.DB.Where(&Alert{OrgID: orgID}).Where("status IN ('CRITICAL', 'WARNING', 'UNKNOWN', ?)", status).Order("opened_at desc").Limit(limit + 1).Find(&result).Error; err != nil {
 		return nil, fmt.Errorf("select * from alerts: %v", err)
 	}
 
