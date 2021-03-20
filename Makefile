@@ -11,10 +11,9 @@ runclient:
 	go version
 	-rm ~/Library/mackerel-agent/{id,pid}
 	-go install github.com/mackerelio/mackerel-agent
-	-GO111MODULE=off go get github.com/mackerelio/go-check-plugins
+	-go get github.com/mackerelio/go-check-plugins
 	cd $(shell go env GOPATH)/src/github.com/mackerelio/go-check-plugins/check-tcp; go install
-	cp mackerel-agent.conf /usr/local/etc/mackerel-agent.conf
-	mackerel-agent -conf /usr/local/etc/mackerel-agent.conf -apibase=http://localhost:8080
+	mackerel-agent -conf mackerel-agent.conf -apibase=http://localhost:8080
 
 runmysql:
 	-docker pull mysql
@@ -51,7 +50,7 @@ godog:
 
 mkr:
 	go version
-	go get github.com/mackerelio/mkr
+	go install github.com/mackerelio/mkr
 
 	MACKEREL_APIKEY=${XAPIKEY} mkr --apibase=http://localhost:8080 org
 	MACKEREL_APIKEY=${XAPIKEY} mkr --apibase=http://localhost:8080 create mkr-host
