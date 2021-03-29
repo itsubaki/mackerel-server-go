@@ -2,32 +2,6 @@
 
 - Mackerel API Server Clone written in golang
 
-# TODO
-
-- API
-  - [x] Hosts
-  - [x] Host Metrics
-  - [x] Services
-  - [x] Service Metrics
-  - [x] Check Monitoring
-  - [x] Metadata
-  - [x] Monitors
-  - [x] Alerts
-  - [x] Notification Channels
-  - [x] Notification Groups
-  - [ ] Dashboards
-  - [x] Graph Annotations
-  - [x] Users
-  - [x] Invitations
-  - [x] Organizations
-  - [x] Downtime
-  - [ ] AWS Integration
-- Persistence
-  - [x] Database/Transaction
-  - [x] ORM
-- Auth
-  - [x] `X-Api-Key`
-
 # Install
 
 ```
@@ -62,8 +36,7 @@ GIN_MODE=debug mackerel-server-go
 
 ```
 $ make runclient
-cp mackerel-agent.conf /usr/local/etc/mackerel-agent.conf
-mackerel-agent -conf /usr/local/etc/mackerel-agent.conf -apibase=http://localhost:8080
+mackerel-agent -conf mackerel-agent.conf -apibase=http://localhost:8080
 2019/05/24 23:52:07 main.go:171: INFO <main> Starting mackerel-agent version:0.59.0, rev:, apibase:http://localhost:8080
 2019/05/24 23:52:12 command.go:91: DEBUG <command> Registering new host on mackerel...
 ```
