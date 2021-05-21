@@ -19,8 +19,7 @@ type Config struct {
 }
 
 func GetValue(key, defaultValue string) string {
-	val := os.Getenv(key)
-	if val != "" {
+	if val := os.Getenv(key); val != "" {
 		return val
 	}
 
