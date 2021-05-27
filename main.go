@@ -36,8 +36,10 @@ func main() {
 	}
 	log.Printf("db connected")
 
-	if err := infrastructure.RunFixture(h); err != nil {
-		log.Fatalf("run fixture: %v", err)
+	if c.RunFixture {
+		if err := infrastructure.RunFixture(h); err != nil {
+			log.Fatalf("run fixture: %v", err)
+		}
 	}
 
 	r := infrastructure.Default()

@@ -5,7 +5,7 @@ XAPIKEY := 2684d06cfedbee8499f326037bb6fb7e8c22e73b16bb
 
 runserver:
 	go version
-	GIN_MODE=debug SQL_MODE=debug go run main.go
+	GIN_MODE=debug SQL_MODE=debug RUN_FIXTURE=true go run main.go
 
 runclient:
 	go version

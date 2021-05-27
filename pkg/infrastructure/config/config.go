@@ -2,6 +2,7 @@ package config
 
 import (
 	"os"
+	"strings"
 	"time"
 )
 
@@ -16,6 +17,7 @@ type Config struct {
 	MaxIdleConns    int
 	MaxOpenConns    int
 	ConnMaxLifetime time.Duration
+	RunFixture      bool
 }
 
 func GetValue(key, defaultValue string) string {
@@ -27,6 +29,11 @@ func GetValue(key, defaultValue string) string {
 }
 
 func New() *Config {
+	runFixture := false
+	if strings.ToLower(GetValue("RUN_FIXTURE", "false")) == "true" {
+		runFixture = true
+	}
+
 	return &Config{
 		Port:            GetValue("PORT", "8080"),
 		Driver:          GetValue("DRIVER", "mysql"),
@@ -38,5 +45,6 @@ func New() *Config {
 		MaxIdleConns:    10,
 		MaxOpenConns:    10,
 		ConnMaxLifetime: 10 * time.Minute,
+		RunFixture:      runFixture,
 	}
 }
