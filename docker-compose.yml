@@ -15,4 +15,5 @@ services:
     environment:
       - GIN_MODE=debug
       - SQL_MODE=debug
+      - RUN_FIXTURE=true
       - HOST=root:secret@tcp(mackerel-server-go_mysql_1:3306)/
