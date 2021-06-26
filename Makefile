@@ -10,8 +10,8 @@ runserver:
 runclient:
 	go version
 	-rm ~/Library/mackerel-agent/{id,pid}
-	-go install github.com/mackerelio/mackerel-agent
-	-go get github.com/mackerelio/go-check-plugins
+	-go install github.com/mackerelio/mackerel-agent@latest
+	-go install github.com/mackerelio/go-check-plugins@latest
 	cd $(shell go env GOPATH)/src/github.com/mackerelio/go-check-plugins/check-tcp; go install
 	mackerel-agent -conf mackerel-agent.conf -apibase=http://localhost:8080
 
