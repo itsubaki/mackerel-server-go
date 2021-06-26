@@ -10,7 +10,7 @@ Feature:
     Then the response should match json:
       """
       {
-        "name": "questions"
+        "name": "fixture"
       }
       """
 
