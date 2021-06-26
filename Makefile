@@ -50,7 +50,7 @@ godog:
 
 mkr:
 	go version
-	go install github.com/mackerelio/mkr
+	go install github.com/mackerelio/mkr@latest
 
 	MACKEREL_APIKEY=${XAPIKEY} mkr --apibase=http://localhost:8080 org
 	MACKEREL_APIKEY=${XAPIKEY} mkr --apibase=http://localhost:8080 create mkr-host
