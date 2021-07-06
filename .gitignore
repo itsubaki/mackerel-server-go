@@ -16,3 +16,6 @@
 coverage.out
 coverage.html
 setenv.sh
+
+# runclient
+go-check-plugins

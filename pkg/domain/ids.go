@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"fmt"
 	"math/rand"
 	"strconv"
 	"strings"
@@ -19,6 +20,10 @@ func NewIDWith(seed ...string) string {
 }
 
 func NewID(digit int, seed ...string) string {
+	if digit == 1 {
+		panic(fmt.Sprintf("digit=%d. digit must be greater than 1", digit))
+	}
+
 	hd := hashids.NewData()
 	hd.MinLength = digit
 	hd.Salt = strings.Join(seed, "")
