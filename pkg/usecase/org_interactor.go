@@ -8,6 +8,6 @@ type OrgInteractor struct {
 	OrgRepository OrgRepository
 }
 
-func (s *OrgInteractor) Org(orgID string) (*domain.Org, error) {
-	return s.OrgRepository.Org(orgID)
+func (intr *OrgInteractor) Org(orgID string) (*domain.Org, error) {
+	return intr.OrgRepository.Org(orgID)
 }

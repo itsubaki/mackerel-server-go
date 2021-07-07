@@ -20,6 +20,6 @@ func NewAPIKeyController(handler database.SQLHandler) *APIKeyController {
 	}
 }
 
-func (s *APIKeyController) APIKey(c Context) (*domain.APIKey, error) {
-	return s.Interactor.APIKey(c.GetHeader(XAPIKEY))
+func (cntr *APIKeyController) APIKey(c Context) (*domain.APIKey, error) {
+	return cntr.Interactor.APIKey(c.GetHeader(XAPIKEY))
 }

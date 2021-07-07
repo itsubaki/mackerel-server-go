@@ -20,14 +20,14 @@ func NewGraphController(handler database.SQLHandler) *GraphController {
 	}
 }
 
-func (s *GraphController) SaveDef(c Context) {
+func (cntr *GraphController) SaveDef(c Context) {
 	var in []domain.GraphDef
 	if err := c.BindJSON(&in); err != nil {
 		c.Status(http.StatusBadRequest)
 		return
 	}
 
-	out, err := s.Interactor.SaveDef(
+	out, err := cntr.Interactor.SaveDef(
 		c.GetString("org_id"),
 		in,
 	)
@@ -35,22 +35,22 @@ func (s *GraphController) SaveDef(c Context) {
 	doResponse(c, out, err)
 }
 
-func (s *GraphController) List(c Context) {
-	out, err := s.Interactor.List(
+func (cntr *GraphController) List(c Context) {
+	out, err := cntr.Interactor.List(
 		c.GetString("org_id"),
 	)
 
 	doResponse(c, out, err)
 }
 
-func (s *GraphController) Save(c Context) {
+func (cntr *GraphController) Save(c Context) {
 	var in domain.GraphAnnotation
 	if err := c.BindJSON(&in); err != nil {
 		c.Status(http.StatusBadRequest)
 		return
 	}
 
-	out, err := s.Interactor.Save(
+	out, err := cntr.Interactor.Save(
 		c.GetString("org_id"),
 		&in,
 	)
@@ -58,14 +58,14 @@ func (s *GraphController) Save(c Context) {
 	doResponse(c, out, err)
 }
 
-func (s *GraphController) Update(c Context) {
+func (cntr *GraphController) Update(c Context) {
 	var in domain.GraphAnnotation
 	if err := c.BindJSON(&in); err != nil {
 		c.Status(http.StatusBadRequest)
 		return
 	}
 
-	out, err := s.Interactor.Update(
+	out, err := cntr.Interactor.Update(
 		c.GetString("org_id"),
 		&in,
 	)
@@ -73,8 +73,8 @@ func (s *GraphController) Update(c Context) {
 	doResponse(c, out, err)
 }
 
-func (s *GraphController) Delete(c Context) {
-	out, err := s.Interactor.Delete(
+func (cntr *GraphController) Delete(c Context) {
+	out, err := cntr.Interactor.Delete(
 		c.GetString("org_id"),
 		c.Param("annotationId"),
 	)

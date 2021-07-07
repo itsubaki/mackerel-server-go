@@ -28,22 +28,22 @@ func NewServiceController(handler database.SQLHandler) *ServiceController {
 	}
 }
 
-func (s *ServiceController) List(c Context) {
-	out, err := s.Interactor.List(
+func (cntr *ServiceController) List(c Context) {
+	out, err := cntr.Interactor.List(
 		c.GetString("org_id"),
 	)
 
 	doResponse(c, out, err)
 }
 
-func (s *ServiceController) Save(c Context) {
+func (cntr *ServiceController) Save(c Context) {
 	var in domain.Service
 	if err := c.BindJSON(&in); err != nil {
 		c.Status(http.StatusBadRequest)
 		return
 	}
 
-	out, err := s.Interactor.Save(
+	out, err := cntr.Interactor.Save(
 		c.GetString("org_id"),
 		&in,
 	)
@@ -51,8 +51,8 @@ func (s *ServiceController) Save(c Context) {
 	doResponse(c, out, err)
 }
 
-func (s *ServiceController) Delete(c Context) {
-	out, err := s.Interactor.Delete(
+func (cntr *ServiceController) Delete(c Context) {
+	out, err := cntr.Interactor.Delete(
 		c.GetString("org_id"),
 		c.Param("serviceName"),
 	)
@@ -60,8 +60,8 @@ func (s *ServiceController) Delete(c Context) {
 	doResponse(c, out, err)
 }
 
-func (s *ServiceController) ListRole(c Context) {
-	out, err := s.Interactor.ListRole(
+func (cntr *ServiceController) ListRole(c Context) {
+	out, err := cntr.Interactor.ListRole(
 		c.GetString("org_id"),
 		c.Param("serviceName"),
 	)
@@ -69,14 +69,14 @@ func (s *ServiceController) ListRole(c Context) {
 	doResponse(c, out, err)
 }
 
-func (s *ServiceController) SaveRole(c Context) {
+func (cntr *ServiceController) SaveRole(c Context) {
 	var in domain.Role
 	if err := c.BindJSON(&in); err != nil {
 		c.Status(http.StatusBadRequest)
 		return
 	}
 
-	out, err := s.Interactor.SaveRole(
+	out, err := cntr.Interactor.SaveRole(
 		c.GetString("org_id"),
 		c.Param("serviceName"),
 		&in,
@@ -85,8 +85,8 @@ func (s *ServiceController) SaveRole(c Context) {
 	doResponse(c, out, err)
 }
 
-func (s *ServiceController) DeleteRole(c Context) {
-	out, err := s.Interactor.DeleteRole(
+func (cntr *ServiceController) DeleteRole(c Context) {
+	out, err := cntr.Interactor.DeleteRole(
 		c.GetString("org_id"),
 		c.Param("serviceName"),
 		c.Param("roleName"),
@@ -95,8 +95,8 @@ func (s *ServiceController) DeleteRole(c Context) {
 	doResponse(c, out, err)
 }
 
-func (s *ServiceController) MetricNames(c Context) {
-	out, err := s.Interactor.MetricNames(
+func (cntr *ServiceController) MetricNames(c Context) {
+	out, err := cntr.Interactor.MetricNames(
 		c.GetString("org_id"),
 		c.Param("serviceName"),
 	)
@@ -104,7 +104,7 @@ func (s *ServiceController) MetricNames(c Context) {
 	doResponse(c, out, err)
 }
 
-func (s *ServiceController) MetricValues(c Context) {
+func (cntr *ServiceController) MetricValues(c Context) {
 	from, err := strconv.ParseInt(c.Query("from"), 10, 64)
 	if err != nil {
 		c.Status(http.StatusBadRequest)
@@ -117,7 +117,7 @@ func (s *ServiceController) MetricValues(c Context) {
 		return
 	}
 
-	out, err := s.Interactor.MetricValues(
+	out, err := cntr.Interactor.MetricValues(
 		c.GetString("org_id"),
 		c.Param("serviceName"),
 		c.Query("name"),
@@ -128,14 +128,14 @@ func (s *ServiceController) MetricValues(c Context) {
 	doResponse(c, out, err)
 }
 
-func (s *ServiceController) SaveMetricValues(c Context) {
+func (cntr *ServiceController) SaveMetricValues(c Context) {
 	var v []domain.ServiceMetricValue
 	if err := c.BindJSON(&v); err != nil {
 		c.Status(http.StatusBadRequest)
 		return
 	}
 
-	out, err := s.Interactor.SaveMetricValues(
+	out, err := cntr.Interactor.SaveMetricValues(
 		c.GetString("org_id"),
 		c.Param("serviceName"),
 		v,
@@ -144,8 +144,8 @@ func (s *ServiceController) SaveMetricValues(c Context) {
 	doResponse(c, out, err)
 }
 
-func (s *ServiceController) Metadata(c Context) {
-	out, err := s.Interactor.Metadata(
+func (cntr *ServiceController) Metadata(c Context) {
+	out, err := cntr.Interactor.Metadata(
 		c.GetString("org_id"),
 		c.Param("serviceName"),
 		c.Param("namespace"),
@@ -154,8 +154,8 @@ func (s *ServiceController) Metadata(c Context) {
 	doResponse(c, out, err)
 }
 
-func (s *ServiceController) ListMetadata(c Context) {
-	out, err := s.Interactor.ListMetadata(
+func (cntr *ServiceController) ListMetadata(c Context) {
+	out, err := cntr.Interactor.ListMetadata(
 		c.GetString("org_id"),
 		c.Param("serviceName"),
 	)
@@ -163,14 +163,14 @@ func (s *ServiceController) ListMetadata(c Context) {
 	doResponse(c, out, err)
 }
 
-func (s *ServiceController) SaveMetadata(c Context) {
+func (cntr *ServiceController) SaveMetadata(c Context) {
 	var in interface{}
 	if err := c.BindJSON(&in); err != nil {
 		c.Status(http.StatusBadRequest)
 		return
 	}
 
-	out, err := s.Interactor.SaveMetadata(
+	out, err := cntr.Interactor.SaveMetadata(
 		c.GetString("org_id"),
 		c.Param("serviceName"),
 		c.Param("namespace"),
@@ -180,8 +180,8 @@ func (s *ServiceController) SaveMetadata(c Context) {
 	doResponse(c, out, err)
 }
 
-func (s *ServiceController) DeleteMetadata(c Context) {
-	out, err := s.Interactor.DeleteMetadata(
+func (cntr *ServiceController) DeleteMetadata(c Context) {
+	out, err := cntr.Interactor.DeleteMetadata(
 		c.GetString("org_id"),
 		c.Param("serviceName"),
 		c.Param("namespace"),
@@ -190,8 +190,8 @@ func (s *ServiceController) DeleteMetadata(c Context) {
 	doResponse(c, out, err)
 }
 
-func (s *ServiceController) RoleMetadata(c Context) {
-	out, err := s.Interactor.RoleMetadata(
+func (cntr *ServiceController) RoleMetadata(c Context) {
+	out, err := cntr.Interactor.RoleMetadata(
 		c.GetString("org_id"),
 		c.Param("serviceName"),
 		c.Param("roleName"),
@@ -201,8 +201,8 @@ func (s *ServiceController) RoleMetadata(c Context) {
 	doResponse(c, out, err)
 }
 
-func (s *ServiceController) ListRoleMetadata(c Context) {
-	out, err := s.Interactor.ListRoleMetadata(
+func (cntr *ServiceController) ListRoleMetadata(c Context) {
+	out, err := cntr.Interactor.ListRoleMetadata(
 		c.GetString("org_id"),
 		c.Param("serviceName"),
 		c.Param("roleName"),
@@ -211,14 +211,14 @@ func (s *ServiceController) ListRoleMetadata(c Context) {
 	doResponse(c, out, err)
 }
 
-func (s *ServiceController) SaveRoleMetadata(c Context) {
+func (cntr *ServiceController) SaveRoleMetadata(c Context) {
 	var in interface{}
 	if err := c.BindJSON(&in); err != nil {
 		c.Status(http.StatusBadRequest)
 		return
 	}
 
-	out, err := s.Interactor.SaveRoleMetadata(
+	out, err := cntr.Interactor.SaveRoleMetadata(
 		c.GetString("org_id"),
 		c.Param("serviceName"),
 		c.Param("roleName"),
@@ -229,8 +229,8 @@ func (s *ServiceController) SaveRoleMetadata(c Context) {
 	doResponse(c, out, err)
 }
 
-func (s *ServiceController) DeleteRoleMetadata(c Context) {
-	out, err := s.Interactor.DeleteRoleMetadata(
+func (cntr *ServiceController) DeleteRoleMetadata(c Context) {
+	out, err := cntr.Interactor.DeleteRoleMetadata(
 		c.GetString("org_id"),
 		c.Param("serviceName"),
 		c.Param("roleName"),

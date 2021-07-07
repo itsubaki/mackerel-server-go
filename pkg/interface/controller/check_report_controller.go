@@ -21,14 +21,14 @@ func NewCheckReportController(handler database.SQLHandler) *CheckReportControlle
 	}
 }
 
-func (s *CheckReportController) Save(c Context) {
+func (cntr *CheckReportController) Save(c Context) {
 	var in domain.CheckReports
 	if err := c.BindJSON(&in); err != nil {
 		c.Status(http.StatusBadRequest)
 		return
 	}
 
-	out, err := s.Interactor.Save(
+	out, err := cntr.Interactor.Save(
 		c.GetString("org_id"),
 		&in,
 	)

@@ -17,8 +17,8 @@ func NewOrgController(handler database.SQLHandler) *OrgController {
 	}
 }
 
-func (s *OrgController) Org(c Context) {
-	out, err := s.Interactor.Org(
+func (cntr *OrgController) Org(c Context) {
+	out, err := cntr.Interactor.Org(
 		c.GetString("org_id"),
 	)
 

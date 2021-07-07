@@ -16,24 +16,24 @@ type CheckMonitorInteractor struct {
 	AlertRepository      AlertRepository
 }
 
-func (s *CheckMonitorInteractor) HostMetric(orgID string) (*domain.Success, error) {
-	monitors, err := s.MonitorRepository.ListHostMetric(orgID)
+func (intr *CheckMonitorInteractor) HostMetric(orgID string) (*domain.Success, error) {
+	monitors, err := intr.MonitorRepository.ListHostMetric(orgID)
 	if err != nil {
 		return &domain.Success{Success: false}, fmt.Errorf("get host metric monitoring list: %v", err)
 	}
 
-	hosts, err := s.HostRepository.ActiveList(orgID)
+	hosts, err := intr.HostRepository.ActiveList(orgID)
 	if err != nil {
 		return &domain.Success{Success: false}, fmt.Errorf("get hosts: %v", err)
 	}
 
 	for _, m := range monitors {
 		for _, h := range hosts.Hosts {
-			if !s.HostMetricRepository.Exists(h.OrgID, h.ID, m.Metric) {
+			if !intr.HostMetricRepository.Exists(h.OrgID, h.ID, m.Metric) {
 				continue
 			}
 
-			values, err := s.HostMetricRepository.ValuesLimit(h.OrgID, h.ID, m.Metric, m.Duration)
+			values, err := intr.HostMetricRepository.ValuesLimit(h.OrgID, h.ID, m.Metric, m.Duration)
 			if err != nil {
 				return &domain.Success{Success: false}, fmt.Errorf("get average of metric value: %v", err)
 			}
@@ -70,7 +70,7 @@ func (s *CheckMonitorInteractor) HostMetric(orgID string) (*domain.Success, erro
 				}
 			}
 
-			if _, err := s.AlertRepository.Save(
+			if _, err := intr.AlertRepository.Save(
 				orgID,
 				&domain.Alert{
 					OrgID: orgID,
@@ -98,8 +98,8 @@ func (s *CheckMonitorInteractor) HostMetric(orgID string) (*domain.Success, erro
 	return &domain.Success{Success: true}, nil
 }
 
-func (s *CheckMonitorInteractor) Connectivity(orgID string) (*domain.Success, error) {
-	monitors, err := s.MonitorRepository.List(orgID)
+func (intr *CheckMonitorInteractor) Connectivity(orgID string) (*domain.Success, error) {
+	monitors, err := intr.MonitorRepository.List(orgID)
 	if err != nil {
 		return &domain.Success{Success: false}, fmt.Errorf("get host connectivity monitor list: %v", err)
 	}
@@ -116,8 +116,8 @@ func (s *CheckMonitorInteractor) Connectivity(orgID string) (*domain.Success, er
 	return &domain.Success{Success: true}, nil
 }
 
-func (s *CheckMonitorInteractor) ServiceMetric(orgID string) (*domain.Success, error) {
-	monitors, err := s.MonitorRepository.List(orgID)
+func (intr *CheckMonitorInteractor) ServiceMetric(orgID string) (*domain.Success, error) {
+	monitors, err := intr.MonitorRepository.List(orgID)
 	if err != nil {
 		return &domain.Success{Success: false}, fmt.Errorf("get service metric monitor list: %v", err)
 	}
@@ -134,8 +134,8 @@ func (s *CheckMonitorInteractor) ServiceMetric(orgID string) (*domain.Success, e
 	return &domain.Success{Success: true}, nil
 }
 
-func (s *CheckMonitorInteractor) External(orgID string) (*domain.Success, error) {
-	monitors, err := s.MonitorRepository.List(orgID)
+func (intr *CheckMonitorInteractor) External(orgID string) (*domain.Success, error) {
+	monitors, err := intr.MonitorRepository.List(orgID)
 	if err != nil {
 		return &domain.Success{Success: false}, fmt.Errorf("get external monitor list: %v", err)
 	}
@@ -152,8 +152,8 @@ func (s *CheckMonitorInteractor) External(orgID string) (*domain.Success, error)
 	return &domain.Success{Success: true}, nil
 }
 
-func (s *CheckMonitorInteractor) Expression(orgID string) (*domain.Success, error) {
-	monitors, err := s.MonitorRepository.List(orgID)
+func (intr *CheckMonitorInteractor) Expression(orgID string) (*domain.Success, error) {
+	monitors, err := intr.MonitorRepository.List(orgID)
 	if err != nil {
 		return &domain.Success{Success: false}, fmt.Errorf("get expression monitor list: %v", err)
 	}

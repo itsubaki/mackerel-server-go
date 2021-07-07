@@ -20,22 +20,22 @@ func NewDashboardController(handler database.SQLHandler) *DashboardController {
 	}
 }
 
-func (s *DashboardController) List(c Context) {
-	out, err := s.Interactor.List(
+func (cntr *DashboardController) List(c Context) {
+	out, err := cntr.Interactor.List(
 		c.GetString("org_id"),
 	)
 
 	doResponse(c, out, err)
 }
 
-func (s *DashboardController) Save(c Context) {
+func (cntr *DashboardController) Save(c Context) {
 	var in domain.Dashboard
 	if err := c.BindJSON(&in); err != nil {
 		c.Status(http.StatusBadRequest)
 		return
 	}
 
-	out, err := s.Interactor.Save(
+	out, err := cntr.Interactor.Save(
 		c.GetString("org_id"),
 		&in,
 	)
@@ -43,7 +43,7 @@ func (s *DashboardController) Save(c Context) {
 	doResponse(c, out, err)
 }
 
-func (s *DashboardController) Update(c Context) {
+func (cntr *DashboardController) Update(c Context) {
 	var in domain.Dashboard
 	if err := c.BindJSON(&in); err != nil {
 		c.Status(http.StatusBadRequest)
@@ -51,7 +51,7 @@ func (s *DashboardController) Update(c Context) {
 	}
 	in.ID = c.Param("dashboardId")
 
-	out, err := s.Interactor.Update(
+	out, err := cntr.Interactor.Update(
 		c.GetString("org_id"),
 		&in,
 	)
@@ -59,8 +59,8 @@ func (s *DashboardController) Update(c Context) {
 	doResponse(c, out, err)
 }
 
-func (s *DashboardController) Dashboard(c Context) {
-	out, err := s.Interactor.Dashboard(
+func (cntr *DashboardController) Dashboard(c Context) {
+	out, err := cntr.Interactor.Dashboard(
 		c.GetString("org_id"),
 		c.Param("dashboardId"),
 	)
@@ -68,8 +68,8 @@ func (s *DashboardController) Dashboard(c Context) {
 	doResponse(c, out, err)
 }
 
-func (s *DashboardController) Delete(c Context) {
-	out, err := s.Interactor.Delete(
+func (cntr *DashboardController) Delete(c Context) {
+	out, err := cntr.Interactor.Delete(
 		c.GetString("org_id"),
 		c.Param("dashboardId"),
 	)

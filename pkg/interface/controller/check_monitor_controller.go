@@ -20,40 +20,40 @@ func NewCheckMonitorController(handler database.SQLHandler) *CheckMonitorControl
 	}
 }
 
-func (s *CheckMonitorController) HostMetric(c Context) {
-	out, err := s.Interactor.HostMetric(
+func (cntr *CheckMonitorController) HostMetric(c Context) {
+	out, err := cntr.Interactor.HostMetric(
 		c.GetString("org_id"),
 	)
 
 	doResponse(c, out, err)
 }
 
-func (s *CheckMonitorController) Connectivity(c Context) {
-	out, err := s.Interactor.Connectivity(
+func (cntr *CheckMonitorController) Connectivity(c Context) {
+	out, err := cntr.Interactor.Connectivity(
 		c.GetString("org_id"),
 	)
 
 	doResponse(c, out, err)
 }
 
-func (s *CheckMonitorController) ServiceMetric(c Context) {
-	out, err := s.Interactor.ServiceMetric(
+func (cntr *CheckMonitorController) ServiceMetric(c Context) {
+	out, err := cntr.Interactor.ServiceMetric(
 		c.GetString("org_id"),
 	)
 
 	doResponse(c, out, err)
 }
 
-func (s *CheckMonitorController) External(c Context) {
-	out, err := s.Interactor.External(
+func (cntr *CheckMonitorController) External(c Context) {
+	out, err := cntr.Interactor.External(
 		c.GetString("org_id"),
 	)
 
 	doResponse(c, out, err)
 }
 
-func (s *CheckMonitorController) Expression(c Context) {
-	out, err := s.Interactor.Expression(
+func (cntr *CheckMonitorController) Expression(c Context) {
+	out, err := cntr.Interactor.Expression(
 		c.GetString("org_id"),
 	)
 

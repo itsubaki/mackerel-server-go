@@ -20,22 +20,22 @@ func NewNotificationGroupController(handler database.SQLHandler) *NotificationGr
 	}
 }
 
-func (s *NotificationGroupController) List(c Context) {
-	out, err := s.Interactor.List(
+func (cntr *NotificationGroupController) List(c Context) {
+	out, err := cntr.Interactor.List(
 		c.GetString("org_id"),
 	)
 
 	doResponse(c, out, err)
 }
 
-func (s *NotificationGroupController) Save(c Context) {
+func (cntr *NotificationGroupController) Save(c Context) {
 	var in domain.NotificationGroup
 	if err := c.BindJSON(&in); err != nil {
 		c.Status(http.StatusBadRequest)
 		return
 	}
 
-	out, err := s.Interactor.Save(
+	out, err := cntr.Interactor.Save(
 		c.GetString("org_id"),
 		&in,
 	)
@@ -43,7 +43,7 @@ func (s *NotificationGroupController) Save(c Context) {
 	doResponse(c, out, err)
 }
 
-func (s *NotificationGroupController) Update(c Context) {
+func (cntr *NotificationGroupController) Update(c Context) {
 	var in domain.NotificationGroup
 	if err := c.BindJSON(&in); err != nil {
 		c.Status(http.StatusBadRequest)
@@ -51,7 +51,7 @@ func (s *NotificationGroupController) Update(c Context) {
 	}
 	in.ID = c.Param("notificationGroupId")
 
-	out, err := s.Interactor.Update(
+	out, err := cntr.Interactor.Update(
 		c.GetString("org_id"),
 		&in,
 	)
@@ -59,8 +59,8 @@ func (s *NotificationGroupController) Update(c Context) {
 	doResponse(c, out, err)
 }
 
-func (s *NotificationGroupController) Delete(c Context) {
-	out, err := s.Interactor.Delete(
+func (cntr *NotificationGroupController) Delete(c Context) {
+	out, err := cntr.Interactor.Delete(
 		c.GetString("org_id"),
 		c.Param("notificationGroupId"),
 	)

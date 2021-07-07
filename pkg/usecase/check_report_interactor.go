@@ -12,17 +12,17 @@ type CheckReportInteractor struct {
 	AlertRepository       AlertRepository
 }
 
-func (s *CheckReportInteractor) Save(orgID string, reports *domain.CheckReports) (*domain.Success, error) {
+func (intr *CheckReportInteractor) Save(orgID string, reports *domain.CheckReports) (*domain.Success, error) {
 	for i := range reports.Reports {
 		reports.Reports[i].Message = reports.Reports[i].Message[:len(reports.Reports[i].Message)-1] // remove \n
 	}
 
-	if r, err := s.CheckReportRepository.Save(orgID, reports); !r.Success {
+	if r, err := intr.CheckReportRepository.Save(orgID, reports); !r.Success {
 		return r, fmt.Errorf("save check_report: %v", err)
 	}
 
 	for i := range reports.Reports {
-		if _, err := s.AlertRepository.Save(orgID, &domain.Alert{
+		if _, err := intr.AlertRepository.Save(orgID, &domain.Alert{
 			OrgID: orgID,
 			ID: domain.NewIDWith(
 				orgID,

@@ -6,8 +6,8 @@ type DowntimeInteractor struct {
 	DowntimeRepository DowntimeRepository
 }
 
-func (s *DowntimeInteractor) List(orgID string) (*domain.Downtimes, error) {
-	return s.DowntimeRepository.List(orgID)
+func (intr *DowntimeInteractor) List(orgID string) (*domain.Downtimes, error) {
+	return intr.DowntimeRepository.List(orgID)
 }
 
 // TODO
@@ -20,9 +20,9 @@ func (s *DowntimeInteractor) List(orgID string) (*domain.Downtimes, error) {
 //400	when the target service/role/monitor setting of the scope is redundant or does not exist
 //400	when the service/role/monitor setting of the scope does not exist
 //403	when the API key doesn't have the required permissions / when accessing from outside the permitted IP address range
-func (s *DowntimeInteractor) Save(orgID string, downtime *domain.Downtime) (*domain.Downtime, error) {
+func (intr *DowntimeInteractor) Save(orgID string, downtime *domain.Downtime) (*domain.Downtime, error) {
 	downtime.ID = domain.NewRandomID()
-	return s.DowntimeRepository.Save(orgID, downtime)
+	return intr.DowntimeRepository.Save(orgID, downtime)
 }
 
 // TODO
@@ -36,12 +36,12 @@ func (s *DowntimeInteractor) Save(orgID string, downtime *domain.Downtime) (*dom
 //400	when the service/role/monitor setting of the scope does not exist
 //403	when the API key doesn't have the required permissions / when accessing from outside the permitted IP address range
 //404	when the downtime corresponding to the designated ID can't be found
-func (s *DowntimeInteractor) Update(orgID string, downtime *domain.Downtime) (*domain.Downtime, error) {
-	return s.DowntimeRepository.Update(orgID, downtime)
+func (intr *DowntimeInteractor) Update(orgID string, downtime *domain.Downtime) (*domain.Downtime, error) {
+	return intr.DowntimeRepository.Update(orgID, downtime)
 }
 
-func (s *DowntimeInteractor) Downtime(orgID, downtimeID string) (*domain.Downtime, error) {
-	return s.DowntimeRepository.Downtime(orgID, downtimeID)
+func (intr *DowntimeInteractor) Downtime(orgID, downtimeID string) (*domain.Downtime, error) {
+	return intr.DowntimeRepository.Downtime(orgID, downtimeID)
 }
 
 // TODO
@@ -49,6 +49,6 @@ func (s *DowntimeInteractor) Downtime(orgID, downtimeID string) (*domain.Downtim
 //STATUS CODE	DESCRIPTION
 //403	when the API key doesn't have the required permissions / when accessing from outside the permitted IP address range
 //404	when the downtime corresponding to the designated ID can't be found
-func (s *DowntimeInteractor) Delete(orgID, downtimeID string) (*domain.Downtime, error) {
-	return s.DowntimeRepository.Delete(orgID, downtimeID)
+func (intr *DowntimeInteractor) Delete(orgID, downtimeID string) (*domain.Downtime, error) {
+	return intr.DowntimeRepository.Delete(orgID, downtimeID)
 }

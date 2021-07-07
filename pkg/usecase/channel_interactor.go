@@ -11,23 +11,23 @@ type ChannelInteractor struct {
 	ChannelRepository ChannelRepository
 }
 
-func (s *ChannelInteractor) List(orgID string) (*domain.Channels, error) {
-	return s.ChannelRepository.List(orgID)
+func (intr *ChannelInteractor) List(orgID string) (*domain.Channels, error) {
+	return intr.ChannelRepository.List(orgID)
 }
 
-func (s *ChannelInteractor) Save(orgID string, channel *domain.Channel) (interface{}, error) {
+func (intr *ChannelInteractor) Save(orgID string, channel *domain.Channel) (interface{}, error) {
 	channel.ID = domain.NewRandomID()
-	return s.ChannelRepository.Save(orgID, channel)
+	return intr.ChannelRepository.Save(orgID, channel)
 }
 
-func (s *ChannelInteractor) Exists(orgID, channelID string) bool {
-	return s.ChannelRepository.Exists(orgID, channelID)
+func (intr *ChannelInteractor) Exists(orgID, channelID string) bool {
+	return intr.ChannelRepository.Exists(orgID, channelID)
 }
 
-func (s *ChannelInteractor) Delete(orgID, channelID string) (interface{}, error) {
-	if !s.ChannelRepository.Exists(orgID, channelID) {
+func (intr *ChannelInteractor) Delete(orgID, channelID string) (interface{}, error) {
+	if !intr.ChannelRepository.Exists(orgID, channelID) {
 		return nil, &ChannelNotFound{Err{errors.New(fmt.Sprintf("when the supported channel can not be found in <%s>", channelID))}}
 	}
 
-	return s.ChannelRepository.Delete(orgID, channelID)
+	return intr.ChannelRepository.Delete(orgID, channelID)
 }

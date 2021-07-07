@@ -10,8 +10,8 @@ type GraphInteractor struct {
 	GraphRepository GraphRepository
 }
 
-func (s *GraphInteractor) SaveDef(orgID string, g []domain.GraphDef) (*domain.Success, error) {
-	res, err := s.GraphRepository.SaveDef(orgID, g)
+func (intr *GraphInteractor) SaveDef(orgID string, g []domain.GraphDef) (*domain.Success, error) {
+	res, err := intr.GraphRepository.SaveDef(orgID, g)
 	if err != nil {
 		return res, fmt.Errorf("save graph definition: %v", err)
 	}
@@ -19,19 +19,19 @@ func (s *GraphInteractor) SaveDef(orgID string, g []domain.GraphDef) (*domain.Su
 	return res, nil
 }
 
-func (s *GraphInteractor) List(orgID string) (*domain.GraphAnnotations, error) {
-	return s.GraphRepository.List(orgID)
+func (intr *GraphInteractor) List(orgID string) (*domain.GraphAnnotations, error) {
+	return intr.GraphRepository.List(orgID)
 }
 
-func (s *GraphInteractor) Save(orgID string, annotation *domain.GraphAnnotation) (*domain.GraphAnnotation, error) {
+func (intr *GraphInteractor) Save(orgID string, annotation *domain.GraphAnnotation) (*domain.GraphAnnotation, error) {
 	annotation.ID = domain.NewRandomID()
-	return s.GraphRepository.Save(orgID, annotation)
+	return intr.GraphRepository.Save(orgID, annotation)
 }
 
-func (s *GraphInteractor) Update(orgID string, annotation *domain.GraphAnnotation) (*domain.GraphAnnotation, error) {
-	return s.GraphRepository.Update(orgID, annotation)
+func (intr *GraphInteractor) Update(orgID string, annotation *domain.GraphAnnotation) (*domain.GraphAnnotation, error) {
+	return intr.GraphRepository.Update(orgID, annotation)
 }
 
-func (s *GraphInteractor) Delete(orgID, annotationID string) (*domain.GraphAnnotation, error) {
-	return s.GraphRepository.Delete(orgID, annotationID)
+func (intr *GraphInteractor) Delete(orgID, annotationID string) (*domain.GraphAnnotation, error) {
+	return intr.GraphRepository.Delete(orgID, annotationID)
 }

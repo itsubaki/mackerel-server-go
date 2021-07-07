@@ -6,6 +6,6 @@ type APIKeyInteractor struct {
 	APIKeyRepository APIKeyRepository
 }
 
-func (s *APIKeyInteractor) APIKey(xapikey string) (*domain.APIKey, error) {
-	return s.APIKeyRepository.APIKey(xapikey)
+func (intr *APIKeyInteractor) APIKey(xapikey string) (*domain.APIKey, error) {
+	return intr.APIKeyRepository.APIKey(xapikey)
 }

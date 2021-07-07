@@ -21,7 +21,7 @@ func NewAlertController(handler database.SQLHandler) *AlertController {
 	}
 }
 
-func (s *AlertController) List(c Context) {
+func (cntr *AlertController) List(c Context) {
 	withClosed, err := strconv.ParseBool(c.DefaultQuery("withClosed", "false"))
 	if err != nil {
 		c.Status(http.StatusBadRequest)
@@ -34,7 +34,7 @@ func (s *AlertController) List(c Context) {
 		return
 	}
 
-	out, err := s.Interactor.List(
+	out, err := cntr.Interactor.List(
 		c.GetString("org_id"),
 		withClosed,
 		c.Query("nextId"),
@@ -44,14 +44,14 @@ func (s *AlertController) List(c Context) {
 	doResponse(c, out, err)
 }
 
-func (s *AlertController) Close(c Context) {
+func (cntr *AlertController) Close(c Context) {
 	var in domain.Reason
 	if err := c.BindJSON(&in); err != nil {
 		c.Status(http.StatusBadRequest)
 		return
 	}
 
-	out, err := s.Interactor.Close(
+	out, err := cntr.Interactor.Close(
 		c.GetString("org_id"),
 		c.Param("alertId"),
 		in.Reason,

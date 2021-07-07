@@ -20,22 +20,22 @@ func NewInvitationController(handler database.SQLHandler) *InvitationController 
 	}
 }
 
-func (s *InvitationController) List(c Context) {
-	out, err := s.Interactor.List(
+func (cntr *InvitationController) List(c Context) {
+	out, err := cntr.Interactor.List(
 		c.GetString("org_id"),
 	)
 
 	doResponse(c, out, err)
 }
 
-func (s *InvitationController) Save(c Context) {
+func (cntr *InvitationController) Save(c Context) {
 	var in domain.Invitation
 	if err := c.BindJSON(&in); err != nil {
 		c.Status(http.StatusBadRequest)
 		return
 	}
 
-	out, err := s.Interactor.Save(
+	out, err := cntr.Interactor.Save(
 		c.GetString("org_id"),
 		&in,
 	)
@@ -43,14 +43,14 @@ func (s *InvitationController) Save(c Context) {
 	doResponse(c, out, err)
 }
 
-func (s *InvitationController) Revoke(c Context) {
+func (cntr *InvitationController) Revoke(c Context) {
 	var in domain.Revoke
 	if err := c.BindJSON(&in); err != nil {
 		c.Status(http.StatusBadRequest)
 		return
 	}
 
-	out, err := s.Interactor.Revoke(
+	out, err := cntr.Interactor.Revoke(
 		c.GetString("org_id"),
 		in.EMail,
 	)

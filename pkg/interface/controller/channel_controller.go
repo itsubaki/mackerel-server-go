@@ -20,22 +20,22 @@ func NewChannelController(handler database.SQLHandler) *ChannelController {
 	}
 }
 
-func (s *ChannelController) List(c Context) {
-	out, err := s.Interactor.List(
+func (cntr *ChannelController) List(c Context) {
+	out, err := cntr.Interactor.List(
 		c.GetString("org_id"),
 	)
 
 	doResponse(c, out, err)
 }
 
-func (s *ChannelController) Save(c Context) {
+func (cntr *ChannelController) Save(c Context) {
 	var in domain.Channel
 	if err := c.BindJSON(&in); err != nil {
 		c.Status(http.StatusBadRequest)
 		return
 	}
 
-	out, err := s.Interactor.Save(
+	out, err := cntr.Interactor.Save(
 		c.GetString("org_id"),
 		&in,
 	)
@@ -43,8 +43,8 @@ func (s *ChannelController) Save(c Context) {
 	doResponse(c, out, err)
 }
 
-func (s *ChannelController) Delete(c Context) {
-	out, err := s.Interactor.Delete(
+func (cntr *ChannelController) Delete(c Context) {
+	out, err := cntr.Interactor.Delete(
 		c.GetString("org_id"),
 		c.Param("channelId"),
 	)

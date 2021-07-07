@@ -20,22 +20,22 @@ func NewDowntimeController(handler database.SQLHandler) *DowntimeController {
 	}
 }
 
-func (s *DowntimeController) List(c Context) {
-	out, err := s.Interactor.List(
+func (cntr *DowntimeController) List(c Context) {
+	out, err := cntr.Interactor.List(
 		c.GetString("org_id"),
 	)
 
 	doResponse(c, out, err)
 }
 
-func (s *DowntimeController) Save(c Context) {
+func (cntr *DowntimeController) Save(c Context) {
 	var in domain.Downtime
 	if err := c.BindJSON(&in); err != nil {
 		c.Status(http.StatusBadRequest)
 		return
 	}
 
-	out, err := s.Interactor.Save(
+	out, err := cntr.Interactor.Save(
 		c.GetString("org_id"),
 		&in,
 	)
@@ -43,7 +43,7 @@ func (s *DowntimeController) Save(c Context) {
 	doResponse(c, out, err)
 }
 
-func (s *DowntimeController) Update(c Context) {
+func (cntr *DowntimeController) Update(c Context) {
 	var in domain.Downtime
 	if err := c.BindJSON(&in); err != nil {
 		c.Status(http.StatusBadRequest)
@@ -51,7 +51,7 @@ func (s *DowntimeController) Update(c Context) {
 	}
 	in.ID = c.Param("downtimeId")
 
-	out, err := s.Interactor.Update(
+	out, err := cntr.Interactor.Update(
 		c.GetString("org_id"),
 		&in,
 	)
@@ -59,8 +59,8 @@ func (s *DowntimeController) Update(c Context) {
 	doResponse(c, out, err)
 }
 
-func (s *DowntimeController) Downtime(c Context) {
-	out, err := s.Interactor.Downtime(
+func (cntr *DowntimeController) Downtime(c Context) {
+	out, err := cntr.Interactor.Downtime(
 		c.GetString("org_id"),
 		c.Param("downtimeId"),
 	)
@@ -68,8 +68,8 @@ func (s *DowntimeController) Downtime(c Context) {
 	doResponse(c, out, err)
 }
 
-func (s *DowntimeController) Delete(c Context) {
-	out, err := s.Interactor.Delete(
+func (cntr *DowntimeController) Delete(c Context) {
+	out, err := cntr.Interactor.Delete(
 		c.GetString("org_id"),
 		c.Param("downtimeId"),
 	)
