@@ -89,3 +89,29 @@ func TestAlertInteractorList(t *testing.T) {
 		}
 	}
 }
+
+func TestAlertInteractorClose(t *testing.T) {
+	ai := &usecase.AlertInteractor{
+		AlertRepository: NewAlertRepositoryMock([]domain.Alert{
+			{OrgID: "foo", ID: "12345"},
+			{OrgID: "bar", ID: domain.NewRandomID()},
+		}),
+	}
+
+	cases := []struct {
+		orgID   string
+		alertID string
+		message string
+	}{
+		{"foo", "12345", ""},
+		{"piy", "23456", "the <23456>'s corresponding alert can't be found"},
+	}
+
+	for _, c := range cases {
+		if _, err := ai.Close(c.orgID, c.alertID, "hoge"); err != nil {
+			if err.Error() != c.message {
+				t.Fail()
+			}
+		}
+	}
+}
