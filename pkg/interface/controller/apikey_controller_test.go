@@ -47,7 +47,7 @@ func TestAPIKeyController(t *testing.T) {
 
 	for _, c := range cases {
 		ctx := Context()
-		ctx.header[controller.XAPIKEY] = c.apikey
+		ctx.SetHeader(controller.XAPIKEY, c.apikey)
 
 		k, err := cntr.APIKey(ctx)
 		if err != nil {

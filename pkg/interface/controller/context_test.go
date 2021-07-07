@@ -14,6 +14,10 @@ func (c *ContextMock) Param(param string) string {
 	return ""
 }
 
+func (c *ContextMock) SetHeader(key, value string) {
+	c.header[key] = value
+}
+
 func (c *ContextMock) GetHeader(key string) string {
 	v, ok := c.header[key]
 	if ok {

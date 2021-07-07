@@ -45,7 +45,8 @@ test:
 
 godog:
 	go version
-	SQL_MODE=debug go test -v --godog.format=pretty
+	SQL_MODE=debug go test -v --godog.format=pretty -coverprofile=coverage.out -covermode=atomic
+	go tool cover -html=coverage.out -o coverage.html
 
 mkr:
 	go version
