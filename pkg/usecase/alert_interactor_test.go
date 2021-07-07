@@ -19,8 +19,8 @@ func NewAlertRepositoryMock(alerts []domain.Alert) *AlertRepositoryMock {
 	}
 }
 
-func (repo *AlertRepositoryMock) Exists(orgID, alertID string) bool {
-	for _, a := range repo.Alerts {
+func (r *AlertRepositoryMock) Exists(orgID, alertID string) bool {
+	for _, a := range r.Alerts {
 		if a.OrgID == orgID && a.ID == alertID {
 			return true
 		}
@@ -29,17 +29,17 @@ func (repo *AlertRepositoryMock) Exists(orgID, alertID string) bool {
 	return false
 }
 
-func (repo *AlertRepositoryMock) Save(orgID string, alert *domain.Alert) (*domain.Alert, error) {
+func (r *AlertRepositoryMock) Save(orgID string, alert *domain.Alert) (*domain.Alert, error) {
 	alert.OrgID = orgID
-	repo.Alerts = append(repo.Alerts, *alert)
+	r.Alerts = append(r.Alerts, *alert)
 	return alert, nil
 }
 
-func (repo *AlertRepositoryMock) List(orgID string, withClosed bool, nextID string, limit int) (*domain.Alerts, error) {
+func (r *AlertRepositoryMock) List(orgID string, withClosed bool, nextID string, limit int) (*domain.Alerts, error) {
 	alerts := make([]domain.Alert, 0)
-	for i, a := range repo.Alerts {
+	for i, a := range r.Alerts {
 		if a.OrgID == orgID {
-			alerts = append(alerts, repo.Alerts[i])
+			alerts = append(alerts, r.Alerts[i])
 		}
 	}
 
@@ -48,13 +48,13 @@ func (repo *AlertRepositoryMock) List(orgID string, withClosed bool, nextID stri
 	}, nil
 }
 
-func (repo *AlertRepositoryMock) Close(orgID, alertID, reason string) (*domain.Alert, error) {
-	for i, a := range repo.Alerts {
+func (r *AlertRepositoryMock) Close(orgID, alertID, reason string) (*domain.Alert, error) {
+	for i, a := range r.Alerts {
 		if a.OrgID == orgID && a.ID == alertID {
-			repo.Alerts[i].Status = "OK"
-			repo.Alerts[i].Reason = reason
-			repo.Alerts[i].ClosedAt = time.Now().Unix()
-			return &repo.Alerts[i], nil
+			r.Alerts[i].Status = "OK"
+			r.Alerts[i].Reason = reason
+			r.Alerts[i].ClosedAt = time.Now().Unix()
+			return &r.Alerts[i], nil
 		}
 	}
 
@@ -62,7 +62,7 @@ func (repo *AlertRepositoryMock) Close(orgID, alertID, reason string) (*domain.A
 }
 
 func TestAlertInteractorList(t *testing.T) {
-	ai := &usecase.AlertInteractor{
+	intr := &usecase.AlertInteractor{
 		AlertRepository: NewAlertRepositoryMock([]domain.Alert{
 			{OrgID: "foo", ID: domain.NewRandomID()},
 			{OrgID: "bar", ID: domain.NewRandomID()},
@@ -79,7 +79,7 @@ func TestAlertInteractorList(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		_, err := ai.List("foo", false, "", c.limit)
+		_, err := intr.List("foo", false, "", c.limit)
 		if c.limit < 100 && err != nil {
 			t.Fail()
 		}
@@ -91,7 +91,7 @@ func TestAlertInteractorList(t *testing.T) {
 }
 
 func TestAlertInteractorClose(t *testing.T) {
-	ai := &usecase.AlertInteractor{
+	intr := &usecase.AlertInteractor{
 		AlertRepository: NewAlertRepositoryMock([]domain.Alert{
 			{OrgID: "foo", ID: "12345"},
 			{OrgID: "bar", ID: domain.NewRandomID()},
@@ -108,7 +108,7 @@ func TestAlertInteractorClose(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		if _, err := ai.Close(c.orgID, c.alertID, "hoge"); err != nil {
+		if _, err := intr.Close(c.orgID, c.alertID, "hoge"); err != nil {
 			if err.Error() != c.message {
 				t.Fail()
 			}
