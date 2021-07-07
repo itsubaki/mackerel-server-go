@@ -25,8 +25,8 @@ runmysql:
 
 cleanup:
 	docker stop $(shell docker ps -q -a)
-	docker rm $(shell docker ps -q -a)
-	docker rmi $(shell docker images -q)
+	docker rm   $(shell docker ps -q -a)
+	docker rmi  $(shell docker images -q)
 
 build:
 	docker build -t mackerel-server-go .
@@ -40,13 +40,12 @@ down:
 
 test:
 	go version
-	go test -v -cover $(shell go list ./... | grep -v /vendor/ | grep -v /build/ | grep -v -E "mackerel-server-go$$")
+	go test -v -cover $(shell go list ./... | grep -v /vendor/ | grep -v /build/ | grep -v -E "mackerel-server-go$$") -coverprofile=coverage.out -covermode=atomic
+	go tool cover -html=coverage.out -o coverage.html
 
 godog:
 	go version
 	SQL_MODE=debug go test -v --godog.format=pretty
-# 	go test -v --godog.format=progress -coverprofile=coverage.out -covermode=atomic
-# 	go tool cover -html=coverage.out -o coverage.html
 
 mkr:
 	go version

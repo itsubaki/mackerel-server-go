@@ -1,10 +1,11 @@
-package usecase_test
+package controller_test
 
 import (
 	"fmt"
 	"testing"
 
 	"github.com/itsubaki/mackerel-server-go/pkg/domain"
+	"github.com/itsubaki/mackerel-server-go/pkg/interface/controller"
 	"github.com/itsubaki/mackerel-server-go/pkg/usecase"
 )
 
@@ -26,25 +27,34 @@ func (r *APIKeyRepositoryMock) APIKey(apikey string) (*domain.APIKey, error) {
 	return nil, fmt.Errorf("apikey not found")
 }
 
-func TestAPIKeyInteractor(t *testing.T) {
-	intr := &usecase.APIKeyInteractor{
-		APIKeyRepository: &APIKeyRepositoryMock{
-			APIKeys: []domain.APIKey{
-				{APIKey: "foo"},
+func TestAPIKeyController(t *testing.T) {
+	cntr := &controller.APIKeyController{
+		Interactor: &usecase.APIKeyInteractor{
+			APIKeyRepository: &APIKeyRepositoryMock{
+				[]domain.APIKey{
+					{Name: "test", APIKey: "foo"},
+				},
 			},
 		},
 	}
 
 	cases := []struct {
-		key     string
-		message string
+		name   string
+		apikey string
 	}{
-		{"foo", ""},
-		{"bar", "apikey not found"},
+		{"test", "foo"},
 	}
 
 	for _, c := range cases {
-		if _, err := intr.APIKey(c.key); err != nil && err.Error() != c.message {
+		ctx := Context()
+		ctx.header[controller.XAPIKEY] = c.apikey
+
+		k, err := cntr.APIKey(ctx)
+		if err != nil {
+			t.Error(err)
+		}
+
+		if k.Name != c.name {
 			t.Fail()
 		}
 	}

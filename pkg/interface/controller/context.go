@@ -1,7 +1,7 @@
 package controller
 
 type Context interface {
-	Param(string) string
+	Param(param string) string
 	GetHeader(key string) string
 	Query(key string) string
 	DefaultQuery(key, val string) string

@@ -44,6 +44,10 @@ func TestGetValue(t *testing.T) {
 		t.Error(err)
 	}
 
+	if err := os.Setenv("RUN_FIXTURE", "true"); err != nil {
+		t.Error(err)
+	}
+
 	c := config.New()
 
 	if c.Port != "9090" {
@@ -59,6 +63,10 @@ func TestGetValue(t *testing.T) {
 	}
 
 	if c.Database != "tmpdb" {
+		t.Error(c)
+	}
+
+	if !c.RunFixture {
 		t.Error(c)
 	}
 }
