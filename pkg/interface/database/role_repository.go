@@ -39,9 +39,9 @@ func NewRoleRepository(handler SQLHandler) *RoleRepository {
 	}
 }
 
-func (repo *RoleRepository) List(orgID string) (map[string][]string, error) {
+func (r *RoleRepository) List(orgID string) (map[string][]string, error) {
 	result := make([]Role, 0)
-	if err := repo.DB.Where(&Role{OrgID: orgID}).Find(&result).Error; err != nil {
+	if err := r.DB.Where(&Role{OrgID: orgID}).Find(&result).Error; err != nil {
 		return nil, fmt.Errorf("select * from roles: %v", err)
 	}
 
@@ -57,9 +57,9 @@ func (repo *RoleRepository) List(orgID string) (map[string][]string, error) {
 	return roles, nil
 }
 
-func (repo *RoleRepository) ListWith(orgID, serviceName string) (*domain.Roles, error) {
+func (r *RoleRepository) ListWith(orgID, serviceName string) (*domain.Roles, error) {
 	result := make([]Role, 0)
-	if err := repo.DB.Where(&Role{OrgID: orgID, ServiceName: serviceName}).Find(&result).Error; err != nil {
+	if err := r.DB.Where(&Role{OrgID: orgID, ServiceName: serviceName}).Find(&result).Error; err != nil {
 		return nil, fmt.Errorf("select * from roles: %v", err)
 	}
 
@@ -76,9 +76,9 @@ func (repo *RoleRepository) ListWith(orgID, serviceName string) (*domain.Roles, 
 	return &domain.Roles{Roles: out}, nil
 }
 
-func (repo *RoleRepository) Role(orgID, serviceName, roleName string) (*domain.Role, error) {
+func (r *RoleRepository) Role(orgID, serviceName, roleName string) (*domain.Role, error) {
 	result := Role{}
-	if err := repo.DB.Where(&Role{OrgID: orgID, ServiceName: serviceName, Name: roleName}).First(&result).Error; err != nil {
+	if err := r.DB.Where(&Role{OrgID: orgID, ServiceName: serviceName, Name: roleName}).First(&result).Error; err != nil {
 		return nil, fmt.Errorf("select * from roles: %v", err)
 	}
 
@@ -92,24 +92,24 @@ func (repo *RoleRepository) Role(orgID, serviceName, roleName string) (*domain.R
 	return &role, nil
 }
 
-func (repo *RoleRepository) Save(orgID, serviceName string, r *domain.Role) error {
+func (r *RoleRepository) Save(orgID, serviceName string, role *domain.Role) error {
 	update := Role{
 		OrgID:       orgID,
 		ServiceName: serviceName,
-		Name:        r.Name,
-		Memo:        r.Memo,
+		Name:        role.Name,
+		Memo:        role.Memo,
 	}
 
-	if err := repo.DB.Where(&Role{OrgID: orgID, ServiceName: serviceName, Name: r.Name}).Assign(&update).FirstOrCreate(&Role{}).Error; err != nil {
+	if err := r.DB.Where(&Role{OrgID: orgID, ServiceName: serviceName, Name: role.Name}).Assign(&update).FirstOrCreate(&Role{}).Error; err != nil {
 		return fmt.Errorf("insert into roles: %v", err)
 	}
 
 	return nil
 }
 
-func (repo *RoleRepository) Exists(orgID, serviceName, roleName string) bool {
+func (r *RoleRepository) Exists(orgID, serviceName, roleName string) bool {
 	var count int64
-	if err := repo.DB.Model(&Role{}).Where(&Role{OrgID: orgID, ServiceName: serviceName, Name: roleName}).Count(&count).Error; err != nil {
+	if err := r.DB.Model(&Role{}).Where(&Role{OrgID: orgID, ServiceName: serviceName, Name: roleName}).Count(&count).Error; err != nil {
 		return false // FIXME Add error message
 	}
 
@@ -120,8 +120,8 @@ func (repo *RoleRepository) Exists(orgID, serviceName, roleName string) bool {
 	return true
 }
 
-func (repo *RoleRepository) Delete(orgID, serviceName, roleName string) error {
-	if err := repo.DB.Delete(&Role{OrgID: orgID, ServiceName: serviceName, Name: roleName}).Error; err != nil {
+func (r *RoleRepository) Delete(orgID, serviceName, roleName string) error {
+	if err := r.DB.Delete(&Role{OrgID: orgID, ServiceName: serviceName, Name: roleName}).Error; err != nil {
 		return fmt.Errorf("delete from roles: %v", err)
 	}
 

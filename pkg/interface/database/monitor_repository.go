@@ -118,9 +118,9 @@ func NewMonitorRepository(handler SQLHandler) *MonitorRepository {
 	}
 }
 
-func (repo *MonitorRepository) ListHostMetric(orgID string) ([]domain.HostMetricMonitoring, error) {
+func (r *MonitorRepository) ListHostMetric(orgID string) ([]domain.HostMetricMonitoring, error) {
 	list := make([]domain.HostMetricMonitoring, 0)
-	monitors, err := repo.List(orgID)
+	monitors, err := r.List(orgID)
 	if err != nil {
 		return nil, fmt.Errorf("list monitors: %v", err)
 	}
@@ -137,9 +137,9 @@ func (repo *MonitorRepository) ListHostMetric(orgID string) ([]domain.HostMetric
 	return list, nil
 }
 
-func (repo *MonitorRepository) List(orgID string) (*domain.Monitors, error) {
+func (r *MonitorRepository) List(orgID string) (*domain.Monitors, error) {
 	result := make([]Monitor, 0)
-	if err := repo.DB.Where(&Monitor{OrgID: orgID}).Find(&result).Error; err != nil {
+	if err := r.DB.Where(&Monitor{OrgID: orgID}).Find(&result).Error; err != nil {
 		return nil, fmt.Errorf("select * from monitors: %v", err)
 	}
 
@@ -156,7 +156,7 @@ func (repo *MonitorRepository) List(orgID string) (*domain.Monitors, error) {
 	return &domain.Monitors{Monitors: out}, nil
 }
 
-func (repo *MonitorRepository) Save(orgID string, monitor *domain.Monitoring) (interface{}, error) {
+func (r *MonitorRepository) Save(orgID string, monitor *domain.Monitoring) (interface{}, error) {
 	scopes, err := json.Marshal(monitor.Scopes)
 	if err != nil {
 		return nil, fmt.Errorf("marshal monitor.Scopes: %v", err)
@@ -215,14 +215,14 @@ func (repo *MonitorRepository) Save(orgID string, monitor *domain.Monitoring) (i
 		Expression:                      monitor.Expression,
 	}
 
-	if err := repo.DB.Create(&create).Error; err != nil {
+	if err := r.DB.Create(&create).Error; err != nil {
 		return nil, fmt.Errorf("insert into monitors: %v", err)
 	}
 
 	return monitor, nil
 }
 
-func (repo *MonitorRepository) Update(orgID string, monitor *domain.Monitoring) (interface{}, error) {
+func (r *MonitorRepository) Update(orgID string, monitor *domain.Monitoring) (interface{}, error) {
 	scopes, err := json.Marshal(monitor.Scopes)
 	if err != nil {
 		return nil, fmt.Errorf("marshal monitor.Scopes: %v", err)
@@ -281,16 +281,16 @@ func (repo *MonitorRepository) Update(orgID string, monitor *domain.Monitoring) 
 		Expression:                      monitor.Expression,
 	}
 
-	if err := repo.DB.Where(&Monitor{OrgID: orgID, ID: monitor.ID}).Assign(&update).FirstOrCreate(&Monitor{}).Error; err != nil {
+	if err := r.DB.Where(&Monitor{OrgID: orgID, ID: monitor.ID}).Assign(&update).FirstOrCreate(&Monitor{}).Error; err != nil {
 		return nil, fmt.Errorf("first or create: %v", err)
 	}
 
 	return monitor.Cast(), nil
 }
 
-func (repo *MonitorRepository) Monitor(orgID, monitorID string) (interface{}, error) {
+func (r *MonitorRepository) Monitor(orgID, monitorID string) (interface{}, error) {
 	result := Monitor{}
-	if err := repo.DB.Where(&Monitor{OrgID: orgID, ID: monitorID}).First(&result).Error; err != nil {
+	if err := r.DB.Where(&Monitor{OrgID: orgID, ID: monitorID}).First(&result).Error; err != nil {
 		return nil, fmt.Errorf("select * from monitors: %v", err)
 	}
 
@@ -302,13 +302,13 @@ func (repo *MonitorRepository) Monitor(orgID, monitorID string) (interface{}, er
 	return m.Cast(), nil
 }
 
-func (repo *MonitorRepository) Delete(orgID, monitorID string) (interface{}, error) {
+func (r *MonitorRepository) Delete(orgID, monitorID string) (interface{}, error) {
 	result := Monitor{}
-	if err := repo.DB.Where(&Monitor{OrgID: orgID, ID: monitorID}).First(&result).Error; err != nil {
+	if err := r.DB.Where(&Monitor{OrgID: orgID, ID: monitorID}).First(&result).Error; err != nil {
 		return nil, fmt.Errorf("select * from monitors: %v", err)
 	}
 
-	if err := repo.DB.Delete(&Monitor{OrgID: orgID, ID: monitorID}).Error; err != nil {
+	if err := r.DB.Delete(&Monitor{OrgID: orgID, ID: monitorID}).Error; err != nil {
 		return nil, fmt.Errorf("delete from monitors: %v", err)
 	}
 

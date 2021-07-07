@@ -54,7 +54,7 @@ func NewAPIKeyRepository(handler SQLHandler) *APIKeyRepository {
 	}
 }
 
-func (repo *APIKeyRepository) Save(orgID, name, apikey string, write bool) (*domain.APIKey, error) {
+func (r *APIKeyRepository) Save(orgID, name, apikey string, write bool) (*domain.APIKey, error) {
 	create := APIKey{
 		OrgID:      orgID,
 		Name:       name,
@@ -64,7 +64,7 @@ func (repo *APIKeyRepository) Save(orgID, name, apikey string, write bool) (*dom
 		LastAccess: time.Now().Unix(),
 	}
 
-	if err := repo.DB.Transaction(func(tx *gorm.DB) error {
+	if err := r.DB.Transaction(func(tx *gorm.DB) error {
 		var count int64
 		if err := tx.Model(&APIKey{}).Where(&APIKey{APIKey: apikey}).Count(&count).Error; err != nil {
 			return fmt.Errorf("count: %v", err)
@@ -85,13 +85,13 @@ func (repo *APIKeyRepository) Save(orgID, name, apikey string, write bool) (*dom
 	return &out, nil
 }
 
-func (repo *APIKeyRepository) APIKey(apikey string) (*domain.APIKey, error) {
+func (r *APIKeyRepository) APIKey(apikey string) (*domain.APIKey, error) {
 	if apikey == "" {
 		return nil, fmt.Errorf("apikey is empty")
 	}
 
 	result := APIKey{}
-	if err := repo.DB.Transaction(func(tx *gorm.DB) error {
+	if err := r.DB.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Where(&APIKey{APIKey: apikey}).First(&result).Error; err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
 			return fmt.Errorf("apikey not found")
 		}

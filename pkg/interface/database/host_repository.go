@@ -89,9 +89,9 @@ func NewHostRepository(handler SQLHandler) *HostRepository {
 	}
 }
 
-func (repo *HostRepository) ActiveList(orgID string) (*domain.Hosts, error) {
+func (r *HostRepository) ActiveList(orgID string) (*domain.Hosts, error) {
 	result := make([]Host, 0)
-	if err := repo.DB.Where(&Host{OrgID: orgID, IsRetired: false}).Find(&result).Error; err != nil {
+	if err := r.DB.Where(&Host{OrgID: orgID, IsRetired: false}).Find(&result).Error; err != nil {
 		return nil, fmt.Errorf("select * from hosts: %v", err)
 	}
 
@@ -108,9 +108,9 @@ func (repo *HostRepository) ActiveList(orgID string) (*domain.Hosts, error) {
 	return &domain.Hosts{Hosts: out}, nil
 }
 
-func (repo *HostRepository) List(orgID string) (*domain.Hosts, error) {
+func (r *HostRepository) List(orgID string) (*domain.Hosts, error) {
 	result := make([]Host, 0)
-	if err := repo.DB.Where(&Host{OrgID: orgID}).Find(&result).Error; err != nil {
+	if err := r.DB.Where(&Host{OrgID: orgID}).Find(&result).Error; err != nil {
 		return nil, fmt.Errorf("select * from hosts: %v", err)
 	}
 
@@ -127,7 +127,7 @@ func (repo *HostRepository) List(orgID string) (*domain.Hosts, error) {
 	return &domain.Hosts{Hosts: out}, nil
 }
 
-func (repo *HostRepository) Save(orgID string, host *domain.Host) (*domain.HostID, error) {
+func (r *HostRepository) Save(orgID string, host *domain.Host) (*domain.HostID, error) {
 	roles, err := json.Marshal(host.Roles)
 	if err != nil {
 		return nil, fmt.Errorf("marshal host.Roles: %v", err)
@@ -169,16 +169,16 @@ func (repo *HostRepository) Save(orgID string, host *domain.Host) (*domain.HostI
 		Meta:             string(meta),
 	}
 
-	if err := repo.DB.Where(&Host{OrgID: orgID, ID: host.ID}).Assign(&update).FirstOrCreate(&Host{}).Error; err != nil {
+	if err := r.DB.Where(&Host{OrgID: orgID, ID: host.ID}).Assign(&update).FirstOrCreate(&Host{}).Error; err != nil {
 		return nil, fmt.Errorf("first or create: %v", err)
 	}
 
 	return &domain.HostID{ID: host.ID}, nil
 }
 
-func (repo *HostRepository) Host(orgID, hostID string) (*domain.Host, error) {
+func (r *HostRepository) Host(orgID, hostID string) (*domain.Host, error) {
 	result := Host{}
-	if err := repo.DB.Where(&Host{OrgID: orgID, ID: hostID}).First(&result).Error; err != nil {
+	if err := r.DB.Where(&Host{OrgID: orgID, ID: hostID}).First(&result).Error; err != nil {
 		return nil, fmt.Errorf("select * from hosts: %v", err)
 	}
 
@@ -190,9 +190,9 @@ func (repo *HostRepository) Host(orgID, hostID string) (*domain.Host, error) {
 	return &host, nil
 }
 
-func (repo *HostRepository) Exists(orgID, hostID string) bool {
+func (r *HostRepository) Exists(orgID, hostID string) bool {
 	var count int64
-	if err := repo.DB.Model(&Host{}).Where(&Host{OrgID: orgID, ID: hostID}).Count(&count).Error; err != nil {
+	if err := r.DB.Model(&Host{}).Where(&Host{OrgID: orgID, ID: hostID}).Count(&count).Error; err != nil {
 		return false // FIXME Add error message
 	}
 
@@ -203,23 +203,23 @@ func (repo *HostRepository) Exists(orgID, hostID string) bool {
 	return true
 }
 
-func (repo *HostRepository) Status(orgID, hostID, status string) (*domain.Success, error) {
-	if err := repo.DB.Where(&Host{OrgID: orgID, ID: hostID}).Assign(&Host{Status: status}).FirstOrCreate(&Host{}).Error; err != nil {
+func (r *HostRepository) Status(orgID, hostID, status string) (*domain.Success, error) {
+	if err := r.DB.Where(&Host{OrgID: orgID, ID: hostID}).Assign(&Host{Status: status}).FirstOrCreate(&Host{}).Error; err != nil {
 		return &domain.Success{Success: false}, fmt.Errorf("update hosts: %v", err)
 	}
 
 	return &domain.Success{Success: true}, nil
 }
 
-func (repo *HostRepository) Retire(orgID, hostID string, retire *domain.HostRetire) (*domain.Success, error) {
-	if err := repo.DB.Where(&Host{OrgID: orgID, ID: hostID}).Assign(&Host{IsRetired: true, RetiredAt: time.Now().Unix()}).FirstOrCreate(&Host{}).Error; err != nil {
+func (r *HostRepository) Retire(orgID, hostID string, retire *domain.HostRetire) (*domain.Success, error) {
+	if err := r.DB.Where(&Host{OrgID: orgID, ID: hostID}).Assign(&Host{IsRetired: true, RetiredAt: time.Now().Unix()}).FirstOrCreate(&Host{}).Error; err != nil {
 		return &domain.Success{Success: false}, fmt.Errorf("update hosts: %v", err)
 	}
 
 	return &domain.Success{Success: true}, nil
 }
 
-func (repo *HostRepository) SaveRoleFullNames(orgID, hostID string, names *domain.RoleFullNames) (*domain.Success, error) {
+func (r *HostRepository) SaveRoleFullNames(orgID, hostID string, names *domain.RoleFullNames) (*domain.Success, error) {
 	roles, err := json.Marshal(names.Roles())
 	if err != nil {
 		return &domain.Success{Success: false}, fmt.Errorf("marshal: %v", err)
@@ -230,7 +230,7 @@ func (repo *HostRepository) SaveRoleFullNames(orgID, hostID string, names *domai
 		return &domain.Success{Success: false}, fmt.Errorf("marshal: %v", err)
 	}
 
-	if err := repo.DB.Where(&Host{OrgID: orgID, ID: hostID}).Assign(&Host{RoleFullNames: string(roleFullnames), Roles: string(roles)}).FirstOrCreate(&Host{}).Error; err != nil {
+	if err := r.DB.Where(&Host{OrgID: orgID, ID: hostID}).Assign(&Host{RoleFullNames: string(roleFullnames), Roles: string(roles)}).FirstOrCreate(&Host{}).Error; err != nil {
 		return &domain.Success{Success: false}, fmt.Errorf("first for create: %v", err)
 	}
 

@@ -58,17 +58,17 @@ func NewServiceMetricRepository(handler SQLHandler) *ServiceMetricRepository {
 	}
 }
 
-func (repo *ServiceMetricRepository) Exists(orgID, serviceName, metricName string) bool {
-	if err := repo.DB.Where(&ServiceMetricValue{OrgID: orgID, ServiceName: serviceName, Name: metricName}).First(&ServiceMetricValue{}).Error; err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
+func (r *ServiceMetricRepository) Exists(orgID, serviceName, metricName string) bool {
+	if err := r.DB.Where(&ServiceMetricValue{OrgID: orgID, ServiceName: serviceName, Name: metricName}).First(&ServiceMetricValue{}).Error; err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
 		return false
 	}
 
 	return true
 }
 
-func (repo *ServiceMetricRepository) Names(orgID, serviceName string) (*domain.ServiceMetricValueNames, error) {
+func (r *ServiceMetricRepository) Names(orgID, serviceName string) (*domain.ServiceMetricValueNames, error) {
 	result := make([]ServiceMetricValue, 0)
-	if err := repo.DB.Model(&ServiceMetricValue{}).Where(&ServiceMetricValue{OrgID: orgID, ServiceName: serviceName}).Select("distinct(name)").Find(&result).Error; err != nil {
+	if err := r.DB.Model(&ServiceMetricValue{}).Where(&ServiceMetricValue{OrgID: orgID, ServiceName: serviceName}).Select("distinct(name)").Find(&result).Error; err != nil {
 		return nil, fmt.Errorf("select distinct name from service_metric_values: %v", err)
 	}
 
@@ -80,9 +80,9 @@ func (repo *ServiceMetricRepository) Names(orgID, serviceName string) (*domain.S
 	return &domain.ServiceMetricValueNames{Names: names}, nil
 }
 
-func (repo *ServiceMetricRepository) Values(orgID, serviceName, metricName string, from, to int64) (*domain.ServiceMetricValues, error) {
+func (r *ServiceMetricRepository) Values(orgID, serviceName, metricName string, from, to int64) (*domain.ServiceMetricValues, error) {
 	result := make([]ServiceMetricValue, 0)
-	if err := repo.DB.Where(&ServiceMetricValue{OrgID: orgID, ServiceName: serviceName, Name: metricName}).Where("? < time and time < ?", from, to).Find(&result).Error; err != nil {
+	if err := r.DB.Where(&ServiceMetricValue{OrgID: orgID, ServiceName: serviceName, Name: metricName}).Where("? < time and time < ?", from, to).Find(&result).Error; err != nil {
 		return nil, fmt.Errorf("select time, value from service_metric_values: %v", err)
 	}
 
@@ -100,8 +100,8 @@ func (repo *ServiceMetricRepository) Values(orgID, serviceName, metricName strin
 	return &domain.ServiceMetricValues{Metrics: out}, nil
 }
 
-func (repo *ServiceMetricRepository) Save(orgID, serviceName string, values []domain.ServiceMetricValue) (*domain.Success, error) {
-	if err := repo.DB.Transaction(func(tx *gorm.DB) error {
+func (r *ServiceMetricRepository) Save(orgID, serviceName string, values []domain.ServiceMetricValue) (*domain.Success, error) {
+	if err := r.DB.Transaction(func(tx *gorm.DB) error {
 		for i := range values {
 			if err := tx.Create(&ServiceMetricValue{
 				OrgID:       orgID,

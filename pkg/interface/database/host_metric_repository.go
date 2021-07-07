@@ -73,17 +73,17 @@ func NewHostMetricRepository(handler SQLHandler) *HostMetricRepository {
 	}
 }
 
-func (repo *HostMetricRepository) Exists(orgID, hostID, name string) bool {
-	if err := repo.DB.Where(&HostMetricValue{OrgID: orgID, HostID: hostID, Name: name}).First(&HostMetricValue{}).Error; err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
+func (r *HostMetricRepository) Exists(orgID, hostID, name string) bool {
+	if err := r.DB.Where(&HostMetricValue{OrgID: orgID, HostID: hostID, Name: name}).First(&HostMetricValue{}).Error; err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
 		return false
 	}
 
 	return true
 }
 
-func (repo *HostMetricRepository) Names(orgID, hostID string) (*domain.MetricNames, error) {
+func (r *HostMetricRepository) Names(orgID, hostID string) (*domain.MetricNames, error) {
 	result := make([]HostMetricValue, 0)
-	if err := repo.DB.Model(&HostMetricValue{}).Where(&HostMetricValue{OrgID: orgID, HostID: hostID}).Select("distinct(name)").Find(&result).Error; err != nil {
+	if err := r.DB.Model(&HostMetricValue{}).Where(&HostMetricValue{OrgID: orgID, HostID: hostID}).Select("distinct(name)").Find(&result).Error; err != nil {
 		return nil, fmt.Errorf("select distinct name from host_metric_values: %v", err)
 	}
 
@@ -95,9 +95,9 @@ func (repo *HostMetricRepository) Names(orgID, hostID string) (*domain.MetricNam
 	return &domain.MetricNames{Names: names}, nil
 }
 
-func (repo *HostMetricRepository) Values(orgID, hostID, name string, from, to int64) (*domain.MetricValues, error) {
+func (r *HostMetricRepository) Values(orgID, hostID, name string, from, to int64) (*domain.MetricValues, error) {
 	result := make([]HostMetricValue, 0)
-	if err := repo.DB.Where(&HostMetricValue{OrgID: orgID, HostID: hostID, Name: name}).Where("? < time and time < ?", from, to).Find(&result).Error; err != nil {
+	if err := r.DB.Where(&HostMetricValue{OrgID: orgID, HostID: hostID, Name: name}).Where("? < time and time < ?", from, to).Find(&result).Error; err != nil {
 		return nil, fmt.Errorf("select time, value from host_metric_values: %v", err)
 	}
 
@@ -115,9 +115,9 @@ func (repo *HostMetricRepository) Values(orgID, hostID, name string, from, to in
 	return &domain.MetricValues{Metrics: values}, nil
 }
 
-func (repo *HostMetricRepository) ValuesLimit(orgID, hostID, name string, limit int) (*domain.MetricValues, error) {
+func (r *HostMetricRepository) ValuesLimit(orgID, hostID, name string, limit int) (*domain.MetricValues, error) {
 	result := make([]HostMetricValue, 0)
-	if err := repo.DB.Where(&HostMetricValue{OrgID: orgID, HostID: hostID, Name: name}).Order("time desc").Limit(limit).Find(&result).Error; err != nil {
+	if err := r.DB.Where(&HostMetricValue{OrgID: orgID, HostID: hostID, Name: name}).Order("time desc").Limit(limit).Find(&result).Error; err != nil {
 		return nil, fmt.Errorf("select time, value from host_metric_values: %v", err)
 	}
 
@@ -135,14 +135,14 @@ func (repo *HostMetricRepository) ValuesLimit(orgID, hostID, name string, limit 
 	return &domain.MetricValues{Metrics: values}, nil
 }
 
-func (repo *HostMetricRepository) ValuesLatest(orgID string, hostID, name []string) (*domain.TSDBLatest, error) {
+func (r *HostMetricRepository) ValuesLatest(orgID string, hostID, name []string) (*domain.TSDBLatest, error) {
 	result := make([]HostMetricValuesLatest, 0)
 	if len(hostID) > 0 && len(name) > 0 {
-		if err := repo.DB.Where("host_id IN (?)", hostID).Where("name IN (?)", name).Find(&result).Error; err != nil {
+		if err := r.DB.Where("host_id IN (?)", hostID).Where("name IN (?)", name).Find(&result).Error; err != nil {
 			return nil, fmt.Errorf("select * from host_metric_value_latest: %v", err)
 		}
 	} else {
-		if err := repo.DB.Where(&HostMetricValuesLatest{OrgID: orgID}).Find(&result).Error; err != nil {
+		if err := r.DB.Where(&HostMetricValuesLatest{OrgID: orgID}).Find(&result).Error; err != nil {
 			return nil, fmt.Errorf("select * from host_metric_value_latest: %v", err)
 		}
 	}
@@ -159,8 +159,8 @@ func (repo *HostMetricRepository) ValuesLatest(orgID string, hostID, name []stri
 	return &domain.TSDBLatest{TSDBLatest: latest}, nil
 }
 
-func (repo *HostMetricRepository) Save(orgID string, values []domain.MetricValue) (*domain.Success, error) {
-	if err := repo.DB.Transaction(func(tx *gorm.DB) error {
+func (r *HostMetricRepository) Save(orgID string, values []domain.MetricValue) (*domain.Success, error) {
+	if err := r.DB.Transaction(func(tx *gorm.DB) error {
 		for i := range values {
 			if err := tx.Create(&HostMetricValue{
 				OrgID:  orgID,

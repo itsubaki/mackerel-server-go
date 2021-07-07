@@ -90,9 +90,9 @@ func NewDowntimeRepository(handler SQLHandler) *DowntimeRepository {
 	}
 }
 
-func (repo *DowntimeRepository) List(orgID string) (*domain.Downtimes, error) {
+func (r *DowntimeRepository) List(orgID string) (*domain.Downtimes, error) {
 	result := make([]Downtime, 0)
-	if err := repo.DB.Where(&Downtime{OrgID: orgID}).Find(&result).Error; err != nil {
+	if err := r.DB.Where(&Downtime{OrgID: orgID}).Find(&result).Error; err != nil {
 		return nil, fmt.Errorf("select * from downtimes: %v", err)
 	}
 
@@ -109,7 +109,7 @@ func (repo *DowntimeRepository) List(orgID string) (*domain.Downtimes, error) {
 	return &domain.Downtimes{Downtimes: out}, nil
 }
 
-func (repo *DowntimeRepository) Save(orgID string, downtime *domain.Downtime) (*domain.Downtime, error) {
+func (r *DowntimeRepository) Save(orgID string, downtime *domain.Downtime) (*domain.Downtime, error) {
 	recurrence, err := json.Marshal(downtime.Recurrence)
 	if err != nil {
 		return nil, fmt.Errorf("marshal downtime.Recurrenc: %v", err)
@@ -161,14 +161,14 @@ func (repo *DowntimeRepository) Save(orgID string, downtime *domain.Downtime) (*
 		MonitorExcludeScopes: string(monitorExcludeScopes),
 	}
 
-	if err := repo.DB.Create(&create).Error; err != nil {
+	if err := r.DB.Create(&create).Error; err != nil {
 		return nil, fmt.Errorf("insert into downtimes: %v", err)
 	}
 
 	return downtime, nil
 }
 
-func (repo *DowntimeRepository) Update(orgID string, downtime *domain.Downtime) (*domain.Downtime, error) {
+func (r *DowntimeRepository) Update(orgID string, downtime *domain.Downtime) (*domain.Downtime, error) {
 	recurrence, err := json.Marshal(downtime.Recurrence)
 	if err != nil {
 		return nil, fmt.Errorf("marshal downtime.Recurrence: %v", err)
@@ -218,16 +218,16 @@ func (repo *DowntimeRepository) Update(orgID string, downtime *domain.Downtime) 
 		MonitorExcludeScopes: string(monitorExcludeScopes),
 	}
 
-	if err := repo.DB.Where(&Downtime{OrgID: orgID, ID: downtime.ID}).Assign(&update).FirstOrCreate(&Downtime{}).Error; err != nil {
+	if err := r.DB.Where(&Downtime{OrgID: orgID, ID: downtime.ID}).Assign(&update).FirstOrCreate(&Downtime{}).Error; err != nil {
 		return nil, fmt.Errorf("first or create: %v", err)
 	}
 
 	return downtime, nil
 }
 
-func (repo *DowntimeRepository) Downtime(orgID, downtimeID string) (*domain.Downtime, error) {
+func (r *DowntimeRepository) Downtime(orgID, downtimeID string) (*domain.Downtime, error) {
 	result := Downtime{}
-	if err := repo.DB.Where(&Downtime{OrgID: orgID, ID: downtimeID}).First(&result).Error; err != nil {
+	if err := r.DB.Where(&Downtime{OrgID: orgID, ID: downtimeID}).First(&result).Error; err != nil {
 		return nil, fmt.Errorf("select * from downitmes: %v", err)
 	}
 
@@ -239,13 +239,13 @@ func (repo *DowntimeRepository) Downtime(orgID, downtimeID string) (*domain.Down
 	return &downtime, nil
 }
 
-func (repo *DowntimeRepository) Delete(orgID, downtimeID string) (*domain.Downtime, error) {
+func (r *DowntimeRepository) Delete(orgID, downtimeID string) (*domain.Downtime, error) {
 	result := Downtime{}
-	if err := repo.DB.Where(&Downtime{OrgID: orgID, ID: downtimeID}).First(&result).Error; err != nil {
+	if err := r.DB.Where(&Downtime{OrgID: orgID, ID: downtimeID}).First(&result).Error; err != nil {
 		return nil, fmt.Errorf("select * from downitmes: %v", err)
 	}
 
-	if err := repo.DB.Delete(&Downtime{OrgID: orgID, ID: downtimeID}).Error; err != nil {
+	if err := r.DB.Delete(&Downtime{OrgID: orgID, ID: downtimeID}).Error; err != nil {
 		return nil, fmt.Errorf("delete from downtimes: %v", err)
 	}
 

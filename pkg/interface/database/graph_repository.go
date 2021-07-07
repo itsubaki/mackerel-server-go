@@ -70,8 +70,8 @@ func NewGraphRepository(handler SQLHandler) *GraphRepository {
 	}
 }
 
-func (repo *GraphRepository) SaveDef(orgID string, g []domain.GraphDef) (*domain.Success, error) {
-	if err := repo.DB.Transaction(func(tx *gorm.DB) error {
+func (r *GraphRepository) SaveDef(orgID string, g []domain.GraphDef) (*domain.Success, error) {
+	if err := r.DB.Transaction(func(tx *gorm.DB) error {
 		for _, r := range g {
 			metrics, err := json.Marshal(r.Metrics)
 			if err != nil {
@@ -97,9 +97,9 @@ func (repo *GraphRepository) SaveDef(orgID string, g []domain.GraphDef) (*domain
 	return &domain.Success{Success: true}, nil
 }
 
-func (repo *GraphRepository) List(orgID string) (*domain.GraphAnnotations, error) {
+func (r *GraphRepository) List(orgID string) (*domain.GraphAnnotations, error) {
 	result := make([]GraphAnnotation, 0)
-	if err := repo.DB.Where(&GraphAnnotation{OrgID: orgID}).Find(&result).Error; err != nil {
+	if err := r.DB.Where(&GraphAnnotation{OrgID: orgID}).Find(&result).Error; err != nil {
 		return nil, fmt.Errorf("select * from graph_annotations: %v", err)
 	}
 
@@ -111,7 +111,7 @@ func (repo *GraphRepository) List(orgID string) (*domain.GraphAnnotations, error
 	return &domain.GraphAnnotations{GraphAnnotations: out}, nil
 }
 
-func (repo *GraphRepository) Save(orgID string, annotation *domain.GraphAnnotation) (*domain.GraphAnnotation, error) {
+func (r *GraphRepository) Save(orgID string, annotation *domain.GraphAnnotation) (*domain.GraphAnnotation, error) {
 	create := GraphAnnotation{
 		OrgID:       orgID,
 		ID:          annotation.ID,
@@ -123,14 +123,14 @@ func (repo *GraphRepository) Save(orgID string, annotation *domain.GraphAnnotati
 		Roles:       strings.Join(annotation.Roles, ","),
 	}
 
-	if err := repo.DB.Create(&create).Error; err != nil {
+	if err := r.DB.Create(&create).Error; err != nil {
 		return nil, fmt.Errorf("insert into graph_annotations: %v", err)
 	}
 
 	return annotation, nil
 }
 
-func (repo *GraphRepository) Update(orgID string, annotation *domain.GraphAnnotation) (*domain.GraphAnnotation, error) {
+func (r *GraphRepository) Update(orgID string, annotation *domain.GraphAnnotation) (*domain.GraphAnnotation, error) {
 	update := GraphAnnotation{
 		Title:       annotation.Title,
 		Description: annotation.Description,
@@ -140,20 +140,20 @@ func (repo *GraphRepository) Update(orgID string, annotation *domain.GraphAnnota
 		Roles:       strings.Join(annotation.Roles, ","),
 	}
 
-	if err := repo.DB.Where(&GraphAnnotation{OrgID: orgID, ID: annotation.ID}).Assign(&update).FirstOrCreate(&GraphAnnotation{}).Error; err != nil {
+	if err := r.DB.Where(&GraphAnnotation{OrgID: orgID, ID: annotation.ID}).Assign(&update).FirstOrCreate(&GraphAnnotation{}).Error; err != nil {
 		return nil, fmt.Errorf("update graph_annotations: %v", err)
 	}
 
 	return annotation, nil
 }
 
-func (repo *GraphRepository) Delete(orgID, annotationID string) (*domain.GraphAnnotation, error) {
+func (r *GraphRepository) Delete(orgID, annotationID string) (*domain.GraphAnnotation, error) {
 	result := GraphAnnotation{}
-	if err := repo.DB.Where(&GraphAnnotation{OrgID: orgID, ID: annotationID}).First(&result).Error; err != nil {
+	if err := r.DB.Where(&GraphAnnotation{OrgID: orgID, ID: annotationID}).First(&result).Error; err != nil {
 		return nil, fmt.Errorf("select * from graph_annotations: %v", err)
 	}
 
-	if err := repo.DB.Delete(&GraphAnnotation{OrgID: orgID, ID: annotationID}).Error; err != nil {
+	if err := r.DB.Delete(&GraphAnnotation{OrgID: orgID, ID: annotationID}).Error; err != nil {
 		return nil, fmt.Errorf("delete from graph_annotations: %v", err)
 	}
 

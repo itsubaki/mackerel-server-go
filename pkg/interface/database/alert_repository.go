@@ -118,16 +118,16 @@ func NewAlertRepository(handler SQLHandler) *AlertRepository {
 	}
 }
 
-func (repo *AlertRepository) Exists(orgID, alertID string) bool {
-	if err := repo.DB.Where(&Alert{OrgID: orgID, ID: alertID}).First(&Alert{}).Error; err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
+func (r *AlertRepository) Exists(orgID, alertID string) bool {
+	if err := r.DB.Where(&Alert{OrgID: orgID, ID: alertID}).First(&Alert{}).Error; err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
 		return false
 	}
 
 	return true
 }
 
-func (repo *AlertRepository) Save(orgID string, alert *domain.Alert) (*domain.Alert, error) {
-	if err := repo.DB.Transaction(func(tx *gorm.DB) error {
+func (r *AlertRepository) Save(orgID string, alert *domain.Alert) (*domain.Alert, error) {
+	if err := r.DB.Transaction(func(tx *gorm.DB) error {
 		var count int64
 		if err := tx.Model(&AlertHistory{}).Where(&AlertHistory{OrgID: orgID, HostID: alert.HostID, MonitorID: alert.MonitorID}).Count(&count).Error; err != nil {
 			return fmt.Errorf("count: %v", err)
@@ -214,14 +214,14 @@ func (repo *AlertRepository) Save(orgID string, alert *domain.Alert) (*domain.Al
 	return alert, nil
 }
 
-func (repo *AlertRepository) List(orgID string, withClosed bool, nextID string, limit int) (*domain.Alerts, error) {
+func (r *AlertRepository) List(orgID string, withClosed bool, nextID string, limit int) (*domain.Alerts, error) {
 	status := "UNKNOWN"
 	if withClosed {
 		status = "OK"
 	}
 
 	result := make([]Alert, 0)
-	if err := repo.DB.Where(&Alert{OrgID: orgID}).Where("status IN ('CRITICAL', 'WARNING', 'UNKNOWN', ?)", status).Order("opened_at desc").Limit(limit + 1).Find(&result).Error; err != nil {
+	if err := r.DB.Where(&Alert{OrgID: orgID}).Where("status IN ('CRITICAL', 'WARNING', 'UNKNOWN', ?)", status).Order("opened_at desc").Limit(limit + 1).Find(&result).Error; err != nil {
 		return nil, fmt.Errorf("select * from alerts: %v", err)
 	}
 
@@ -240,9 +240,9 @@ func (repo *AlertRepository) List(orgID string, withClosed bool, nextID string, 
 	return &domain.Alerts{Alerts: alerts}, nil
 }
 
-func (repo *AlertRepository) Close(orgID, alertID, reason string) (*domain.Alert, error) {
+func (r *AlertRepository) Close(orgID, alertID, reason string) (*domain.Alert, error) {
 	var alert domain.Alert
-	if err := repo.DB.Transaction(func(tx *gorm.DB) error {
+	if err := r.DB.Transaction(func(tx *gorm.DB) error {
 		update := Alert{
 			Status:   "OK",
 			Reason:   reason,

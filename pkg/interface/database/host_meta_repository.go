@@ -41,17 +41,17 @@ func NewHostMetaRepository(handler SQLHandler) *HostMetaRepository {
 	}
 }
 
-func (repo *HostMetaRepository) Exists(orgID, hostID, namespace string) bool {
-	if err := repo.DB.Where(&HostMeta{OrgID: orgID, HostID: hostID, Namespace: namespace}).First(&HostMeta{}).Error; err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
+func (r *HostMetaRepository) Exists(orgID, hostID, namespace string) bool {
+	if err := r.DB.Where(&HostMeta{OrgID: orgID, HostID: hostID, Namespace: namespace}).First(&HostMeta{}).Error; err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
 		return false
 	}
 
 	return true
 }
 
-func (repo *HostMetaRepository) List(orgID, hostID string) (*domain.HostMetadataList, error) {
+func (r *HostMetaRepository) List(orgID, hostID string) (*domain.HostMetadataList, error) {
 	result := make([]HostMeta, 0)
-	if err := repo.DB.Where(&HostMeta{OrgID: orgID, HostID: hostID}).Find(&result).Error; err != nil {
+	if err := r.DB.Where(&HostMeta{OrgID: orgID, HostID: hostID}).Find(&result).Error; err != nil {
 		return nil, fmt.Errorf("select * from host_meta: %v", err)
 	}
 
@@ -65,9 +65,9 @@ func (repo *HostMetaRepository) List(orgID, hostID string) (*domain.HostMetadata
 	return &domain.HostMetadataList{Metadata: out}, nil
 }
 
-func (repo *HostMetaRepository) Metadata(orgID, hostID, namespace string) (interface{}, error) {
+func (r *HostMetaRepository) Metadata(orgID, hostID, namespace string) (interface{}, error) {
 	result := HostMeta{}
-	if err := repo.DB.Where(&HostMeta{OrgID: orgID, HostID: hostID, Namespace: namespace}).Find(&result).Error; err != nil {
+	if err := r.DB.Where(&HostMeta{OrgID: orgID, HostID: hostID, Namespace: namespace}).Find(&result).Error; err != nil {
 		return nil, fmt.Errorf("select * from host_meta: %v", err)
 	}
 
@@ -79,21 +79,21 @@ func (repo *HostMetaRepository) Metadata(orgID, hostID, namespace string) (inter
 	return out, nil
 }
 
-func (repo *HostMetaRepository) Save(orgID, hostID, namespace string, metadata interface{}) (*domain.Success, error) {
+func (r *HostMetaRepository) Save(orgID, hostID, namespace string, metadata interface{}) (*domain.Success, error) {
 	meta, err := json.Marshal(metadata)
 	if err != nil {
 		return &domain.Success{Success: false}, fmt.Errorf("marshal: %v", err)
 	}
 
-	if err := repo.DB.Where(&HostMeta{OrgID: orgID, HostID: hostID, Namespace: namespace}).Assign(&HostMeta{Metadata: string(meta)}).FirstOrCreate(&HostMeta{}).Error; err != nil {
+	if err := r.DB.Where(&HostMeta{OrgID: orgID, HostID: hostID, Namespace: namespace}).Assign(&HostMeta{Metadata: string(meta)}).FirstOrCreate(&HostMeta{}).Error; err != nil {
 		return &domain.Success{Success: false}, fmt.Errorf("first or create: %v", err)
 	}
 
 	return &domain.Success{Success: true}, nil
 }
 
-func (repo *HostMetaRepository) Delete(orgID, hostID, namespace string) (*domain.Success, error) {
-	if err := repo.DB.Delete(&HostMeta{OrgID: orgID, HostID: hostID, Namespace: namespace}).Error; err != nil {
+func (r *HostMetaRepository) Delete(orgID, hostID, namespace string) (*domain.Success, error) {
+	if err := r.DB.Delete(&HostMeta{OrgID: orgID, HostID: hostID, Namespace: namespace}).Error; err != nil {
 		return &domain.Success{Success: false}, fmt.Errorf("delete from host_meta: %v", err)
 	}
 

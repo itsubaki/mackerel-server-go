@@ -42,17 +42,17 @@ func NewRoleMetaRepository(handler SQLHandler) *RoleMetaRepository {
 	}
 }
 
-func (repo *RoleMetaRepository) Exists(orgID, serviceName, roleName, namespace string) bool {
-	if err := repo.DB.Where(&RoleMeta{OrgID: orgID, ServiceName: serviceName, RoleName: roleName, Namespace: namespace}).First(&RoleMeta{}).Error; err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
+func (r *RoleMetaRepository) Exists(orgID, serviceName, roleName, namespace string) bool {
+	if err := r.DB.Where(&RoleMeta{OrgID: orgID, ServiceName: serviceName, RoleName: roleName, Namespace: namespace}).First(&RoleMeta{}).Error; err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
 		return false
 	}
 
 	return true
 }
 
-func (repo *RoleMetaRepository) List(orgID, serviceName, roleName string) (*domain.RoleMetadataList, error) {
+func (r *RoleMetaRepository) List(orgID, serviceName, roleName string) (*domain.RoleMetadataList, error) {
 	result := make([]RoleMeta, 0)
-	if err := repo.DB.Where(&RoleMeta{OrgID: orgID, ServiceName: serviceName, RoleName: roleName}).Find(&result).Error; err != nil {
+	if err := r.DB.Where(&RoleMeta{OrgID: orgID, ServiceName: serviceName, RoleName: roleName}).Find(&result).Error; err != nil {
 		return nil, fmt.Errorf("select * from role_meta: %v", err)
 	}
 
@@ -66,9 +66,9 @@ func (repo *RoleMetaRepository) List(orgID, serviceName, roleName string) (*doma
 	return &domain.RoleMetadataList{Metadata: out}, nil
 }
 
-func (repo *RoleMetaRepository) Metadata(orgID, serviceName, roleName, namespace string) (interface{}, error) {
+func (r *RoleMetaRepository) Metadata(orgID, serviceName, roleName, namespace string) (interface{}, error) {
 	result := RoleMeta{}
-	if err := repo.DB.Where(&RoleMeta{OrgID: orgID, ServiceName: serviceName, RoleName: roleName, Namespace: namespace}).Find(&result).Error; err != nil {
+	if err := r.DB.Where(&RoleMeta{OrgID: orgID, ServiceName: serviceName, RoleName: roleName, Namespace: namespace}).Find(&result).Error; err != nil {
 		return nil, fmt.Errorf("select * from role_meta: %v", err)
 	}
 
@@ -80,21 +80,21 @@ func (repo *RoleMetaRepository) Metadata(orgID, serviceName, roleName, namespace
 	return out, nil
 }
 
-func (repo *RoleMetaRepository) Save(orgID, serviceName, roleName, namespace string, metadata interface{}) (*domain.Success, error) {
+func (r *RoleMetaRepository) Save(orgID, serviceName, roleName, namespace string, metadata interface{}) (*domain.Success, error) {
 	meta, err := json.Marshal(metadata)
 	if err != nil {
 		return &domain.Success{Success: false}, fmt.Errorf("marshal: %v", err)
 	}
 
-	if err := repo.DB.Where(&RoleMeta{OrgID: orgID, ServiceName: serviceName, RoleName: roleName, Namespace: namespace}).Assign(&RoleMeta{Metadata: string(meta)}).FirstOrCreate(&RoleMeta{}).Error; err != nil {
+	if err := r.DB.Where(&RoleMeta{OrgID: orgID, ServiceName: serviceName, RoleName: roleName, Namespace: namespace}).Assign(&RoleMeta{Metadata: string(meta)}).FirstOrCreate(&RoleMeta{}).Error; err != nil {
 		return &domain.Success{Success: false}, fmt.Errorf("first or create: %v", err)
 	}
 
 	return &domain.Success{Success: true}, nil
 }
 
-func (repo *RoleMetaRepository) Delete(orgID, serviceName, roleName, namespace string) (*domain.Success, error) {
-	if err := repo.DB.Delete(&RoleMeta{OrgID: orgID, ServiceName: serviceName, RoleName: roleName, Namespace: namespace}).Error; err != nil {
+func (r *RoleMetaRepository) Delete(orgID, serviceName, roleName, namespace string) (*domain.Success, error) {
+	if err := r.DB.Delete(&RoleMeta{OrgID: orgID, ServiceName: serviceName, RoleName: roleName, Namespace: namespace}).Error; err != nil {
 		return &domain.Success{Success: false}, fmt.Errorf("delete from role_meta: %v", err)
 	}
 

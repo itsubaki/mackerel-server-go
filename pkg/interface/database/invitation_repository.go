@@ -41,9 +41,9 @@ func NewInvitationRepository(handler SQLHandler) *InvitationRepository {
 	}
 }
 
-func (repo *InvitationRepository) List(orgID string) (*domain.Invitations, error) {
+func (r *InvitationRepository) List(orgID string) (*domain.Invitations, error) {
 	result := make([]Invitation, 0)
-	if err := repo.DB.Where(&Invitation{OrgID: orgID}).Find(&result).Error; err != nil {
+	if err := r.DB.Where(&Invitation{OrgID: orgID}).Find(&result).Error; err != nil {
 		return nil, fmt.Errorf("select * from invitations: %v", err)
 	}
 
@@ -60,15 +60,15 @@ func (repo *InvitationRepository) List(orgID string) (*domain.Invitations, error
 	return &domain.Invitations{Invitations: out}, nil
 }
 
-func (repo *InvitationRepository) Exists(orgID, email string) bool {
-	if err := repo.DB.Where(&Invitation{OrgID: orgID, EMail: email}).First(&Invitation{}).Error; err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
+func (r *InvitationRepository) Exists(orgID, email string) bool {
+	if err := r.DB.Where(&Invitation{OrgID: orgID, EMail: email}).First(&Invitation{}).Error; err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
 		return false
 	}
 
 	return true
 }
 
-func (repo *InvitationRepository) Save(orgID string, i *domain.Invitation) (*domain.Invitation, error) {
+func (r *InvitationRepository) Save(orgID string, i *domain.Invitation) (*domain.Invitation, error) {
 	create := Invitation{
 		OrgID:     orgID,
 		EMail:     i.EMail,
@@ -76,15 +76,15 @@ func (repo *InvitationRepository) Save(orgID string, i *domain.Invitation) (*dom
 		ExpiresAt: time.Now().Unix() + 604800,
 	}
 
-	if err := repo.DB.Create(&create).Error; err != nil {
+	if err := r.DB.Create(&create).Error; err != nil {
 		return nil, fmt.Errorf("insert into invitations: %v", err)
 	}
 
 	return i, nil
 }
 
-func (repo *InvitationRepository) Revoke(orgID, email string) (*domain.Success, error) {
-	if err := repo.DB.Delete(&Invitation{OrgID: orgID, EMail: email}).Error; err != nil {
+func (r *InvitationRepository) Revoke(orgID, email string) (*domain.Success, error) {
+	if err := r.DB.Delete(&Invitation{OrgID: orgID, EMail: email}).Error; err != nil {
 		return nil, fmt.Errorf("delete from invitations: %v", err)
 	}
 

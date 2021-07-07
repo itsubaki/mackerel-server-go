@@ -42,26 +42,26 @@ func NewDashboardRepository(handler SQLHandler) *DashboardRepository {
 	}
 }
 
-func (repo *DashboardRepository) List(orgID string) (*domain.Dashboards, error) {
+func (r *DashboardRepository) List(orgID string) (*domain.Dashboards, error) {
 	return nil, nil
 }
 
-func (repo *DashboardRepository) Save(orgID string, dashboard *domain.Dashboard) (*domain.Dashboard, error) {
+func (r *DashboardRepository) Save(orgID string, dashboard *domain.Dashboard) (*domain.Dashboard, error) {
 	return nil, nil
 }
 
-func (repo *DashboardRepository) Dashboard(orgID, dashboardID string) (*domain.Dashboard, error) {
+func (r *DashboardRepository) Dashboard(orgID, dashboardID string) (*domain.Dashboard, error) {
 	return nil, nil
 }
 
-func (repo *DashboardRepository) Update(orgID string, dashboard *domain.Dashboard) (*domain.Dashboard, error) {
+func (r *DashboardRepository) Update(orgID string, dashboard *domain.Dashboard) (*domain.Dashboard, error) {
 	return nil, nil
 }
 
-func (repo *DashboardRepository) Exists(orgID, dashboardID string) bool {
+func (r *DashboardRepository) Exists(orgID, dashboardID string) bool {
 	return true
 }
 
-func (repo *DashboardRepository) Delete(orgID, dashboardID string) (*domain.Dashboard, error) {
+func (r *DashboardRepository) Delete(orgID, dashboardID string) (*domain.Dashboard, error) {
 	return nil, nil
 }

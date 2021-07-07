@@ -44,9 +44,9 @@ func NewCheckReportRepository(handler SQLHandler) *CheckReportRepository {
 	}
 }
 
-func (repo *CheckReportRepository) CheckReport(orgID string) (*domain.CheckReports, error) {
+func (r *CheckReportRepository) CheckReport(orgID string) (*domain.CheckReports, error) {
 	result := make([]CheckReport, 0)
-	if err := repo.DB.Where(&CheckReport{OrgID: orgID}).Not("status", []string{"OK"}).Find(&result).Error; err != nil {
+	if err := r.DB.Where(&CheckReport{OrgID: orgID}).Not("status", []string{"OK"}).Find(&result).Error; err != nil {
 		return nil, fmt.Errorf("select * from check_reports: %v", err)
 	}
 
@@ -70,22 +70,22 @@ func (repo *CheckReportRepository) CheckReport(orgID string) (*domain.CheckRepor
 	return &domain.CheckReports{Reports: out}, nil
 }
 
-func (repo *CheckReportRepository) Save(orgID string, reports *domain.CheckReports) (*domain.Success, error) {
-	if err := repo.DB.Transaction(func(tx *gorm.DB) error {
-		for _, r := range reports.Reports {
+func (r *CheckReportRepository) Save(orgID string, reports *domain.CheckReports) (*domain.Success, error) {
+	if err := r.DB.Transaction(func(tx *gorm.DB) error {
+		for _, report := range reports.Reports {
 			where := CheckReport{
 				OrgID:  orgID,
-				HostID: r.Source.HostID,
-				Type:   r.Source.Type,
-				Name:   r.Name,
+				HostID: report.Source.HostID,
+				Type:   report.Source.Type,
+				Name:   report.Name,
 			}
 
 			update := CheckReport{
-				Status:               r.Status,
-				Message:              r.Message,
-				OccurredAt:           r.OccurredAt,
-				NotificationInterval: r.NotificationInterval,
-				MaxCheckAttempts:     r.MaxCheckAttempts,
+				Status:               report.Status,
+				Message:              report.Message,
+				OccurredAt:           report.OccurredAt,
+				NotificationInterval: report.NotificationInterval,
+				MaxCheckAttempts:     report.MaxCheckAttempts,
 			}
 
 			if err := tx.Where(&where).Assign(&update).FirstOrCreate(&CheckReport{}).Error; err != nil {

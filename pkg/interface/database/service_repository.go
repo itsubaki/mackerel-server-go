@@ -47,9 +47,9 @@ func NewServiceRepository(handler SQLHandler) *ServiceRepository {
 	}
 }
 
-func (repo *ServiceRepository) List(orgID string) (*domain.Services, error) {
+func (r *ServiceRepository) List(orgID string) (*domain.Services, error) {
 	result := make([]Service, 0)
-	if err := repo.DB.Where(&Service{OrgID: orgID}).Find(&result).Error; err != nil {
+	if err := r.DB.Where(&Service{OrgID: orgID}).Find(&result).Error; err != nil {
 		return nil, fmt.Errorf("select * from services: %v", err)
 	}
 
@@ -61,17 +61,17 @@ func (repo *ServiceRepository) List(orgID string) (*domain.Services, error) {
 	return &domain.Services{Services: out}, nil
 }
 
-func (repo *ServiceRepository) Save(orgID string, s *domain.Service) error {
-	if err := repo.DB.Where(&Service{OrgID: orgID, Name: s.Name}).Assign(&Service{Memo: s.Memo}).FirstOrCreate(&Service{}).Error; err != nil {
+func (r *ServiceRepository) Save(orgID string, s *domain.Service) error {
+	if err := r.DB.Where(&Service{OrgID: orgID, Name: s.Name}).Assign(&Service{Memo: s.Memo}).FirstOrCreate(&Service{}).Error; err != nil {
 		return fmt.Errorf("first or create: %v", err)
 	}
 
 	return nil
 }
 
-func (repo *ServiceRepository) Service(orgID, serviceName string) (*domain.Service, error) {
+func (r *ServiceRepository) Service(orgID, serviceName string) (*domain.Service, error) {
 	result := Service{}
-	if err := repo.DB.Where(&Service{OrgID: orgID, Name: serviceName}).Find(&result).Error; err != nil {
+	if err := r.DB.Where(&Service{OrgID: orgID, Name: serviceName}).Find(&result).Error; err != nil {
 		return nil, fmt.Errorf("select * from serviecs: %v", err)
 	}
 
@@ -79,9 +79,9 @@ func (repo *ServiceRepository) Service(orgID, serviceName string) (*domain.Servi
 	return &service, nil
 }
 
-func (repo *ServiceRepository) Exists(orgID, serviceName string) bool {
+func (r *ServiceRepository) Exists(orgID, serviceName string) bool {
 	var count int64
-	if err := repo.DB.Model(&Service{}).Where(&Service{OrgID: orgID, Name: serviceName}).Count(&count).Error; err != nil {
+	if err := r.DB.Model(&Service{}).Where(&Service{OrgID: orgID, Name: serviceName}).Count(&count).Error; err != nil {
 		return false // FIXME Add error message
 	}
 
@@ -92,8 +92,8 @@ func (repo *ServiceRepository) Exists(orgID, serviceName string) bool {
 	return true
 }
 
-func (repo *ServiceRepository) Delete(orgID, serviceName string) error {
-	if err := repo.DB.Delete(&Service{OrgID: orgID, Name: serviceName}).Error; err != nil {
+func (r *ServiceRepository) Delete(orgID, serviceName string) error {
+	if err := r.DB.Delete(&Service{OrgID: orgID, Name: serviceName}).Error; err != nil {
 		return fmt.Errorf("delete from services: %v", err)
 	}
 

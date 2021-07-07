@@ -60,9 +60,9 @@ func NewUserRepository(handler SQLHandler) *UserRepository {
 	}
 }
 
-func (repo *UserRepository) List(orgID string) (*domain.Users, error) {
+func (r *UserRepository) List(orgID string) (*domain.Users, error) {
 	result := make([]User, 0)
-	if err := repo.DB.Where(&User{OrgID: orgID}).Find(&result).Error; err != nil {
+	if err := r.DB.Where(&User{OrgID: orgID}).Find(&result).Error; err != nil {
 		return nil, fmt.Errorf("select * from users: %v", err)
 	}
 
@@ -74,15 +74,15 @@ func (repo *UserRepository) List(orgID string) (*domain.Users, error) {
 	return &domain.Users{Users: users}, nil
 }
 
-func (repo *UserRepository) Exists(orgID, userID string) bool {
-	if err := repo.DB.Where(&User{OrgID: orgID, ID: userID}).First(&User{}).Error; err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
+func (r *UserRepository) Exists(orgID, userID string) bool {
+	if err := r.DB.Where(&User{OrgID: orgID, ID: userID}).First(&User{}).Error; err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
 		return false
 	}
 
 	return true
 }
 
-func (repo *UserRepository) Save(orgID string, user *domain.User) error {
+func (r *UserRepository) Save(orgID string, user *domain.User) error {
 	u := User{
 		OrgID:                   orgID,
 		ID:                      user.ID,
@@ -95,20 +95,20 @@ func (repo *UserRepository) Save(orgID string, user *domain.User) error {
 		JoinedAt:                user.JoinedAt,
 	}
 
-	if err := repo.DB.Create(&u).Error; err != nil {
+	if err := r.DB.Create(&u).Error; err != nil {
 		return fmt.Errorf("insert into users: %v", err)
 	}
 
 	return nil
 }
 
-func (repo *UserRepository) Delete(orgID, userID string) (*domain.User, error) {
+func (r *UserRepository) Delete(orgID, userID string) (*domain.User, error) {
 	result := User{}
-	if err := repo.DB.Where(&User{OrgID: orgID, ID: userID}).First(&result).Error; err != nil {
+	if err := r.DB.Where(&User{OrgID: orgID, ID: userID}).First(&result).Error; err != nil {
 		return nil, fmt.Errorf("select * from users: %v", err)
 	}
 
-	if err := repo.DB.Delete(&User{OrgID: orgID, ID: userID}).Error; err != nil {
+	if err := r.DB.Delete(&User{OrgID: orgID, ID: userID}).Error; err != nil {
 		return nil, fmt.Errorf("delete from users: %v", err)
 	}
 

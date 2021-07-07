@@ -44,13 +44,13 @@ func NewOrgRepository(handler SQLHandler) *OrgRepository {
 	}
 }
 
-func (repo *OrgRepository) Save(orgID, name string) (*domain.Org, error) {
+func (r *OrgRepository) Save(orgID, name string) (*domain.Org, error) {
 	create := Org{
 		ID:   orgID,
 		Name: name,
 	}
 
-	if err := repo.DB.Transaction(func(tx *gorm.DB) error {
+	if err := r.DB.Transaction(func(tx *gorm.DB) error {
 		var count int64
 		if err := tx.Model(&Org{}).Where(&Org{ID: orgID}).Count(&count).Error; err != nil {
 			return fmt.Errorf("count: %v", err)
@@ -71,9 +71,9 @@ func (repo *OrgRepository) Save(orgID, name string) (*domain.Org, error) {
 	return &out, nil
 }
 
-func (repo *OrgRepository) Org(orgID string) (*domain.Org, error) {
+func (r *OrgRepository) Org(orgID string) (*domain.Org, error) {
 	result := Org{}
-	if err := repo.DB.Where(&Org{ID: orgID}).First(&result).Error; err != nil {
+	if err := r.DB.Where(&Org{ID: orgID}).First(&result).Error; err != nil {
 		return nil, fmt.Errorf("select * from orgs: %v", err)
 	}
 
