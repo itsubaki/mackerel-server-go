@@ -15,8 +15,8 @@ type HostRepository struct {
 }
 
 type Host struct {
-	OrgID            string `gorm:"column:org_id;            type:varchar(16);  not null;"`
-	ID               string `gorm:"column:id;                type:varchar(16);  not null; primary key"`
+	OrgID            string `gorm:"column:org_id;            type:varchar(16);   not null;"`
+	ID               string `gorm:"column:id;                type:varchar(16);   not null; primary key"`
 	Name             string `gorm:"column:name;              type:varchar(128);  not null;"`
 	Status           string `gorm:"column:status;            type:enum('working', 'standby', 'maintenance', 'poweroff');  not null;"`
 	Memo             string `gorm:"column:memo;              type:varchar(128);  not null; default:''"`

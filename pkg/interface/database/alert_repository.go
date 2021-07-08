@@ -15,8 +15,8 @@ type AlertRepository struct {
 }
 
 type Alert struct {
-	OrgID     string  `gorm:"column:org_id;     type:varchar(16); not null"`
-	ID        string  `gorm:"column:id;         type:varchar(16); not null;"`
+	OrgID     string  `gorm:"column:org_id;     type:varchar(16); not null; index:idx,priority:1"`
+	ID        string  `gorm:"column:id;         type:varchar(16); not null; primary_key"`
 	Status    string  `gorm:"column:status;     type:enum('OK', 'CRITICAL', 'WARNING', 'UNKNOWN'); not null"`
 	MonitorID string  `gorm:"column:monitor_id; type:varchar(16); not null;"`
 	Type      string  `gorm:"column:type;       type:enum('connectivity', 'host', 'service', 'external', 'check', 'expression'); not null;"`
@@ -24,7 +24,7 @@ type Alert struct {
 	Value     float64 `gorm:"column:value;      type:double;"`
 	Message   string  `gorm:"column:message;    type:text;"`
 	Reason    string  `gorm:"column:reason;     type:text;"`
-	OpenedAt  int64   `gorm:"column:opened_at;  type:bigint;"`
+	OpenedAt  int64   `gorm:"column:opened_at;  type:bigint; index:idx,priority:2,sort:desc"`
 	ClosedAt  int64   `gorm:"column:closed_at;  type:bigint;"`
 }
 
@@ -69,28 +69,11 @@ func NewAlertRepository(handler SQLHandler) *AlertRepository {
 		db.Logger.LogMode(4)
 	}
 
-	if err := db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Exec(
-			`
-			create table if not exists alerts (
-				org_id     varchar(16) not null,
-				id         varchar(16) not null primary key,
-				status     enum('OK', 'CRITICAL', 'WARNING', 'UNKNOWN') not null,
-				monitor_id varchar(16) not null,
-				type       enum('connectivity', 'host', 'service', 'external', 'check', 'expression') not null,
-				host_id    varchar(16),
-				value      double,
-				message    text,
-				reason     text,
-				opened_at  bigint,
-				closed_at  bigint,
-				index(org_id, opened_at desc)
-			)
-			`,
-		).Error; err != nil {
-			return fmt.Errorf("create table alerts: %v", err)
-		}
+	if err := db.AutoMigrate(&Alert{}); err != nil {
+		panic(fmt.Errorf("auto migrate alerts: %v", err))
+	}
 
+	if err := db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Exec(
 			`
 			create table if not exists alert_history (
