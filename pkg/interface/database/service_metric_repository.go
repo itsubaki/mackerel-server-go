@@ -32,8 +32,8 @@ func NewServiceMetricRepository(handler SQLHandler) *ServiceMetricRepository {
 		db.Logger.LogMode(4)
 	}
 
-	if err := handler.Transact(func(tx Tx) error {
-		if _, err := tx.Exec(
+	if err := db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Exec(
 			`
 			create table if not exists service_metric_values (
 				org_id       varchar(16)  not null,
@@ -44,7 +44,7 @@ func NewServiceMetricRepository(handler SQLHandler) *ServiceMetricRepository {
 				primary key(org_id, service_name, name, time desc)
 			)
 			`,
-		); err != nil {
+		).Error; err != nil {
 			return fmt.Errorf("create table service_metric_values: %v", err)
 		}
 

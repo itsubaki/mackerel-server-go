@@ -47,8 +47,8 @@ func NewHostMetricRepository(handler SQLHandler) *HostMetricRepository {
 		panic(fmt.Errorf("auto migrate host_metric_values_latest: %v", err))
 	}
 
-	if err := handler.Transact(func(tx Tx) error {
-		if _, err := tx.Exec(
+	if err := db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Exec(
 			`
 			create table if not exists host_metric_values (
 				org_id  varchar(16)  not null,
@@ -59,7 +59,7 @@ func NewHostMetricRepository(handler SQLHandler) *HostMetricRepository {
 				primary key(host_id, name, time desc)
 			)
 			`,
-		); err != nil {
+		).Error; err != nil {
 			return fmt.Errorf("create table host_metric_values: %v", err)
 		}
 

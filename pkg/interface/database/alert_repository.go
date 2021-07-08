@@ -69,8 +69,8 @@ func NewAlertRepository(handler SQLHandler) *AlertRepository {
 		db.Logger.LogMode(4)
 	}
 
-	if err := handler.Transact(func(tx Tx) error {
-		if _, err := tx.Exec(
+	if err := db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Exec(
 			`
 			create table if not exists alerts (
 				org_id     varchar(16) not null,
@@ -87,11 +87,11 @@ func NewAlertRepository(handler SQLHandler) *AlertRepository {
 				index(org_id, opened_at desc)
 			)
 			`,
-		); err != nil {
+		).Error; err != nil {
 			return fmt.Errorf("create table alerts: %v", err)
 		}
 
-		if _, err := tx.Exec(
+		if err := tx.Exec(
 			`
 			create table if not exists alert_history (
 				org_id     varchar(16) not null,
@@ -104,7 +104,7 @@ func NewAlertRepository(handler SQLHandler) *AlertRepository {
 				primary key(alert_id, monitor_id, time desc)
 			)
 			`,
-		); err != nil {
+		).Error; err != nil {
 			return fmt.Errorf("create table alert_history: %v", err)
 		}
 
