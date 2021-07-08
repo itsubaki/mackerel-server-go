@@ -15,7 +15,7 @@ type ChannelRepository struct {
 
 type Channel struct {
 	OrgID             string `gorm:"column:org_id;              type:varchar(16);  not null"`
-	ID                string `gorm:"column:id;                  type:varchar(16);  not null; primary key"`
+	ID                string `gorm:"column:id;                  type:varchar(16);  not null; primary_key"`
 	Name              string `gorm:"column:name;                type:varchar(16);  not null"`
 	Type              string `gorm:"column:type;                type:enum('email', 'slack', 'webhook');  not null"`
 	URL               string `gorm:"column:url;                 type:text;"`
@@ -24,27 +24,27 @@ type Channel struct {
 
 type ChannelMention struct {
 	OrgID     string `gorm:"column:org_id;     type:varchar(16);  not null"`
-	ChannelID string `gorm:"column:channel_id; type:varchar(16);  not null; primary key"`
-	Status    string `gorm:"column:status;     type:enum('ok', 'warning', 'critical');  not null; primary key"`
+	ChannelID string `gorm:"column:channel_id; type:varchar(16);  not null; primary_key"`
+	Status    string `gorm:"column:status;     type:enum('ok', 'warning', 'critical');  not null; primary_key"`
 	Message   string `gorm:"column:message;    type:text;"`
 }
 
 type ChannelEvent struct {
 	OrgID     string `gorm:"column:org_id;     type:varchar(16);  not null"`
-	ChannelID string `gorm:"column:channel_id; type:varchar(16);  not null; primary key"`
-	Event     string `gorm:"column:event;      type:varchar(16);  not null; primary key"`
+	ChannelID string `gorm:"column:channel_id; type:varchar(16);  not null; primary_key"`
+	Event     string `gorm:"column:event;      type:varchar(16);  not null; primary_key"`
 }
 
 type ChannelEmail struct {
 	OrgID     string `gorm:"column:org_id;     type:varchar(16);  not null"`
-	ChannelID string `gorm:"column:channel_id; type:varchar(16);  not null; primary key"`
-	EMail     string `gorm:"column:email;      type:varchar(128); not null; primary key"`
+	ChannelID string `gorm:"column:channel_id; type:varchar(16);  not null; primary_key"`
+	EMail     string `gorm:"column:email;      type:varchar(128); not null; primary_key"`
 }
 
 type ChannelUserID struct {
 	OrgID     string `gorm:"column:org_id;     type:varchar(16); not null"`
-	ChannelID string `gorm:"column:channel_id; type:varchar(16); not null; primary key"`
-	UserID    string `gorm:"column:user_id;    type:varchar(16); not null; primary key"`
+	ChannelID string `gorm:"column:channel_id; type:varchar(16); not null; primary_key"`
+	UserID    string `gorm:"column:user_id;    type:varchar(16); not null; primary_key"`
 }
 
 func NewChannelRepository(handler SQLHandler) *ChannelRepository {

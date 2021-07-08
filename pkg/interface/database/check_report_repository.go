@@ -14,9 +14,9 @@ type CheckReportRepository struct {
 
 type CheckReport struct {
 	OrgID                string `gorm:"column:org_id;     type:varchar(16);  not null"`
-	HostID               string `gorm:"column:host_id;    type:varchar(16);  not null; primary key"`
+	HostID               string `gorm:"column:host_id;    type:varchar(16);  not null; primary_key"`
 	Type                 string `gorm:"column:type;       type:enum('host'); not null"`
-	Name                 string `gorm:"column:name;       type:varchar(128); not null; primary key"`
+	Name                 string `gorm:"column:name;       type:varchar(128); not null; primary_key"`
 	Status               string `gorm:"column:status;     type:enum('OK', 'CRITICAL', 'WARNING', 'UNKNOWN'); not null"`
 	Message              string `gorm:"column:message;    type:text;"`
 	OccurredAt           int64  `gorm:"column:occurred_at;           type:bigint;"`

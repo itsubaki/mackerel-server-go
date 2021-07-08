@@ -17,7 +17,7 @@ type APIKeyRepository struct {
 type APIKey struct {
 	OrgID      string `gorm:"column:org_id;      type:varchar(16); not null"`
 	Name       string `gorm:"column:name;        type:varchar(16); not null"`
-	APIKey     string `gorm:"column:api_key;     type:varchar(45); not null; primary key"`
+	APIKey     string `gorm:"column:api_key;     type:varchar(45); not null; primary_key"`
 	Read       bool   `gorm:"column:xread;       type:varchar(16); not null; default:1"`
 	Write      bool   `gorm:"column:xwrite;      type:varchar(16); not null; default:1"`
 	LastAccess int64  `gorm:"column:last_access; type:varchar(16); not null; default:0"`

@@ -15,7 +15,7 @@ type DowntimeRepository struct {
 
 type Downtime struct {
 	OrgID                string `gorm:"column:org_id;                 type:varchar(16);  not null"`
-	ID                   string `gorm:"column:id;                     type:varchar(128); not null; primary key"`
+	ID                   string `gorm:"column:id;                     type:varchar(128); not null; primary_key"`
 	Name                 string `gorm:"column:name;                   type:varchar(128); not null"`
 	Memo                 string `gorm:"column:memo;                   type:text;"`
 	Start                int64  `gorm:"column:start;                  type:bigint;"`
