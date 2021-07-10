@@ -5,7 +5,7 @@
 # Install
 
 ```
-$ go get github.com/itsubaki/mackerel-server-go
+$ go install github.com/itsubaki/mackerel-server-go@latest
 ```
 
 # Run
