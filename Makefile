@@ -40,13 +40,18 @@ down:
 
 test:
 	go version
-	go test -v -cover $(shell go list ./... | grep -v /vendor/ | grep -v /build/ | grep -v -E "mackerel-server-go$$") -coverprofile=coverage.txt -covermode=atomic
-	go tool cover -html=coverage.txt -o coverage.html
+	go test -v -cover $(shell go list ./... | grep -v /vendor/ | grep -v /build/ | grep -v -E "mackerel-server-go$$") -coverprofile=profile-test.out -covermode=atomic
+	go tool cover -html=profile-test.out -o coverage.html
 
 godog:
 	go version
-	SQL_MODE=debug go test -v --godog.format=pretty -coverprofile=coverage.txt -covermode=atomic -coverpkg ./...
-	go tool cover -html=coverage.txt -o coverage.html
+	SQL_MODE=debug go test -v --godog.format=pretty -coverprofile=profile-godog.out -covermode=atomic -coverpkg ./...
+	go tool cover -html=profile-godog.out -o coverage.html
+
+merge:
+	echo "" > coverage.txt
+	cat profile-test.out  >> coverage.txt
+	cat profile-godog.out >> coverage.txt
 
 mkr:
 	go version

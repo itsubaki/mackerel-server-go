@@ -64,3 +64,14 @@ func TestNewID(t *testing.T) {
 		}
 	}
 }
+
+func TestNewIDPanic(t *testing.T) {
+	defer func() {
+		if err := recover(); err != "digit=1. digit must be greater than 1" {
+			t.Fail()
+		}
+	}()
+
+	domain.NewID(1, "foobar")
+	t.Fail()
+}

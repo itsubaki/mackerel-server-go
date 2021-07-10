@@ -29,6 +29,10 @@ jobs:
           make runmysql
           make godog
 
+      - name: Merge Test Coverage
+        run: |
+          make merge
+
       - name: Codecov
         uses: codecov/codecov-action@v1
         with:
