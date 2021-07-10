@@ -13,7 +13,7 @@
 *.db
 
 .idea
-coverage.out
+coverage.txt
 coverage.html
 setenv.sh
 
