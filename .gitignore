@@ -14,8 +14,8 @@
 
 .idea
 coverage.txt
-coverage.html
-setenv.sh
+coverage*.html
+profile*.out
 
 # runclient
 go-check-plugins

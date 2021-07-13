@@ -41,12 +41,12 @@ down:
 test:
 	go version
 	go test -v -cover $(shell go list ./... | grep -v /vendor/ | grep -v /build/ | grep -v -E "mackerel-server-go$$") -coverprofile=profile-test.out -covermode=atomic
-	go tool cover -html=profile-test.out -o coverage.html
+	go tool cover -html=profile-test.out -o coverage-test.html
 
 godog:
 	go version
 	SQL_MODE=debug go test -v --godog.format=pretty -coverprofile=profile-godog.out -covermode=atomic -coverpkg ./...
-	go tool cover -html=profile-godog.out -o coverage.html
+	go tool cover -html=profile-godog.out -o coverage-godog.html
 
 merge:
 	echo "" > coverage.txt
