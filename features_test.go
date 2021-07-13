@@ -38,9 +38,12 @@ type apiFeature struct {
 func (a *apiFeature) start() {
 	c := config.New()
 	h, err := handler.New(c.Driver, c.Host, c.Database, handler.Opt{
-		SQLMode: c.SQLMode,
-		Timeout: &c.Timeout,
-		Sleep:   &c.Sleep,
+		SQLMode:         c.SQLMode,
+		Timeout:         &c.Timeout,
+		Sleep:           &c.Sleep,
+		MaxIdleConns:    &c.MaxIdleConns,
+		MaxOpenConns:    &c.MaxOpenConns,
+		ConnMaxLifetime: &c.ConnMaxLifetime,
 	})
 	if err != nil {
 		panic(err)
