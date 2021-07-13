@@ -29,7 +29,7 @@ func TestServiceMetricValues(t *testing.T) {
 		}
 
 		if !found {
-			t.Error()
+			t.Fail()
 		}
 	}
 }
