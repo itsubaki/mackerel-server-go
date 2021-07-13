@@ -7,18 +7,18 @@ import (
 )
 
 func TestServiceMetricValues(t *testing.T) {
-	smv := &domain.ServiceMetricValues{
+	v := &domain.ServiceMetricValues{
 		Metrics: make([]domain.ServiceMetricValue, 0),
 	}
 
 	names := []string{"foo", "bar"}
 	for _, n := range names {
-		smv.Metrics = append(smv.Metrics, domain.ServiceMetricValue{
+		v.Metrics = append(v.Metrics, domain.ServiceMetricValue{
 			Name: n,
 		})
 	}
 
-	mn := smv.MetricNames()
+	mn := v.MetricNames()
 	for _, n := range mn.Names {
 		found := false
 		for _, nn := range names {
