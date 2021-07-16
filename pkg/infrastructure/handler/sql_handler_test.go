@@ -12,6 +12,7 @@ func TestDSN(t *testing.T) {
 		database string
 		dsn      string
 	}{
+		{"localhost:3306", "mackerel_test", "localhost:3306/mackerel_test"},
 		{"root:secret@tcp(127.0.0.1:3306)", "mackerel_test", "root:secret@tcp(127.0.0.1:3306)/mackerel_test"},
 		{"root:secret@tcp(127.0.0.1:3306)", "/mackerel_test", "root:secret@tcp(127.0.0.1:3306)/mackerel_test"},
 		{"root:secret@tcp(127.0.0.1:3306)/", "mackerel_test", "root:secret@tcp(127.0.0.1:3306)/mackerel_test"},
