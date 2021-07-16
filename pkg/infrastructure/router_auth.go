@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-const XAPIKEY string = "X-Api-Key"
+const XAPIKEY = "X-Api-Key"
 
 func UseSession(g *gin.Engine) {
 	store := cookie.NewStore([]byte("secret"))
@@ -27,7 +27,7 @@ func UseSession(g *gin.Engine) {
 	// TODO Implement Google Auth
 	g.GET("/signin", func(c *gin.Context) {
 		s := sessions.Default(c)
-		s.Set(XAPIKEY, apikey)
+		s.Set(XAPIKEY, APIKey)
 		s.Save()
 
 		c.JSON(http.StatusOK, gin.H{"signin": "ok"})
