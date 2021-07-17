@@ -34,7 +34,7 @@ func New(driver, host, database string, opt ...Opt) (database.SQLHandler, error)
 		return nil, fmt.Errorf("query: %v", err)
 	}
 
-	return Open(driver, DSN(host, database))
+	return Open(driver, DSN(host, database), opt...)
 }
 
 func DSN(host, database string) string {
@@ -54,7 +54,7 @@ func Exec(driver, dsn string, query []string, opt ...Opt) error {
 
 	if err := h.Transact(func(tx database.Tx) error {
 		for _, q := range query {
-			if _, err := tx.Exec(q); err != nil {
+			if err := tx.Exec(q); err != nil {
 				return fmt.Errorf("exec: %v", err)
 			}
 		}
@@ -150,19 +150,6 @@ func (h *SQLHandler) Ping() error {
 	return nil
 }
 
-func (h *SQLHandler) Query(query string, args ...interface{}) (database.Rows, error) {
-	rows, err := h.DB.Query(query, args...)
-	if err != nil {
-		return nil, err
-	}
-
-	return &Rows{rows}, nil
-}
-
-func (h *SQLHandler) QueryRow(query string, args ...interface{}) database.Row {
-	return h.DB.QueryRow(query, args...)
-}
-
 func (h *SQLHandler) Transact(txFunc func(tx database.Tx) error) (err error) {
 	tx, err := h.DB.Begin()
 	if err != nil {
@@ -186,19 +173,6 @@ func (h *SQLHandler) Transact(txFunc func(tx database.Tx) error) (err error) {
 	return txFunc(&Tx{tx})
 }
 
-func (h *SQLHandler) Close() error {
-	return h.DB.Close()
-}
-
-func (h *SQLHandler) Begin() (database.Tx, error) {
-	tx, err := h.DB.Begin()
-	if err != nil {
-		return nil, err
-	}
-
-	return &Tx{tx}, nil
-}
-
 func (h *SQLHandler) Raw() interface{} {
 	return h.DB
 }
@@ -211,85 +185,18 @@ func (h *SQLHandler) IsDebugMode() bool {
 	return false
 }
 
+func (h *SQLHandler) Close() error {
+	return h.DB.Close()
+}
+
 type Tx struct {
 	Tx *sql.Tx
 }
 
-func (tx *Tx) Commit() error {
-	return tx.Tx.Commit()
-}
-
-func (tx *Tx) Exec(statement string, args ...interface{}) (database.Result, error) {
-	result, err := tx.Tx.Exec(statement, args...)
-	if err != nil {
-		return nil, err
+func (tx *Tx) Exec(statement string, args ...interface{}) error {
+	if _, err := tx.Tx.Exec(statement, args...); err != nil {
+		return fmt.Errorf("exec: %v", err)
 	}
 
-	return &Result{result}, nil
-}
-
-func (tx *Tx) Query(statement string, args ...interface{}) (database.Rows, error) {
-	rows, err := tx.Tx.Query(statement, args...)
-	if err != nil {
-		return nil, err
-	}
-
-	return &Rows{rows}, nil
-}
-
-func (tx *Tx) QueryRow(query string, args ...interface{}) database.Row {
-	row := tx.Tx.QueryRow(query, args...)
-	return &Row{row}
-}
-
-func (tx *Tx) Rollback() error {
-	return tx.Tx.Rollback()
-}
-
-type Result struct {
-	Result sql.Result
-}
-
-func (r *Result) LastInsertId() (int64, error) {
-	return r.Result.LastInsertId()
-}
-
-func (r *Result) RowsAffected() (int64, error) {
-	return r.Result.RowsAffected()
-}
-
-type Rows struct {
-	Rows *sql.Rows
-}
-
-func (r *Rows) Close() error {
-	return r.Rows.Close()
-}
-
-func (r *Rows) Columns() ([]string, error) {
-	return r.Rows.Columns()
-}
-
-func (r *Rows) Err() error {
-	return r.Rows.Err()
-}
-
-func (r *Rows) Next() bool {
-	return r.Rows.Next()
-}
-
-func (r *Rows) NextResultSet() bool {
-	return r.Rows.NextResultSet()
-}
-
-func (r *Rows) Scan(dest ...interface{}) error {
-	return r.Rows.Scan(dest...)
-}
-
-type Row struct {
-	Row *sql.Row
-}
-
-func (r *Row) Scan(dest ...interface{}) error {
-	return r.Row.Scan(dest...)
+	return nil
 }
