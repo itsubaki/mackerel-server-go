@@ -43,7 +43,6 @@ func main() {
 	}
 
 	r := infrastructure.Default()
-	infrastructure.UseSession(r)
 	infrastructure.APIv0(r, h)
 
 	s := &http.Server{
