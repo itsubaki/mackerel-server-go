@@ -1,10 +1,17 @@
 package controller_test
 
+import (
+	"encoding/json"
+	"fmt"
+)
+
 type ContextMock struct {
-	header map[string]string
-	param  map[string]string
-	ctx    map[string]interface{}
-	status int
+	header  map[string]string
+	param   map[string]string
+	ctx     map[string]interface{}
+	reqbody []byte
+	resbody interface{}
+	status  int
 }
 
 func Context() *ContextMock {
@@ -14,6 +21,14 @@ func Context() *ContextMock {
 		ctx:    make(map[string]interface{}),
 		status: -1,
 	}
+}
+
+func (c *ContextMock) SetRequestBody(b []byte) {
+	c.reqbody = b
+}
+
+func (c *ContextMock) ResponseBody() interface{} {
+	return c.resbody
 }
 
 func (c *ContextMock) SetParam(key, value string) {
@@ -75,7 +90,11 @@ func (c *ContextMock) Bind(interface{}) error {
 	return nil
 }
 
-func (c *ContextMock) BindJSON(interface{}) error {
+func (c *ContextMock) BindJSON(b interface{}) error {
+	if err := json.Unmarshal(c.reqbody, &b); err != nil {
+		return fmt.Errorf("unmarshal: %v", err)
+	}
+
 	return nil
 }
 
@@ -87,8 +106,9 @@ func (c *ContextMock) GetStatus() int {
 	return c.status
 }
 
-func (c *ContextMock) JSON(int, interface{}) {
-
+func (c *ContextMock) JSON(status int, body interface{}) {
+	c.Status(status)
+	c.resbody = body
 }
 
 func (c *ContextMock) Next() {

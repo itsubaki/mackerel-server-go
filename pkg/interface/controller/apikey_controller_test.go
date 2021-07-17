@@ -32,17 +32,21 @@ func TestAPIKeyController(t *testing.T) {
 		Interactor: &usecase.APIKeyInteractor{
 			APIKeyRepository: &APIKeyRepositoryMock{
 				[]domain.APIKey{
-					{Name: "test", APIKey: "foo"},
+					{OrgID: "foo", APIKey: "bar"},
+					{OrgID: "piyo", APIKey: "fuga"},
 				},
 			},
 		},
 	}
 
 	cases := []struct {
-		name   string
-		apikey string
+		orgID   string
+		apikey  string
+		message string
 	}{
-		{"test", "foo"},
+		{"foo", "bar", ""},
+		{"piyo", "fuga", ""},
+		{"", "", "apikey not found"},
 	}
 
 	for _, c := range cases {
@@ -51,10 +55,14 @@ func TestAPIKeyController(t *testing.T) {
 
 		k, err := cntr.APIKey(ctx)
 		if err != nil {
-			t.Error(err)
+			if err.Error() != c.message {
+				t.Fail()
+			}
+
+			continue
 		}
 
-		if k.Name != c.name {
+		if k.OrgID != c.orgID {
 			t.Fail()
 		}
 	}

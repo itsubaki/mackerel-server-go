@@ -74,13 +74,19 @@ func TestAlertControllerClose(t *testing.T) {
 
 	cases := []struct {
 		orgID, alertID string
+		reason         string
 		status         int
-	}{}
+	}{
+		{"foo", "hoge", "{\"reason\": \"closed manually\"}", 200},
+		{"piy", "hoge", "{\"reason\": \"closed manually\"}", 404},
+		{"piy", "hoge", "invalid request body", 400},
+	}
 
 	for _, c := range cases {
 		ctx := Context()
 		ctx.SetParam("alertId", c.alertID)
 		ctx.Set("org_id", c.orgID)
+		ctx.SetRequestBody([]byte(c.reason))
 
 		cntr.Close(ctx)
 
