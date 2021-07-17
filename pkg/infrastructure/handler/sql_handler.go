@@ -30,7 +30,7 @@ type Opt struct {
 
 func New(driver, host, database string, opt ...Opt) (database.SQLHandler, error) {
 	sql := fmt.Sprintf("create database if not exists %s", database)
-	if err := Query(driver, host, []string{sql}, opt...); err != nil {
+	if err := Exec(driver, host, []string{sql}, opt...); err != nil {
 		return nil, fmt.Errorf("query: %v", err)
 	}
 
@@ -45,7 +45,7 @@ func DSN(host, database string) string {
 	return fmt.Sprintf("%s%s", host, database)
 }
 
-func Query(driver, dsn string, query []string, opt ...Opt) error {
+func Exec(driver, dsn string, query []string, opt ...Opt) error {
 	h, err := Open(driver, dsn, opt...)
 	if err != nil {
 		return fmt.Errorf("open: %v", err)

@@ -196,7 +196,7 @@ func InitializeTestSuite(ctx *godog.TestSuiteContext) {
 		os.Setenv("DATABASE", "mackerel_test")
 
 		c := config.New()
-		if err := handler.Query(c.Driver, c.Host, []string{
+		if err := handler.Exec(c.Driver, c.Host, []string{
 			fmt.Sprintf("drop database if exists %s", c.Database),
 			fmt.Sprintf("create database if not exists %s", c.Database),
 		}); err != nil {
