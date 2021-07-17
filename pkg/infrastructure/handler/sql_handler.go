@@ -10,6 +10,8 @@ import (
 	"github.com/itsubaki/mackerel-server-go/pkg/interface/database"
 )
 
+var _ database.SQLHandler = (*SQLHandler)(nil)
+
 type SQLHandler struct {
 	DB      *sql.DB
 	Driver  string

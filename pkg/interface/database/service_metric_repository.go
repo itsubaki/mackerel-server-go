@@ -5,9 +5,12 @@ import (
 	"fmt"
 
 	"github.com/itsubaki/mackerel-server-go/pkg/domain"
+	"github.com/itsubaki/mackerel-server-go/pkg/usecase"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
+
+var _ usecase.ServiceMetricRepository = (*ServiceMetricRepository)(nil)
 
 type ServiceMetricRepository struct {
 	DB *gorm.DB

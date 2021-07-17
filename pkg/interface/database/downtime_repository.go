@@ -5,9 +5,12 @@ import (
 	"fmt"
 
 	"github.com/itsubaki/mackerel-server-go/pkg/domain"
+	"github.com/itsubaki/mackerel-server-go/pkg/usecase"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
+
+var _ usecase.DowntimeRepository = (*DowntimeRepository)(nil)
 
 type DowntimeRepository struct {
 	DB *gorm.DB

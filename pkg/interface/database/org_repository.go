@@ -4,9 +4,12 @@ import (
 	"fmt"
 
 	"github.com/itsubaki/mackerel-server-go/pkg/domain"
+	"github.com/itsubaki/mackerel-server-go/pkg/usecase"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
+
+var _ usecase.OrgRepository = (*OrgRepository)(nil)
 
 type OrgRepository struct {
 	DB *gorm.DB

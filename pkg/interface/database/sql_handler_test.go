@@ -6,6 +6,8 @@ import (
 	"github.com/itsubaki/mackerel-server-go/pkg/interface/database"
 )
 
+var _ database.SQLHandler = (*SQLHandlerMock)(nil)
+
 type SQLHandlerMock struct {
 }
 
