@@ -152,8 +152,17 @@ func (h *SQLHandler) Ping() error {
 	return nil
 }
 
-func (h *SQLHandler) Transact(txFunc func(tx database.Tx) error) (err error) {
+func (h *SQLHandler) Begin() (database.Tx, error) {
 	tx, err := h.DB.Begin()
+	if err != nil {
+		return nil, err
+	}
+
+	return &Tx{tx}, nil
+}
+
+func (h *SQLHandler) Transact(txFunc func(tx database.Tx) error) (err error) {
+	tx, err := h.Begin()
 	if err != nil {
 		return
 	}
@@ -172,7 +181,7 @@ func (h *SQLHandler) Transact(txFunc func(tx database.Tx) error) (err error) {
 		err = tx.Commit()
 	}()
 
-	return txFunc(&Tx{tx})
+	return txFunc(tx)
 }
 
 func (h *SQLHandler) Raw() interface{} {
@@ -201,4 +210,12 @@ func (tx *Tx) Exec(statement string, args ...interface{}) error {
 	}
 
 	return nil
+}
+
+func (tx *Tx) Commit() error {
+	return tx.Tx.Commit()
+}
+
+func (tx *Tx) Rollback() error {
+	return tx.Tx.Rollback()
 }

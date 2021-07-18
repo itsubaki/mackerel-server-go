@@ -3,6 +3,7 @@ package database
 import "time"
 
 type SQLHandler interface {
+	Begin() (Tx, error)
 	Transact(txFunc func(tx Tx) error) error
 	SetMaxIdleConns(n int)
 	SetMaxOpenConns(n int)
@@ -14,4 +15,6 @@ type SQLHandler interface {
 
 type Tx interface {
 	Exec(query string, args ...interface{}) error
+	Commit() error
+	Rollback() error
 }
