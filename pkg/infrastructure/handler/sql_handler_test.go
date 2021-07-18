@@ -24,3 +24,23 @@ func TestDSN(t *testing.T) {
 		}
 	}
 }
+
+func TestIsDebugMode(t *testing.T) {
+	cases := []struct {
+		mode  string
+		debug bool
+	}{
+		{"release", false},
+		{"debug", true},
+		{"DEBUG", true},
+	}
+
+	for _, c := range cases {
+		h := &handler.SQLHandler{
+			SQLMode: c.mode,
+		}
+		if h.IsDebugMode() != c.debug {
+			t.Fail()
+		}
+	}
+}
