@@ -6,6 +6,18 @@ Feature:
   Background:
     Given I set "X-Api-Key" header with "2684d06cfedbee8499f326037bb6fb7e8c22e73b16bb"
 
+  Scenario: should get host list
+    When I send "GET" request to "/api/v0/hosts"
+    Then the response code should be 200
+    Then the response should match json:
+      """
+      {
+        "hosts": [
+          "@...@"
+        ]
+      }
+      """
+
   Scenario: should register host
     Given I set "Content-Type" header with "application/json"
     Given I set request body:
@@ -104,8 +116,7 @@ Feature:
           "memo": "",
           "createdAt": "@number@",
           "isRetired": false,
-          "roles": {
-          },
+          "roles": {},
           "meta": {
             "agent-name": "mackerel-agent/0.27.0 (Revision dfbccea)",
             "agent-revision": "2f531c6",
@@ -143,8 +154,7 @@ Feature:
           "memo": "",
           "createdAt": "@number@",
           "isRetired": true,
-          "roles": {
-          },
+          "roles": {},
           "meta": {
             "agent-name": "mackerel-agent/0.27.0 (Revision dfbccea)",
             "agent-revision": "2f531c6",
