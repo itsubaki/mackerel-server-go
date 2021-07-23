@@ -3,11 +3,11 @@ package usecase
 import "fmt"
 
 type Err struct {
-	err error
+	Err error
 }
 
 func (e *Err) Error() string {
-	return fmt.Sprint(e.err)
+	return fmt.Sprint(e.Err)
 }
 
 type PermissionDenied struct{ Err }
