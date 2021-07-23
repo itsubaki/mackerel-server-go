@@ -5,7 +5,7 @@
 # Install
 
 ```
-$ go install github.com/itsubaki/mackerel-server-go@latest
+$ git clone https://github.com/itsubaki/mackerel-server-go
 ```
 
 # Run
@@ -39,4 +39,22 @@ $ make runclient
 mackerel-agent -conf mackerel-agent.conf -apibase=http://localhost:8080
 2019/05/24 23:52:07 main.go:171: INFO <main> Starting mackerel-agent version:0.59.0, rev:, apibase:http://localhost:8080
 2019/05/24 23:52:12 command.go:91: DEBUG <command> Registering new host on mackerel...
+```
+
+# Run with Docker Compose
+
+```
+$ make up
+docker build -t mackerel-server-go .
+[+] Building 57.3s (15/15) FINISHED
+docker-compose up
+Recreating mackerel-server-go_app_1 ... done
+Starting mackerel-server-go_mysql_1 ... done
+...
+app_1    | 2021/07/23 11:38:38 main.go:54: http server listen and serve
+app_1    | [GIN] 2021/07/23 - 11:40:13 | 200 |   10.606767ms |      172.18.0.1 | GET      "/api/v0/org"
+app_1    | [GIN] 2021/07/23 - 11:40:13 | 200 |   24.198934ms |      172.18.0.1 | POST     "/api/v0/hosts"
+app_1    | [GIN] 2021/07/23 - 11:40:13 | 200 |    8.484944ms |      172.18.0.1 | GET      "/api/v0/hosts"
+app_1    | [GIN] 2021/07/23 - 11:40:13 | 200 |   18.681121ms |      172.18.0.1 | GET      "/api/v0/services"
+app_1    | [GIN] 2021/07/23 - 11:40:13 | 200 |    5.317676ms |      172.18.0.1 | GET      "/api/v0/alerts"
 ```
