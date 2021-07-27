@@ -1,5 +1,8 @@
 # mackerel-server-go
 
+[![tests](https://github.com/itsubaki/mackerel-server-go/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/itsubaki/mackerel-server-go/actions/workflows/tests.yml)
+[![codecov](https://codecov.io/gh/itsubaki/mackerel-server-go/branch/main/graph/badge.svg?token=LI1C1H4D0P)](https://codecov.io/gh/itsubaki/mackerel-server-go)
+
 - Mackerel API Server Clone written in golang
 
 # Install
