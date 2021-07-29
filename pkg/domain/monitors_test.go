@@ -9,8 +9,8 @@ import (
 
 func TestMonitor(t *testing.T) {
 	cases := []struct {
-		t string
-		T string
+		in   string
+		want string
 	}{
 		{"host", "*domain.HostMetricMonitoring"},
 		{"connectivity", "*domain.HostConnectivityMonitoring"},
@@ -22,11 +22,12 @@ func TestMonitor(t *testing.T) {
 
 	for _, c := range cases {
 		ch := &domain.Monitoring{
-			Type: c.t,
+			Type: c.in,
 		}
 
-		if fmt.Sprintf("%T", ch.Cast()) != c.T {
-			t.Error()
+		got := fmt.Sprintf("%T", ch.Cast())
+		if got != c.want {
+			t.Fail()
 		}
 	}
 }

@@ -110,32 +110,32 @@ func (a *apiFeature) ResponseCodeShouldBe(code int) error {
 		return nil
 	}
 
-	return fmt.Errorf("expected response code to be: %d, but actual is: %d", code, a.resp.Code)
+	return fmt.Errorf("got=%v, want=%v", a.resp.Code, code)
 }
 
 func (a *apiFeature) ResponseShouldMatchJSON(body *godog.DocString) error {
-	expected := a.replace(body.Content)
-	actual := a.resp.Body.String()
+	want := a.replace(body.Content)
+	got := a.resp.Body.String()
 
-	ok, err := gomatch.NewDefaultJSONMatcher().Match(expected, actual)
+	ok, err := gomatch.NewDefaultJSONMatcher().Match(want, got)
 	if err != nil {
-		return fmt.Errorf("actual=%s, match: %v", actual, err)
+		return fmt.Errorf("got=%v, want=%v, match: %v", got, want, err)
 	}
 
 	if !ok {
-		return fmt.Errorf("expected JSON does not match actual, %s vs. %s", expected, actual)
+		return fmt.Errorf("got=%v, want=%v", got, want)
 	}
 
 	return nil
 }
 
 func (a *apiFeature) Keep(key, as string) error {
-	var actual map[string]interface{}
-	if err := json.Unmarshal(a.resp.Body.Bytes(), &actual); err != nil {
+	var resposne map[string]interface{}
+	if err := json.Unmarshal(a.resp.Body.Bytes(), &resposne); err != nil {
 		return fmt.Errorf("body=%s, unmarshal: %v", a.resp.Body.String(), err)
 	}
 
-	if v, ok := actual[key]; ok {
+	if v, ok := resposne[key]; ok {
 		a.keep[as] = v
 	}
 

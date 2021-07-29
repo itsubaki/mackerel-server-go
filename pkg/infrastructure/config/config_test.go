@@ -8,65 +8,109 @@ import (
 )
 
 func TestConfig(t *testing.T) {
-	c := config.New()
-
-	if c.Port != "8080" {
-		t.Error(c)
+	type Want struct {
+		Port     string
+		Driver   string
+		Host     string
+		Database string
 	}
 
-	if c.Driver != "mysql" {
-		t.Error(c)
+	cases := []struct {
+		in   *config.Config
+		want Want
+	}{
+		{
+			in: config.New(),
+			want: Want{
+				Port:     "8080",
+				Driver:   "mysql",
+				Host:     "root:secret@tcp(127.0.0.1:3306)/",
+				Database: "mackerel",
+			},
+		},
 	}
 
-	if c.Host != "root:secret@tcp(127.0.0.1:3306)/" {
-		t.Error(c)
-	}
+	for _, c := range cases {
+		if c.in.Port != c.want.Port {
+			t.Errorf("got=%v, want=%v", c.in.Port, c.want.Port)
+		}
 
-	if c.Database != "mackerel" {
-		t.Error(c)
+		if c.in.Driver != c.want.Driver {
+			t.Errorf("got=%v, want=%v", c.in.Driver, c.want.Driver)
+		}
+
+		if c.in.Host != c.want.Host {
+			t.Errorf("got=%v, want=%v", c.in.Host, c.want.Host)
+		}
+
+		if c.in.Database != c.want.Database {
+			t.Errorf("got=%v, want=%v", c.in.Database, c.want.Database)
+		}
 	}
 }
 
 func TestGetValue(t *testing.T) {
-	if err := os.Setenv("PORT", "9090"); err != nil {
-		t.Error(err)
+	type Input struct {
+		key string
+		val string
 	}
 
-	if err := os.Setenv("DRIVER", "postgresql"); err != nil {
-		t.Error(err)
+	type Want struct {
+		Port       string
+		Driver     string
+		Host       string
+		Database   string
+		RunFixture bool
 	}
 
-	if err := os.Setenv("HOST", "user:pswd@tcp(localhost:3307)/"); err != nil {
-		t.Error(err)
+	cases := []struct {
+		in   []Input
+		want Want
+	}{
+		{
+			in: []Input{
+				{"PORT", "9090"},
+				{"DRIVER", "postgresql"},
+				{"HOST", "user:pswd@tcp(localhost:3307)/"},
+				{"DATABASE", "tmpdb"},
+				{"RUN_FIXTURE", "true"},
+			},
+			want: Want{
+				Port:       "9090",
+				Driver:     "postgresql",
+				Host:       "user:pswd@tcp(localhost:3307)/",
+				Database:   "tmpdb",
+				RunFixture: true,
+			},
+		},
 	}
 
-	if err := os.Setenv("DATABASE", "tmpdb"); err != nil {
-		t.Error(err)
-	}
+	for _, c := range cases {
+		for _, e := range c.in {
+			if err := os.Setenv(e.key, e.val); err != nil {
+				t.Errorf("setenv: %v", err)
+			}
+		}
 
-	if err := os.Setenv("RUN_FIXTURE", "true"); err != nil {
-		t.Error(err)
-	}
+		conf := config.New()
+		if conf.Port != c.want.Port {
+			t.Errorf("got=%v, want=%v", conf.Port, c.want.Port)
+		}
 
-	c := config.New()
+		if conf.Driver != c.want.Driver {
+			t.Errorf("got=%v, want=%v", conf.Driver, c.want.Driver)
+		}
 
-	if c.Port != "9090" {
-		t.Error(c)
-	}
+		if conf.Host != c.want.Host {
+			t.Errorf("got=%v, want=%v", conf.Host, c.want.Host)
+		}
 
-	if c.Driver != "postgresql" {
-		t.Error(c)
-	}
+		if conf.Database != c.want.Database {
+			t.Errorf("got=%v, want=%v", conf.Database, c.want.Database)
+		}
 
-	if c.Host != "user:pswd@tcp(localhost:3307)/" {
-		t.Error(c)
-	}
-
-	if c.Database != "tmpdb" {
-		t.Error(c)
-	}
-
-	if !c.RunFixture {
-		t.Error(c)
+		if conf.RunFixture != c.want.RunFixture {
+			t.Errorf("got=%v, want=%v", conf.RunFixture, c.want.RunFixture)
+		}
 	}
 }

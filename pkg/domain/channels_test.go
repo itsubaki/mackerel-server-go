@@ -9,8 +9,8 @@ import (
 
 func TestChannel(t *testing.T) {
 	cases := []struct {
-		t string
-		T string
+		in   string
+		want string
 	}{
 		{"email", "*domain.EmailChannel"},
 		{"slack", "*domain.SlackChannel"},
@@ -20,11 +20,12 @@ func TestChannel(t *testing.T) {
 
 	for _, c := range cases {
 		ch := &domain.Channel{
-			Type: c.t,
+			Type: c.in,
 		}
 
-		if fmt.Sprintf("%T", ch.Cast()) != c.T {
-			t.Error()
+		got := fmt.Sprintf("%T", ch.Cast())
+		if got != c.want {
+			t.Fail()
 		}
 	}
 }

@@ -10,7 +10,7 @@ func TestDSN(t *testing.T) {
 	cases := []struct {
 		host     string
 		database string
-		dsn      string
+		want     string
 	}{
 		{"localhost:3306", "mackerel_test", "localhost:3306/mackerel_test"},
 		{"localhost:3306/", "mackerel_test", "localhost:3306/mackerel_test"},
@@ -18,17 +18,17 @@ func TestDSN(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		dsn := handler.DSN(c.host, c.database)
-		if dsn != c.dsn {
-			t.Errorf(dsn)
+		got := handler.DSN(c.host, c.database)
+		if got != c.want {
+			t.Fail()
 		}
 	}
 }
 
 func TestIsDebugMode(t *testing.T) {
 	cases := []struct {
-		mode  string
-		debug bool
+		in   string
+		want bool
 	}{
 		{"release", false},
 		{"debug", true},
@@ -37,9 +37,10 @@ func TestIsDebugMode(t *testing.T) {
 
 	for _, c := range cases {
 		h := &handler.SQLHandler{
-			SQLMode: c.mode,
+			SQLMode: c.in,
 		}
-		if h.IsDebugMode() != c.debug {
+
+		if h.IsDebugMode() != c.want {
 			t.Fail()
 		}
 	}

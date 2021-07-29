@@ -40,18 +40,18 @@ func TestAPIKeyController(t *testing.T) {
 	}
 
 	cases := []struct {
-		orgID   string
-		apikey  string
+		in      string
+		want    string
 		message string
 	}{
-		{"foo", "bar", ""},
-		{"piyo", "fuga", ""},
+		{"bar", "foo", ""},
+		{"fuga", "piyo", ""},
 		{"", "", "apikey not found"},
 	}
 
 	for _, c := range cases {
 		ctx := Context()
-		ctx.SetHeader(controller.XAPIKEY, c.apikey)
+		ctx.SetHeader(controller.XAPIKEY, c.in)
 
 		k, err := cntr.APIKey(ctx)
 		if err != nil {
@@ -62,7 +62,8 @@ func TestAPIKeyController(t *testing.T) {
 			continue
 		}
 
-		if k.OrgID != c.orgID {
+		got := k.OrgID
+		if got != c.want {
 			t.Fail()
 		}
 	}

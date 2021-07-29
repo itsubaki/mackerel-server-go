@@ -75,7 +75,7 @@ func TestAlertControllerClose(t *testing.T) {
 	cases := []struct {
 		orgID, alertID string
 		reason         string
-		status         int
+		want           int
 	}{
 		{"foo", "hoge", "{\"reason\": \"closed manually\"}", 200},
 		{"piy", "hoge", "{\"reason\": \"closed manually\"}", 404},
@@ -90,7 +90,8 @@ func TestAlertControllerClose(t *testing.T) {
 
 		cntr.Close(ctx)
 
-		if ctx.GetStatus() != c.status {
+		got := ctx.GetStatus()
+		if got != c.want {
 			t.Fail()
 		}
 	}
