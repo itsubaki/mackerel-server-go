@@ -8,7 +8,7 @@
 # Install
 
 ```
-$ git clone https://github.com/itsubaki/mackerel-server-go
+git clone https://github.com/itsubaki/mackerel-server-go
 ```
 
 # Run
