@@ -40,8 +40,8 @@ down:
 
 test:
 	go version
-	go test -v -cover $(shell go list ./... | grep -v /vendor/ | grep -v /build/ | grep -v -E "mackerel-server-go$$") -coverprofile=profile-test.out -covermode=atomic
-	go tool cover -html=profile-test.out -o coverage-test.html
+	go test -v -cover $(shell go list ./... | grep -v /vendor/ | grep -v /build/ | grep -v -E "mackerel-server-go$$") -coverprofile=profile.out -covermode=atomic
+	go tool cover -html=profile.out -o coverage-test.html
 
 godog:
 	go version
@@ -50,7 +50,7 @@ godog:
 
 merge:
 	echo "" > coverage.txt
-	cat profile-test.out  >> coverage.txt
+	cat profile.out       >> coverage.txt
 	cat profile-godog.out >> coverage.txt
 
 mkr:
