@@ -41,7 +41,7 @@ down:
 test:
 	go version
 	go test -v -cover $(shell go list ./... | grep -v /vendor/ | grep -v /build/ | grep -v -E "mackerel-server-go$$") -coverprofile=profile.out -covermode=atomic
-	go tool cover -html=profile.out -o coverage-test.html
+	go tool cover -html=profile.out -o coverage.html
 
 godog:
 	go version
