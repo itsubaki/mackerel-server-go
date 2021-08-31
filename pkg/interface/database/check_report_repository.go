@@ -92,7 +92,7 @@ func (r *CheckReportRepository) Save(orgID string, reports *domain.CheckReports)
 			}
 
 			if err := tx.Where(&where).Assign(&update).FirstOrCreate(&CheckReport{}).Error; err != nil {
-				return fmt.Errorf("firts or create: %v", err)
+				return fmt.Errorf("first or create: %v", err)
 			}
 		}
 

@@ -88,7 +88,7 @@ func (r *GraphRepository) SaveDef(orgID string, g []domain.GraphDef) (*domain.Su
 			}
 
 			if err := tx.Where(&GraphDef{OrgID: orgID, Name: r.Name}).Assign(&update).FirstOrCreate(&GraphDef{}).Error; err != nil {
-				return fmt.Errorf("firts or create: %v", err)
+				return fmt.Errorf("first or create: %v", err)
 			}
 		}
 
