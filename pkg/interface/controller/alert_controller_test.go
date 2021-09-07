@@ -87,7 +87,6 @@ func TestAlertControllerClose(t *testing.T) {
 		ctx.SetParam("alertId", c.alertID)
 		ctx.Set("org_id", c.orgID)
 		ctx.SetRequestBody([]byte(c.reason))
-
 		cntr.Close(ctx)
 
 		got := ctx.GetStatus()
