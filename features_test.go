@@ -77,8 +77,6 @@ func (a *apiFeature) replace(str string) string {
 		switch val := v.(type) {
 		case string:
 			str = strings.Replace(str, k, val, -1)
-		default:
-			continue
 		}
 	}
 
