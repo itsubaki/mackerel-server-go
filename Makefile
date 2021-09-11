@@ -23,21 +23,6 @@ runmysql:
 	docker ps
 	# mysql -h127.0.0.1 -P3306 -uroot -psecret -Dmackerel
 
-cleanup:
-	docker stop $(shell docker ps -q -a)
-	docker rm   $(shell docker ps -q -a)
-	docker rmi  $(shell docker images -q)
-
-build:
-	docker build -t mackerel-server-go .
-
-up: build
-	docker-compose up
-	# docker exec -it ${CONTAINERID} mysql -u root -p
-
-down:
-	docker-compose down
-
 test:
 	go version
 	go test -v -cover $(shell go list ./... | grep -v /vendor/ | grep -v /build/ | grep -v -E "mackerel-server-go$$") -coverprofile=profile.out -covermode=atomic
@@ -62,3 +47,23 @@ mkr:
 	MACKEREL_APIKEY=${XAPIKEY} mkr --apibase=http://localhost:8080 hosts
 	MACKEREL_APIKEY=${XAPIKEY} mkr --apibase=http://localhost:8080 services
 	MACKEREL_APIKEY=${XAPIKEY} mkr --apibase=http://localhost:8080 alerts
+
+build:
+	docker build -t mackerel-server-go .
+
+up: build
+	docker-compose up
+	# docker exec -it ${CONTAINERID} mysql -u root -p
+
+down:
+	docker-compose down
+
+cleanup:
+	docker stop $(shell docker ps -q -a)
+	docker rm   $(shell docker ps -q -a)
+	docker rmi  $(shell docker images -q)
+
+push:
+	echo ${CR_PAT} | docker login docker.pkg.github.com -u itsubaki --password-stdin
+	docker build -t docker.pkg.github.com/itsubaki/mackerel-server-go/api:latest .
+	docker push     docker.pkg.github.com/itsubaki/mackerel-server-go/api:latest
