@@ -1,6 +1,7 @@
 package controller_test
 
 import (
+	"fmt"
 	"net/http"
 	"testing"
 
@@ -26,6 +27,16 @@ func TestDoResponse(t *testing.T) {
 		{&usecase.UserNotFound{}, http.StatusNotFound},
 		{&usecase.ChannelNotFound{}, http.StatusNotFound},
 		{&usecase.NotificationGroupNotFound{}, http.StatusNotFound},
+		{&usecase.InvalidServiceName{}, http.StatusBadRequest},
+		{&usecase.InvalidRoleName{}, http.StatusBadRequest},
+		{&usecase.InvalidJSONFormat{}, http.StatusBadRequest},
+		{&usecase.HostIsRetired{}, http.StatusBadRequest},
+		{&usecase.MetadataLimitExceeded{}, http.StatusBadRequest},
+		{&usecase.AlertLimitOver{}, http.StatusBadRequest},
+		{&usecase.ServiceMetricPostLimitExceeded{}, http.StatusTooManyRequests},
+		{&usecase.MetadataTooLarge{}, http.StatusRequestEntityTooLarge},
+		{&usecase.PermissionDenied{}, http.StatusForbidden},
+		{fmt.Errorf("NotImplemented"), http.StatusNotImplemented},
 	}
 
 	for _, c := range cases {
