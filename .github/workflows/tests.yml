@@ -41,5 +41,5 @@ jobs:
 
       - name: Package
         run: |
-          echo ${{ secrets.GITHUB_TOKEN }} | docker login docker.pkg.github.com -u ${GITHUB_ACTOR} --password-stdin
+          echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u itsubaki --password-stdin
           make package

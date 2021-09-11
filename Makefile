@@ -64,5 +64,5 @@ cleanup:
 	docker rmi  $(shell docker images -q)
 
 package:
-	docker build -t docker.pkg.github.com/itsubaki/mackerel-server-go/api:latest .
-	docker push     docker.pkg.github.com/itsubaki/mackerel-server-go/api:latest
+	docker build -t ghcr.io/itsubaki/mackerel-server-go .
+	docker push     ghcr.io/itsubaki/mackerel-server-go
