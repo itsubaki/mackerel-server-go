@@ -63,7 +63,6 @@ cleanup:
 	docker rm   $(shell docker ps -q -a)
 	docker rmi  $(shell docker images -q)
 
-push:
-	echo ${CR_PAT} | docker login docker.pkg.github.com -u itsubaki --password-stdin
+package:
 	docker build -t docker.pkg.github.com/itsubaki/mackerel-server-go/api:latest .
 	docker push     docker.pkg.github.com/itsubaki/mackerel-server-go/api:latest

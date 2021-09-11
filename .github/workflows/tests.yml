@@ -16,14 +16,14 @@ jobs:
     steps:
       - name: Setup Go
         uses: actions/setup-go@v2
-      
+
       - name: Checkout
         uses: actions/checkout@v2
-        
+
       - name: Unit Tests
         run: |
           make test
-        
+
       - name: Integration Tests
         run: |
           make runmysql
@@ -37,3 +37,8 @@ jobs:
         uses: codecov/codecov-action@v1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Package
+        run: |
+          echo ${{ secrets.GITHUB_TOKEN }} | docker login docker.pkg.github.com -u ${GITHUB_ACTOR} --password-stdin
+          make package
