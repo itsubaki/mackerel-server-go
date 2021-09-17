@@ -62,6 +62,7 @@ cleanup:
 	docker stop $(shell docker ps -q -a)
 	docker rm   $(shell docker ps -q -a)
 	docker rmi  $(shell docker images -q)
+	docker volume rm $(docker volume ls -qf dangling=true)
 
 package:
 	docker build -t ghcr.io/itsubaki/mackerel-server-go .
