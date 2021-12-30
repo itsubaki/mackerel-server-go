@@ -23,20 +23,20 @@ runmysql:
 	docker ps
 	# mysql -h127.0.0.1 -P3306 -uroot -psecret -Dmackerel
 
+testpkg:
+	go version
+	go test -v -cover $(shell go list ./... | grep -v /vendor/ | grep -v /build/ | grep -v -E "mackerel-server-go$$") -coverprofile=coverage-pkg.out -covermode=atomic
+	go tool cover -html=coverage-pkg.out -o coverage-pkg.html
+
 test:
 	go version
-	go test -v -cover $(shell go list ./... | grep -v /vendor/ | grep -v /build/ | grep -v -E "mackerel-server-go$$") -coverprofile=profile.out -covermode=atomic
-	go tool cover -html=profile.out -o coverage.html
-
-godog:
-	go version
-	SQL_MODE=debug go test -v --godog.format=pretty -coverprofile=profile-godog.out -covermode=atomic -coverpkg ./...
-	go tool cover -html=profile-godog.out -o coverage-godog.html
+	SQL_MODE=debug go test -v --godog.format=pretty -coverprofile=coverage.out -covermode=atomic -coverpkg ./...
+	go tool cover -html=coverage.out -o coverage.html
 
 merge:
 	echo "" > coverage.txt
-	cat profile.out       >> coverage.txt
-	cat profile-godog.out >> coverage.txt
+	cat coverage.out     >> coverage.txt
+	cat coverage-pkg.out >> coverage.txt
 
 mkr:
 	go version
