@@ -23,12 +23,12 @@ jobs:
 
       - name: Unit Tests
         run: |
-          make test
+          make testpkg
 
       - name: Integration Tests
         run: |
           make runmysql
-          make godog
+          make test
 
       - name: Merge Test Coverage
         run: |
