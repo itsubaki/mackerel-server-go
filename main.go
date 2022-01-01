@@ -58,7 +58,7 @@ func main() {
 	}()
 
 	ch := make(chan os.Signal, 2)
-	signal.Notify(ch, os.Interrupt, syscall.SIGTERM)
+	signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
 	<-ch
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
