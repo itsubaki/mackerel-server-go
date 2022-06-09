@@ -38,8 +38,3 @@ jobs:
 
       - name: Codecov
         uses: codecov/codecov-action@v2
-
-      - name: Package
-        run: |
-          echo ${{ secrets.GHCR_TOKEN }} | docker login ghcr.io -u itsubaki --password-stdin
-          make package
