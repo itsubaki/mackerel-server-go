@@ -33,11 +33,6 @@ test:
 	SQL_MODE=debug go test -v --godog.format=pretty -coverprofile=coverage.out -covermode=atomic -coverpkg ./...
 	go tool cover -html=coverage.out -o coverage.html
 
-merge:
-	echo "" > coverage.txt
-	cat coverage.out     >> coverage.txt
-	cat coverage-pkg.out >> coverage.txt
-
 mkr:
 	go version
 	go install github.com/mackerelio/mkr@latest

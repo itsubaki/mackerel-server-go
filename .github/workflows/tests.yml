@@ -32,9 +32,5 @@ jobs:
           make runmysql
           make test
 
-      - name: Merge Test Coverage
-        run: |
-          make merge
-
       - name: Codecov
         uses: codecov/codecov-action@v2

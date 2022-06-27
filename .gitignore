@@ -19,3 +19,6 @@ profile*.out
 
 # runclient
 go-check-plugins
+
+# Codespaces
+.vscode

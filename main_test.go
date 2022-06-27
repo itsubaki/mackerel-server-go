@@ -12,6 +12,7 @@ import (
 var opts = godog.Options{
 	Output: colors.Colored(os.Stdout),
 	Format: "progress", // can define default values
+	Paths:  []string{"_features"},
 }
 
 func init() {

@@ -14,11 +14,11 @@ import (
 
 	"github.com/cucumber/godog"
 	"github.com/gin-gonic/gin"
-	"github.com/itsubaki/mackerel-server-go/pkg/domain"
-	"github.com/itsubaki/mackerel-server-go/pkg/infrastructure"
-	"github.com/itsubaki/mackerel-server-go/pkg/infrastructure/config"
-	"github.com/itsubaki/mackerel-server-go/pkg/infrastructure/handler"
-	"github.com/itsubaki/mackerel-server-go/pkg/interface/database"
+	"github.com/itsubaki/mackerel-server-go/domain"
+	"github.com/itsubaki/mackerel-server-go/infrastructure"
+	"github.com/itsubaki/mackerel-server-go/infrastructure/config"
+	"github.com/itsubaki/mackerel-server-go/infrastructure/handler"
+	"github.com/itsubaki/mackerel-server-go/interface/database"
 	"github.com/jfilipczyk/gomatch"
 )
 
