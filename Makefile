@@ -30,7 +30,7 @@ testpkg:
 
 test:
 	go version
-	SQL_MODE=debug go test -v --godog.format=pretty -coverprofile=coverage.out -covermode=atomic -coverpkg ./...
+	SQL_MODE=debug go test -v -coverprofile=coverage.out -covermode=atomic -coverpkg ./...
 	go tool cover -html=coverage.out -o coverage.html
 
 mkr:

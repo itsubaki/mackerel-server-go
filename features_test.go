@@ -2,6 +2,7 @@ package main_test
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -66,10 +67,12 @@ func (a *apiFeature) stop() {
 	}
 }
 
-func (a *apiFeature) reset(sc *godog.Scenario) {
+func (a *apiFeature) reset(ctx context.Context, sc *godog.Scenario) (context.Context, error) {
 	a.header = make(http.Header)
 	a.body = nil
 	a.resp = httptest.NewRecorder()
+
+	return ctx, nil
 }
 
 func (a *apiFeature) replace(str string) string {
@@ -212,7 +215,7 @@ func InitializeTestSuite(ctx *godog.TestSuiteContext) {
 }
 
 func InitializeScenario(ctx *godog.ScenarioContext) {
-	ctx.BeforeScenario(api.reset)
+	ctx.Before(api.reset)
 
 	ctx.Step(`^the following alerts exist:$`, api.AlertsExists)
 	ctx.Step(`^the following users exist:$`, api.UsersExists)

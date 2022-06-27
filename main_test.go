@@ -11,12 +11,12 @@ import (
 
 var opts = godog.Options{
 	Output: colors.Colored(os.Stdout),
-	Format: "progress", // can define default values
-	Paths:  []string{"_features"},
+	Format: "pretty",
+	Paths:  []string{"features"},
 }
 
 func init() {
-	godog.BindFlags("godog.", flag.CommandLine, &opts)
+	godog.BindCommandLineFlags("godog.", &opts)
 }
 
 func TestMain(m *testing.M) {
