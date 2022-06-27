@@ -12,7 +12,7 @@ import (
 var opts = godog.Options{
 	Output: colors.Colored(os.Stdout),
 	Format: "pretty",
-	Paths:  []string{"features"},
+	Paths:  []string{"_features"},
 }
 
 func init() {
@@ -21,7 +21,6 @@ func init() {
 
 func TestMain(m *testing.M) {
 	flag.Parse()
-	opts.Paths = flag.Args()
 
 	status := godog.TestSuite{
 		Name:                 "mackerel-server-go",
