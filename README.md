@@ -50,7 +50,7 @@ mackerel-agent -conf mackerel-agent.conf -apibase=http://localhost:8080
 $ make up
 docker build -t mackerel-server-go .
 [+] Building 57.3s (15/15) FINISHED
-docker-compose up
+docker compose up
 Recreating mackerel-server-go_app_1 ... done
 Starting mackerel-server-go_mysql_1 ... done
 ...

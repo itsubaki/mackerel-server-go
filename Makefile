@@ -47,11 +47,11 @@ build:
 	docker build -t mackerel-server-go .
 
 up: build
-	docker-compose up
+	docker compose up
 	# docker exec -it ${CONTAINERID} mysql -u root -p
 
 down:
-	docker-compose down
+	docker compose down
 
 cleanup:
 	docker stop $(shell docker ps -q -a)
