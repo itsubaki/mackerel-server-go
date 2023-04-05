@@ -62,3 +62,8 @@ cleanup:
 package:
 	docker build -t ghcr.io/itsubaki/mackerel-server-go .
 	docker push     ghcr.io/itsubaki/mackerel-server-go
+
+dbdoc:
+	tbls diff
+	tbls doc --force
+	tbls coverage
