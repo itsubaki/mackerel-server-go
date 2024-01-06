@@ -5,13 +5,13 @@
 
 - Mackerel API Server Clone written in Go
 
-# Install
+## Install
 
 ```
 git clone https://github.com/itsubaki/mackerel-server-go
 ```
 
-# Run
+## Run
 
 ```
 $ make runmysql
@@ -44,7 +44,7 @@ mackerel-agent -conf mackerel-agent.conf -apibase=http://localhost:8080
 2019/05/24 23:52:12 command.go:91: DEBUG <command> Registering new host on mackerel...
 ```
 
-# Run with Docker Compose
+## Run with Docker Compose
 
 ```
 $ make up
