@@ -3,6 +3,10 @@ DATE := $(shell date +%Y%m%d-%H:%M:%S)
 HASH := $(shell git rev-parse HEAD)
 XAPIKEY := 2684d06cfedbee8499f326037bb6fb7e8c22e73b16bb
 
+update:
+	go get -u
+	go mod tidy
+
 runserver:
 	go version
 	GIN_MODE=debug SQL_MODE=debug RUN_FIXTURE=true go run main.go
