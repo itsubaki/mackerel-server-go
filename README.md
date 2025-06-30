@@ -5,7 +5,7 @@
 
 - Mackerel API Server Clone written in Go
 
-## Install
+## Installation
 
 ```
 git clone https://github.com/itsubaki/mackerel-server-go
