@@ -69,13 +69,13 @@ func (r *RoleMetaRepository) List(orgID, serviceName, roleName string) (*domain.
 	return &domain.RoleMetadataList{Metadata: out}, nil
 }
 
-func (r *RoleMetaRepository) Metadata(orgID, serviceName, roleName, namespace string) (interface{}, error) {
+func (r *RoleMetaRepository) Metadata(orgID, serviceName, roleName, namespace string) (any, error) {
 	result := RoleMeta{}
 	if err := r.DB.Where(&RoleMeta{OrgID: orgID, ServiceName: serviceName, RoleName: roleName, Namespace: namespace}).Find(&result).Error; err != nil {
 		return nil, fmt.Errorf("select * from role_meta: %v", err)
 	}
 
-	var out interface{}
+	var out any
 	if err := json.Unmarshal([]byte(result.Metadata), &out); err != nil {
 		return nil, fmt.Errorf("unmarshal: %v", err)
 	}
@@ -83,7 +83,7 @@ func (r *RoleMetaRepository) Metadata(orgID, serviceName, roleName, namespace st
 	return out, nil
 }
 
-func (r *RoleMetaRepository) Save(orgID, serviceName, roleName, namespace string, metadata interface{}) (*domain.Success, error) {
+func (r *RoleMetaRepository) Save(orgID, serviceName, roleName, namespace string, metadata any) (*domain.Success, error) {
 	meta, err := json.Marshal(metadata)
 	if err != nil {
 		return &domain.Success{Success: false}, fmt.Errorf("marshal: %v", err)

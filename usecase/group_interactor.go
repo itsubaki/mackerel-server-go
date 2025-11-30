@@ -6,6 +6,8 @@ import (
 	"github.com/itsubaki/mackerel-server-go/domain"
 )
 
+var ErrNotificationGroupNotFound = errors.New("notification group not found")
+
 type NotificationGroupInteractor struct {
 	NotificationGroupRepository NotificationGroupRepository
 }
@@ -21,7 +23,11 @@ func (intr *NotificationGroupInteractor) Save(orgID string, group *domain.Notifi
 
 func (intr *NotificationGroupInteractor) Update(orgID string, group *domain.NotificationGroup) (*domain.NotificationGroup, error) {
 	if !intr.NotificationGroupRepository.Exists(orgID, group.ID) {
-		return nil, &NotificationGroupNotFound{Err{errors.New("when the specified notification group does not exist")}}
+		return nil, &NotificationGroupNotFound{
+			Err{
+				Err: ErrNotificationGroupNotFound,
+			},
+		}
 	}
 
 	return intr.NotificationGroupRepository.Update(orgID, group)
@@ -29,7 +35,11 @@ func (intr *NotificationGroupInteractor) Update(orgID string, group *domain.Noti
 
 func (intr *NotificationGroupInteractor) Delete(orgID, groupID string) (*domain.NotificationGroup, error) {
 	if !intr.NotificationGroupRepository.Exists(orgID, groupID) {
-		return nil, &NotificationGroupNotFound{Err{errors.New("when the specified notification group does not exist")}}
+		return nil, &NotificationGroupNotFound{
+			Err{
+				Err: ErrNotificationGroupNotFound,
+			},
+		}
 	}
 
 	return intr.NotificationGroupRepository.Delete(orgID, groupID)

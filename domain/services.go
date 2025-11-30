@@ -16,10 +16,10 @@ type ServiceMetadataList struct {
 }
 
 type ServiceMetadata struct {
-	OrgID       string      `json:"-"`
-	ServiceName string      `json:"-"`
-	Namespace   string      `json:"namespace"`
-	Metadata    interface{} `json:"-"`
+	OrgID       string `json:"-"`
+	ServiceName string `json:"-"`
+	Namespace   string `json:"namespace"`
+	Metadata    any    `json:"-"`
 }
 
 type Roles struct {
@@ -47,11 +47,11 @@ type RoleMetadataList struct {
 }
 
 type RoleMetadata struct {
-	OrgID       string      `json:"-"`
-	ServiceName string      `json:"-"`
-	RoleName    string      `json:"-"`
-	Namespace   string      `json:"namespace"`
-	Metadata    interface{} `json:"-"`
+	OrgID       string `json:"-"`
+	ServiceName string `json:"-"`
+	RoleName    string `json:"-"`
+	Namespace   string `json:"namespace"`
+	Metadata    any    `json:"-"`
 }
 
 type ServiceMetricValues struct {

@@ -68,13 +68,13 @@ func (r *ServiceMetaRepository) List(orgID, serviceName string) (*domain.Service
 	return &domain.ServiceMetadataList{Metadata: out}, nil
 }
 
-func (r *ServiceMetaRepository) Metadata(orgID, serviceName, namespace string) (interface{}, error) {
+func (r *ServiceMetaRepository) Metadata(orgID, serviceName, namespace string) (any, error) {
 	result := ServiceMeta{}
 	if err := r.DB.Where(&ServiceMeta{OrgID: orgID, ServiceName: serviceName, Namespace: namespace}).Find(&result).Error; err != nil {
 		return nil, fmt.Errorf("select * from serviec_meta: %v", err)
 	}
 
-	var out interface{}
+	var out any
 	if err := json.Unmarshal([]byte(result.Metadata), &out); err != nil {
 		return nil, fmt.Errorf("unmarshal: %v", err)
 	}
@@ -82,7 +82,7 @@ func (r *ServiceMetaRepository) Metadata(orgID, serviceName, namespace string) (
 	return out, nil
 }
 
-func (r *ServiceMetaRepository) Save(orgID, serviceName, namespace string, metadata interface{}) (*domain.Success, error) {
+func (r *ServiceMetaRepository) Save(orgID, serviceName, namespace string, metadata any) (*domain.Success, error) {
 	meta, err := json.Marshal(metadata)
 	if err != nil {
 		return &domain.Success{Success: false}, fmt.Errorf("marshal: %v", err)

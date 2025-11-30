@@ -201,7 +201,7 @@ func (cntr *HostController) ListMetadata(c Context) {
 }
 
 func (cntr *HostController) SaveMetadata(c Context) {
-	var in interface{}
+	var in any
 	if err := c.BindJSON(&in); err != nil {
 		c.Status(http.StatusBadRequest)
 		return

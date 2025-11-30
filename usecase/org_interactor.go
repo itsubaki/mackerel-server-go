@@ -1,8 +1,6 @@
 package usecase
 
-import (
-	"github.com/itsubaki/mackerel-server-go/domain"
-)
+import "github.com/itsubaki/mackerel-server-go/domain"
 
 type OrgInteractor struct {
 	OrgRepository OrgRepository

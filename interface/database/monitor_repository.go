@@ -146,7 +146,7 @@ func (r *MonitorRepository) List(orgID string) (*domain.Monitors, error) {
 		return nil, fmt.Errorf("select * from monitors: %v", err)
 	}
 
-	out := make([]interface{}, 0)
+	out := make([]any, 0)
 	for _, r := range result {
 		m, err := r.Domain()
 		if err != nil {
@@ -159,7 +159,7 @@ func (r *MonitorRepository) List(orgID string) (*domain.Monitors, error) {
 	return &domain.Monitors{Monitors: out}, nil
 }
 
-func (r *MonitorRepository) Save(orgID string, monitor *domain.Monitoring) (interface{}, error) {
+func (r *MonitorRepository) Save(orgID string, monitor *domain.Monitoring) (any, error) {
 	scopes, err := json.Marshal(monitor.Scopes)
 	if err != nil {
 		return nil, fmt.Errorf("marshal monitor.Scopes: %v", err)
@@ -225,7 +225,7 @@ func (r *MonitorRepository) Save(orgID string, monitor *domain.Monitoring) (inte
 	return monitor, nil
 }
 
-func (r *MonitorRepository) Update(orgID string, monitor *domain.Monitoring) (interface{}, error) {
+func (r *MonitorRepository) Update(orgID string, monitor *domain.Monitoring) (any, error) {
 	scopes, err := json.Marshal(monitor.Scopes)
 	if err != nil {
 		return nil, fmt.Errorf("marshal monitor.Scopes: %v", err)
@@ -291,7 +291,7 @@ func (r *MonitorRepository) Update(orgID string, monitor *domain.Monitoring) (in
 	return monitor.Cast(), nil
 }
 
-func (r *MonitorRepository) Monitor(orgID, monitorID string) (interface{}, error) {
+func (r *MonitorRepository) Monitor(orgID, monitorID string) (any, error) {
 	result := Monitor{}
 	if err := r.DB.Where(&Monitor{OrgID: orgID, ID: monitorID}).First(&result).Error; err != nil {
 		return nil, fmt.Errorf("select * from monitors: %v", err)
@@ -305,7 +305,7 @@ func (r *MonitorRepository) Monitor(orgID, monitorID string) (interface{}, error
 	return m.Cast(), nil
 }
 
-func (r *MonitorRepository) Delete(orgID, monitorID string) (interface{}, error) {
+func (r *MonitorRepository) Delete(orgID, monitorID string) (any, error) {
 	result := Monitor{}
 	if err := r.DB.Where(&Monitor{OrgID: orgID, ID: monitorID}).First(&result).Error; err != nil {
 		return nil, fmt.Errorf("select * from monitors: %v", err)

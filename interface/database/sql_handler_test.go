@@ -34,7 +34,7 @@ func (h *SQLHandlerMock) SetConnMaxLifetime(d time.Duration) {
 
 }
 
-func (h *SQLHandlerMock) Raw() interface{} {
+func (h *SQLHandlerMock) Raw() any {
 	return nil
 }
 
@@ -49,7 +49,7 @@ func (h *SQLHandlerMock) Close() error {
 type TxMock struct {
 }
 
-func (tx *TxMock) Exec(query string, args ...interface{}) error {
+func (tx *TxMock) Exec(query string, args ...any) error {
 	return nil
 }
 

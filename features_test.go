@@ -33,7 +33,7 @@ type apiFeature struct {
 	config  *config.Config
 	handler database.SQLHandler
 	server  *gin.Engine
-	keep    map[string]interface{}
+	keep    map[string]any
 }
 
 func (a *apiFeature) start() {
@@ -58,7 +58,7 @@ func (a *apiFeature) start() {
 	a.config = c
 	a.handler = h
 	a.server = infrastructure.APIv0(infrastructure.Default(), h)
-	a.keep = make(map[string]interface{})
+	a.keep = make(map[string]any)
 }
 
 func (a *apiFeature) stop() {
@@ -131,7 +131,7 @@ func (a *apiFeature) ResponseShouldMatchJSON(body *godog.DocString) error {
 }
 
 func (a *apiFeature) Keep(key, as string) error {
-	var resposne map[string]interface{}
+	var resposne map[string]any
 	if err := json.Unmarshal(a.resp.Body.Bytes(), &resposne); err != nil {
 		return fmt.Errorf("body=%s, unmarshal: %v", a.resp.Body.String(), err)
 	}

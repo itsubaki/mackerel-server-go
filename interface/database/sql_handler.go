@@ -8,13 +8,13 @@ type SQLHandler interface {
 	SetMaxIdleConns(n int)
 	SetMaxOpenConns(n int)
 	SetConnMaxLifetime(d time.Duration)
-	Raw() interface{}
+	Raw() any
 	IsDebugMode() bool
 	Close() error
 }
 
 type Tx interface {
-	Exec(query string, args ...interface{}) error
+	Exec(query string, args ...any) error
 	Commit() error
 	Rollback() error
 }

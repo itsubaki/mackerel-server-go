@@ -1,7 +1,7 @@
 package domain
 
 type Monitors struct {
-	Monitors []interface{} `json:"monitors"`
+	Monitors []any `json:"monitors"`
 }
 
 type Monitoring struct {
@@ -37,7 +37,7 @@ type Monitoring struct {
 	Expression                      string              `json:"expression,omitempty"`                      // Expression
 }
 
-func (m *Monitoring) Cast() interface{} {
+func (m *Monitoring) Cast() any {
 	if m.Type == "host" {
 		return &HostMetricMonitoring{
 			ID:                   m.ID,

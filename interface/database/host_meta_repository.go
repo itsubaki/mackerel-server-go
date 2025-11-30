@@ -68,13 +68,13 @@ func (r *HostMetaRepository) List(orgID, hostID string) (*domain.HostMetadataLis
 	return &domain.HostMetadataList{Metadata: out}, nil
 }
 
-func (r *HostMetaRepository) Metadata(orgID, hostID, namespace string) (interface{}, error) {
+func (r *HostMetaRepository) Metadata(orgID, hostID, namespace string) (any, error) {
 	result := HostMeta{}
 	if err := r.DB.Where(&HostMeta{OrgID: orgID, HostID: hostID, Namespace: namespace}).Find(&result).Error; err != nil {
 		return nil, fmt.Errorf("select * from host_meta: %v", err)
 	}
 
-	var out interface{}
+	var out any
 	if err := json.Unmarshal([]byte(result.Metadata), &out); err != nil {
 		return nil, fmt.Errorf("unmarshal: %v", err)
 	}
@@ -82,7 +82,7 @@ func (r *HostMetaRepository) Metadata(orgID, hostID, namespace string) (interfac
 	return out, nil
 }
 
-func (r *HostMetaRepository) Save(orgID, hostID, namespace string, metadata interface{}) (*domain.Success, error) {
+func (r *HostMetaRepository) Save(orgID, hostID, namespace string, metadata any) (*domain.Success, error) {
 	meta, err := json.Marshal(metadata)
 	if err != nil {
 		return &domain.Success{Success: false}, fmt.Errorf("marshal: %v", err)

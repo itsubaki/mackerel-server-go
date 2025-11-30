@@ -1,7 +1,7 @@
 package domain
 
 type Channels struct {
-	Channels []interface{} `json:"channels"`
+	Channels []any `json:"channels"`
 }
 
 type Channel struct {
@@ -17,7 +17,7 @@ type Channel struct {
 	EnabledGraphImage bool              `json:"enabledGraphImage,omitempty"` // slack
 }
 
-func (c *Channel) Cast() interface{} {
+func (c *Channel) Cast() any {
 	if c.Type == "email" {
 		return &EmailChannel{
 			ID:      c.ID,

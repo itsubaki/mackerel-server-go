@@ -184,7 +184,7 @@ func (h *SQLHandler) Transact(txFunc func(tx database.Tx) error) (err error) {
 	return txFunc(tx)
 }
 
-func (h *SQLHandler) Raw() interface{} {
+func (h *SQLHandler) Raw() any {
 	return h.DB
 }
 
@@ -204,7 +204,7 @@ type Tx struct {
 	Tx *sql.Tx
 }
 
-func (tx *Tx) Exec(statement string, args ...interface{}) error {
+func (tx *Tx) Exec(statement string, args ...any) error {
 	if _, err := tx.Tx.Exec(statement, args...); err != nil {
 		return fmt.Errorf("exec: %v", err)
 	}

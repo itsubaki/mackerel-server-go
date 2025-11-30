@@ -6,7 +6,7 @@ import (
 	"github.com/itsubaki/mackerel-server-go/usecase"
 )
 
-func doResponse(c Context, out interface{}, err error) {
+func doResponse(c Context, out any, err error) {
 	if err == nil {
 		c.JSON(http.StatusOK, out)
 		return

@@ -136,7 +136,7 @@ func (r *ChannelRepository) List(orgID string) (*domain.Channels, error) {
 		return nil, fmt.Errorf("transaction: %v", err)
 	}
 
-	out := make([]interface{}, 0)
+	out := make([]any, 0)
 	for i := range channels {
 		out = append(out, channels[i].Cast())
 	}
@@ -144,7 +144,7 @@ func (r *ChannelRepository) List(orgID string) (*domain.Channels, error) {
 	return &domain.Channels{Channels: out}, nil
 }
 
-func (r *ChannelRepository) Save(orgID string, channel *domain.Channel) (interface{}, error) {
+func (r *ChannelRepository) Save(orgID string, channel *domain.Channel) (any, error) {
 	if err := r.DB.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Create(&Channel{
 			OrgID:             orgID,
@@ -214,7 +214,7 @@ func (r *ChannelRepository) Exists(orgID, channelID string) bool {
 	return true
 }
 
-func (r *ChannelRepository) Delete(orgID, channelID string) (interface{}, error) {
+func (r *ChannelRepository) Delete(orgID, channelID string) (any, error) {
 	var channel domain.Channel
 	if err := r.DB.Transaction(func(tx *gorm.DB) error {
 		result := Channel{}

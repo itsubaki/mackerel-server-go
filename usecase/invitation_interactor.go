@@ -7,6 +7,8 @@ import (
 	"github.com/itsubaki/mackerel-server-go/domain"
 )
 
+var ErrInvitationNotFound = errors.New("invitation not found")
+
 type InvitationInteractor struct {
 	InvitationRepository InvitationRepository
 }
@@ -21,7 +23,11 @@ func (intr *InvitationInteractor) Save(orgID string, inv *domain.Invitation) (*d
 
 func (intr *InvitationInteractor) Revoke(orgID, email string) (*domain.Success, error) {
 	if !intr.InvitationRepository.Exists(orgID, email) {
-		return &domain.Success{Success: false}, &InvitationNotFound{Err{errors.New("the specified email has not be sent an invitation")}}
+		return &domain.Success{Success: false}, &InvitationNotFound{
+			Err{
+				Err: ErrInvitationNotFound,
+			},
+		}
 	}
 
 	res, err := intr.InvitationRepository.Revoke(orgID, email)

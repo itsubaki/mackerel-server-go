@@ -12,10 +12,10 @@ type TSDBLatest struct {
 type TSDBLatestValue map[string]map[string]MetricValue
 
 type HostMetadata struct {
-	OrgID     string      `json:"-"`
-	HostID    string      `json:"-"`
-	Namespace string      `json:"-"`
-	Metadata  interface{} `json:"-"`
+	OrgID     string `json:"-"`
+	HostID    string `json:"-"`
+	Namespace string `json:"-"`
+	Metadata  any    `json:"-"`
 }
 
 type HostMetadataList struct {
@@ -85,14 +85,14 @@ type Host struct {
 }
 
 type Meta struct {
-	AgentName     string                 `json:"agent-name"`
-	AgentRevision string                 `json:"agent-revision"`
-	AgentVersion  string                 `json:"agent-version"`
-	BlockDevice   map[string]interface{} `json:"block_device,omitempty"`
-	CPU           []interface{}          `json:"cpu,omitempty"`
-	FileSystem    map[string]interface{} `json:"filesystem,omitempty"`
-	Kernel        map[string]string      `json:"kernel,omitempty"`
-	Memory        map[string]string      `json:"memory,omitempty"`
+	AgentName     string            `json:"agent-name"`
+	AgentRevision string            `json:"agent-revision"`
+	AgentVersion  string            `json:"agent-version"`
+	BlockDevice   map[string]any    `json:"block_device,omitempty"`
+	CPU           []any             `json:"cpu,omitempty"`
+	FileSystem    map[string]any    `json:"filesystem,omitempty"`
+	Kernel        map[string]string `json:"kernel,omitempty"`
+	Memory        map[string]string `json:"memory,omitempty"`
 }
 
 type Interface struct {

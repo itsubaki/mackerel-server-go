@@ -6,6 +6,8 @@ import (
 	"github.com/itsubaki/mackerel-server-go/domain"
 )
 
+var ErrDashboardNotFound = errors.New("dashboard not found")
+
 type DashboardInteractor struct {
 	DashboardRepository DashboardRepository
 }
@@ -33,7 +35,11 @@ func (intr *DashboardInteractor) Exists(orgID, dashboardID string) bool {
 
 func (intr *DashboardInteractor) Delete(orgID, dashboardID string) (*domain.Dashboard, error) {
 	if !intr.DashboardRepository.Exists(orgID, dashboardID) {
-		return nil, &DashboardNotFound{Err{errors.New("when the dashboard corresponding to the designated ID can't be found")}}
+		return nil, &DashboardNotFound{
+			Err{
+				Err: ErrDashboardNotFound,
+			},
+		}
 	}
 
 	return intr.DashboardRepository.Delete(orgID, dashboardID)

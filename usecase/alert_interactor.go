@@ -21,7 +21,11 @@ func (intr *AlertInteractor) List(orgID string, withClosed bool, nextID string, 
 
 func (intr *AlertInteractor) Close(orgID, alertID, reason string) (*domain.Alert, error) {
 	if !intr.AlertRepository.Exists(orgID, alertID) {
-		return nil, &AlertNotFound{Err{fmt.Errorf(fmt.Sprintf("the <%s>'s corresponding alert can't be found", alertID))}}
+		return nil, &AlertNotFound{
+			Err{
+				Err: fmt.Errorf("the <%s>'s corresponding alert can't be found", alertID),
+			},
+		}
 	}
 
 	return intr.AlertRepository.Close(orgID, alertID, reason)

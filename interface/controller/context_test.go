@@ -8,9 +8,9 @@ import (
 type ContextMock struct {
 	header  map[string]string
 	param   map[string]string
-	ctx     map[string]interface{}
+	ctx     map[string]any
 	reqbody []byte
-	resbody interface{}
+	resbody any
 	status  int
 }
 
@@ -18,7 +18,7 @@ func Context() *ContextMock {
 	return &ContextMock{
 		header: make(map[string]string),
 		param:  make(map[string]string),
-		ctx:    make(map[string]interface{}),
+		ctx:    make(map[string]any),
 		status: -1,
 	}
 }
@@ -27,7 +27,7 @@ func (c *ContextMock) SetRequestBody(b []byte) {
 	c.reqbody = b
 }
 
-func (c *ContextMock) ResponseBody() interface{} {
+func (c *ContextMock) ResponseBody() any {
 	return c.resbody
 }
 
@@ -73,7 +73,7 @@ func (c *ContextMock) QueryMap(key string) map[string]string {
 	return make(map[string]string)
 }
 
-func (c *ContextMock) Set(key string, val interface{}) {
+func (c *ContextMock) Set(key string, val any) {
 	c.ctx[key] = val
 }
 
@@ -86,11 +86,11 @@ func (c *ContextMock) GetString(key string) string {
 	return ""
 }
 
-func (c *ContextMock) Bind(interface{}) error {
+func (c *ContextMock) Bind(any) error {
 	return nil
 }
 
-func (c *ContextMock) BindJSON(b interface{}) error {
+func (c *ContextMock) BindJSON(b any) error {
 	if err := json.Unmarshal(c.reqbody, &b); err != nil {
 		return fmt.Errorf("unmarshal: %v", err)
 	}
@@ -106,7 +106,7 @@ func (c *ContextMock) GetStatus() int {
 	return c.status
 }
 
-func (c *ContextMock) JSON(status int, body interface{}) {
+func (c *ContextMock) JSON(status int, body any) {
 	c.Status(status)
 	c.resbody = body
 }
