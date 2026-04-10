@@ -3,7 +3,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/itsubaki/mackerel-server-go?style=flat-square)](https://goreportcard.com/report/github.com/itsubaki/mackerel-server-go)
 [![tests](https://github.com/itsubaki/mackerel-server-go/actions/workflows/tests.yaml/badge.svg?branch=main)](https://github.com/itsubaki/mackerel-server-go/actions/workflows/tests.yaml)
 
-- Mackerel API Server Clone written in Go
+- Mackerel API Server Clone in Go
 
 ## Installation
 
